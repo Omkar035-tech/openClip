@@ -1,0 +1,16 @@
+{
+  "name": "bold-pop",
+  "font": "Montserrat-ExtraBold.ttf",
+  "font_size": 68,
+  "font_color": "#FFFFFF",
+  "active_color": "#FFD400",
+  "stroke_color": "#000000",
+  "stroke_width": 7,
+  "shadow_color": "#00000088",
+  "shadow_offset": [3, 4],
+  "pop_scale": 1.12,
+  "box_enabled": false,
+  "casing": "upper",
+  "max_words": 3,
+  "position_ratio": 0.70
+}

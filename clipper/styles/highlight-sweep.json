@@ -1,0 +1,14 @@
+{
+  "name": "highlight-sweep",
+  "font": "Poppins-ExtraBold.ttf",
+  "font_size": 64,
+  "font_color": "#E0E0E0",
+  "active_color": "#00FFCC",
+  "stroke_color": "#050505",
+  "stroke_width": 6,
+  "box_enabled": false,
+  "sweep_effect": true,
+  "casing": "upper",
+  "max_words": 3,
+  "position_ratio": 0.68
+}

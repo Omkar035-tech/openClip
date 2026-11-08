@@ -1,0 +1,65 @@
+{
+  "sneaky_snitch": {
+    "title": "Sneaky Snitch",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Sneaky Snitch\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "monkeys_spinning": {
+    "title": "Monkeys Spinning Monkeys",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Monkeys%20Spinning%20Monkeys.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Monkeys Spinning Monkeys\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "the_complex": {
+    "title": "The Complex",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Complex.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"The Complex\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "heartbreaking": {
+    "title": "Heartbreaking",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Heartbreaking.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Heartbreaking\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "carefree": {
+    "title": "Carefree",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Carefree.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Carefree\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "airport_lounge": {
+    "title": "Airport Lounge",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Airport%20Lounge.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Airport Lounge\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "scheming_weasel": {
+    "title": "Scheming Weasel (Faster Version)",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Scheming%20Weasel%20faster.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Scheming Weasel (faster version)\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  }
+}

@@ -1,0 +1,60 @@
+# Environment & Python
+.venv/
+clipper/.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Secrets & Config
+.env
+clipper/.env
+*.key
+*.pem
+token.json
+client_secrets.json
+
+# Caches & Temporary Files
+.DS_Store
+*/.DS_Store
+cache/
+clipper/cache/
+/tmp/
+*.tmp
+
+# Rendered Media Outputs & Video Blobs (Keep repository lightweight)
+output/
+clipper/out/
+*.mp4
+*.mkv
+*.mov
+*.wav
+*.flac
+!clipper/music_library/tracks/*.mp3
+!clipper/music_library/tracks/*.wav
+!clipper/assets/*.wav
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

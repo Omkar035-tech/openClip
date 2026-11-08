@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clipper Studio — AI Podcast to Viral Shorts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { 500: '#EAB308', 600: '#CA8A04' },
+            dark: { 900: '#0B0F17', 800: '#111827', 700: '#1F2937', 600: '#374151' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@800;900&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .phone-mockup {
+      aspect-ratio: 9/16;
+      max-height: 520px;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-dark-700 bg-dark-800/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-500/20">
+        <svg class="w-5 h-5 text-gray-950 font-bold" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M4 4h4v16H4V4zm6 0h4v16h-4V4zm6 0h4v16h-4V4z"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight flex items-center gap-2">
+          Clipper Studio <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">M4 Metal GPU</span>
+        </h1>
+        <p class="text-xs text-gray-400">Autonomous Podcast-to-Viral-Short Engine</p>
+      </div>
+    </div>
+
+    <!-- Antigravity AI Middleware Status -->
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-xs font-medium text-emerald-300">Antigravity AI Engine: Active</span>
+      </div>
+      <button onclick="openYouTubeModal()" class="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        YouTube Automation
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: Studio Controls & Customizer (5 cols) -->
+    <div class="lg:col-span-5 space-y-5">
+      
+      <!-- Video Input Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            Source Podcast Video
+          </label>
+          <span class="text-xs text-gray-400">42 min sample loaded</span>
+        </div>
+        <div class="relative">
+          <input type="text" id="videoPath" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3.5 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono"
+            value="/Users/omkar-dev/Movies/OpenFilm/Projects/Untitled/assets/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P.mp4">
+        </div>
+      </div>
+
+      <!-- Format & Limits Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <h2 class="text-sm font-semibold text-gray-200">Format & Constraints</h2>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Creation Type</label>
+            <select id="videoFormat" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="reel_vertical" selected>9:16 Vertical Reel/Short (1080x1920)</option>
+              <option value="video_landscape">16:9 Standard Landscape</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Clips Count (Max 5)</label>
+            <select id="nClips" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="1">1 Short</option>
+              <option value="3">3 Shorts</option>
+              <option value="5" selected>5 Shorts (Full Batch)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-gray-400">Max Clip Duration</span>
+            <span id="durLabel" class="text-amber-400 font-semibold font-mono">56 seconds</span>
+          </div>
+          <input type="range" id="maxDuration" min="15" max="60" value="56" step="1"
+            class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+            oninput="document.getElementById('durLabel').innerText = this.value + ' seconds'">
+          <div class="flex justify-between text-[10px] text-gray-400 mt-0.5">
+            <span>15s (Punchy)</span>
+            <span>45s</span>
+            <span>60s (YouTube Max)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typography & Interactive Live Preview Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-200">Kinetic Captions & Live Font Test</h2>
+          <span class="text-xs text-amber-400 font-medium">Real-time Preview</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Font Family</label>
+            <select id="fontFamily" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400" onchange="updateLivePreview()">
+              <option value="Montserrat-ExtraBold.ttf" selected>Montserrat ExtraBold</option>
+              <option value="Inter-Bold.ttf">Inter Bold</option>
+              <option value="Poppins-ExtraBold.ttf">Poppins ExtraBold</option>
+              <option value="BebasNeue-Regular.ttf">Bebas Neue</option>
+              <option value="Anton-Regular.ttf">Anton</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Font Size</label>
+            <input type="number" id="fontSize" value="68" min="40" max="84" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400" oninput="updateLivePreview()">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">Text Color</label>
+            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="primaryColor" value="#FFFFFF" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="primaryHex" class="text-[11px] text-gray-300 font-mono">#FFF</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">Active Pop Color</label>
+            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="activeColor" value="#FFD400" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="activeHex" class="text-[11px] text-gray-300 font-mono">#FFD400</span>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">Outline Color</label>
+            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="strokeColor" value="#000000" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="strokeHex" class="text-[11px] text-gray-300 font-mono">#000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-Detect Text Emphasis Toggle -->
+        <label class="flex items-center justify-between p-2.5 bg-dark-900 rounded-xl border border-dark-600 cursor-pointer">
+          <div class="space-y-0.5">
+            <span class="text-xs font-medium text-gray-200">Auto-Detect Text Emphasis</span>
+            <p class="text-[10px] text-gray-400">Automatically scales & bolds viral punchline words</p>
+          </div>
+          <input type="checkbox" id="autoEmphasis" checked class="accent-amber-400 w-4 h-4 cursor-pointer" onchange="updateLivePreview()">
+        </label>
+
+        <!-- LIVE INTERACTIVE SUBTITLE PREVIEW BOX -->
+        <div class="relative bg-gradient-to-b from-gray-900 to-black rounded-xl border border-dark-600 p-4 text-center overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[95px]">
+          <span class="text-[10px] uppercase tracking-wider text-gray-400 absolute top-2 left-3">Interactive Subtitle Canvas</span>
+          <div id="previewCanvas" class="text-xl font-extrabold tracking-wide uppercase transition-all duration-150">
+            <span>DADDY I HIT </span>
+            <span id="previewActiveWord" class="inline-block transform scale-110 px-1 text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">10,000 BODIES</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- OST / Music & Effects Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-200">Background OST & Visual FX</h2>
+          <button onclick="document.getElementById('ostUploadModal').classList.remove('hidden')" class="text-xs font-medium text-amber-400 hover:text-amber-300 flex items-center gap-1">
+            + Upload Custom OST
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Soundtrack Mode</label>
+            <select id="ostSelect" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="auto" selected>✨ Auto Mood-Matched (AI Choice)</option>
+              <option value="carefree">Carefree (Uplifting / Warm)</option>
+              <option value="the_complex">The Complex (Tense / Debate)</option>
+              <option value="monkeys_spinning">Monkeys Spinning (Comedy / Chaos)</option>
+              <option value="sneaky_snitch">Sneaky Snitch (Playful Banter)</option>
+              <option value="airport_lounge">Airport Lounge (Chill Lo-Fi)</option>
+              <option value="heartbreaking">Heartbreaking (Emotional Piano)</option>
+              <option value="off">Mute / No Music</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Sidechain Music Ducking</label>
+            <select id="musicLevel" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="-22.0" selected>Balanced (-14dB below speech)</option>
+              <option value="-26.0">Subtle (-18dB below speech)</option>
+              <option value="-18.0">Energetic (-10dB below speech)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Toggles for effects -->
+        <div class="grid grid-cols-2 gap-2 text-xs text-gray-300">
+          <label class="flex items-center space-x-2 bg-dark-900 p-2 rounded-lg border border-dark-600 cursor-pointer">
+            <input type="checkbox" id="fxFlash" checked class="accent-amber-400">
+            <span>White Flash In/Out</span>
+          </label>
+          <label class="flex items-center space-x-2 bg-dark-900 p-2 rounded-lg border border-dark-600 cursor-pointer">
+            <input type="checkbox" id="fxProgress" checked class="accent-amber-400">
+            <span>Top Progress Bar</span>
+          </label>
+          <label class="flex items-center space-x-2 bg-dark-900 p-2 rounded-lg border border-dark-600 cursor-pointer">
+            <input type="checkbox" id="fxVignette" checked class="accent-amber-400">
+            <span>Subtle Vignette</span>
+          </label>
+          <label class="flex items-center space-x-2 bg-dark-900 p-2 rounded-lg border border-dark-600 cursor-pointer">
+            <input type="checkbox" id="fxZoom" checked class="accent-amber-400">
+            <span>Hook 112% Zoom Punch</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- BIG ACTION BUTTON -->
+      <button id="startBtn" onclick="triggerClipping()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-gray-950 font-bold text-base shadow-xl shadow-amber-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99]">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <span>Generate Viral Shorts (Antigravity AI Engine)</span>
+      </button>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Real-Time Monitor & Output Video Player Gallery (7 cols) -->
+    <div class="lg:col-span-7 space-y-6">
+
+      <!-- Pipeline Progress Stepper Card -->
+      <div id="progressCard" class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-200">Engine Pipeline Status</h2>
+            <p id="stageText" class="text-xs text-amber-400 font-medium mt-0.5">Ready for generation</p>
+          </div>
+          <div class="text-right">
+            <span id="percentText" class="text-lg font-bold font-mono text-gray-100">0%</span>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-dark-900 h-2.5 rounded-full overflow-hidden border border-dark-700">
+          <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <!-- Real-time Console Log Drawer -->
+        <div class="bg-dark-950 rounded-xl p-3 border border-dark-700 h-28 overflow-y-auto custom-scrollbar font-mono text-[11px] space-y-1 text-gray-400" id="logConsole">
+          <div class="text-gray-400">Clipper Studio initialized. Ready to process video.</div>
+        </div>
+      </div>
+
+      <!-- Finished Video Gallery & Player -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-semibold text-gray-200">Rendered Shorts Gallery</h2>
+            <p class="text-xs text-gray-400">Instant 9:16 vertical playback with sound & subtitles</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="clipCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-dark-700 text-gray-300">5 Clips Ready</span>
+          </div>
+        </div>
+
+        <!-- Clip Selector Tabs -->
+        <div class="flex space-x-2 overflow-x-auto pb-1" id="clipTabs">
+          <button onclick="switchClip(1)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-gray-950">Short #1</button>
+          <button onclick="switchClip(2)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #2</button>
+          <button onclick="switchClip(3)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #3</button>
+          <button onclick="switchClip(4)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #4</button>
+          <button onclick="switchClip(5)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #5</button>
+        </div>
+
+        <!-- 9:16 Phone Mockup Player & Metadata View -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-5 items-center bg-dark-900 p-4 rounded-xl border border-dark-700">
+          
+          <!-- 9:16 Phone Mockup -->
+          <div class="sm:col-span-6 flex justify-center">
+            <div class="phone-mockup w-full max-w-[240px] bg-black rounded-[28px] overflow-hidden border-4 border-dark-600 shadow-2xl relative flex items-center justify-center">
+              <video id="playerVideo" controls playsinline class="w-full h-full object-cover rounded-[24px]" src="/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4">
+              </video>
+            </div>
+          </div>
+
+          <!-- Metadata & One-Click YouTube Posting -->
+          <div class="sm:col-span-6 space-y-3.5">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Viral Hook Score: 98.5 / 100</span>
+              <h3 id="currentTitle" class="text-base font-bold text-gray-100 mt-1.5">I Retired My Whole Family</h3>
+              <p id="currentTime" class="text-xs text-gray-400 font-mono">1168.1s - 1224.4s (56.3s)</p>
+            </div>
+
+            <div class="bg-dark-800 p-3 rounded-lg border border-dark-700 text-xs text-gray-300 space-y-1">
+              <p class="text-gray-400 font-medium">Transcript Hook:</p>
+              <p id="currentExcerpt" class="italic line-clamp-3">"Paid off the mortgage, rev. I'm rich. Who cares? The same money can't buy happiness, one it can. But second of all, earning so much money has brought time for my family..."</p>
+            </div>
+
+            <div class="flex items-center justify-between text-xs text-gray-400 pt-1 border-t border-dark-700">
+              <span>Mood Track:</span>
+              <span id="currentMusic" class="font-semibold text-gray-200">Carefree (Kevin MacLeod)</span>
+            </div>
+
+            <div class="space-y-2 pt-2">
+              <a id="downloadBtn" href="/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4" download class="w-full py-2 px-3 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-semibold text-gray-200 text-center block transition">
+                ⬇ Download 1080x1920 MP4
+              </a>
+              <button onclick="openYouTubeModalForCurrent()" class="w-full py-2.5 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition shadow-lg shadow-red-600/20">
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                Post to YouTube Shorts
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Upload Custom OST Modal -->
+  <div id="ostUploadModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-gray-100">Upload Custom OST Track</h3>
+        <button onclick="document.getElementById('ostUploadModal').classList.add('hidden')" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-xs text-gray-400">Add any .mp3 or .wav track. Clipper will analyze its BPM & energy so Antigravity can pair it with the right short.</p>
+      
+      <form id="ostForm" onsubmit="handleOstUpload(event)" class="space-y-3">
+        <div>
+          <label class="text-xs text-gray-300 block mb-1">Audio File (.mp3 / .wav)</label>
+          <input type="file" id="ostFile" accept="audio/*" required class="w-full text-xs text-gray-400 bg-dark-900 border border-dark-600 rounded-lg p-2">
+        </div>
+        <div>
+          <label class="text-xs text-gray-300 block mb-1">Track Title</label>
+          <input type="text" id="ostTitle" placeholder="e.g. Cyber Heatwave" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-xs text-gray-200">
+        </div>
+        <div>
+          <label class="text-xs text-gray-300 block mb-1">Mood Tags</label>
+          <input type="text" id="ostMood" placeholder="e.g. comedic, upbeat, banter" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-xs text-gray-200">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-gray-950 transition">
+          Index into Music Library
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- YouTube Shorts Automation Modal -->
+  <div id="youtubeModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-6 h-6 rounded bg-red-600 flex items-center justify-center text-white">
+            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+          </div>
+          <h3 class="text-base font-bold text-gray-100">YouTube Shorts Automation</h3>
+        </div>
+        <button onclick="document.getElementById('youtubeModal').classList.add('hidden')" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="bg-amber-950/40 border border-amber-800/60 rounded-xl p-3 text-[11px] text-amber-300 space-y-1">
+        <div class="font-bold flex items-center gap-1.5 text-amber-200">
+          <span>⚠️ YouTube Account Not Connected</span>
+        </div>
+        <p class="text-amber-300/90 leading-relaxed">
+          No YouTube channel has been linked yet, so your video was <strong>not posted online</strong>.
+          The video files remain safely stored locally on your Mac.
+        </p>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-gray-400 block mb-1 font-semibold">Video Title (Auto-Formatted)</label>
+          <input type="text" id="ytTitle" class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2.5 text-gray-200 font-medium">
+        </div>
+        <div>
+          <label class="text-gray-400 block mb-1 font-semibold">Description & Hashtags</label>
+          <textarea id="ytDesc" rows="4" class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2.5 text-gray-200 font-mono text-[11px]"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-gray-400 block mb-1">Privacy</label>
+            <select class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2 text-gray-200">
+              <option>Public</option>
+              <option selected>Unlisted</option>
+              <option>Scheduled</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-gray-400 block mb-1">Category</label>
+            <input type="text" readonly value="Entertainment (24)" class="w-full bg-dark-900 border border-dark-600 rounded-lg p-2 text-gray-400">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 pt-2">
+        <div class="flex items-center space-x-2">
+          <button onclick="copyAndOpenStudio()" class="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-xs text-white transition flex items-center justify-center gap-2">
+            <span>📋 Copy Metadata & Open YouTube Studio</span>
+          </button>
+          <button onclick="copyMetadata()" class="px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 font-semibold text-xs text-gray-200 transition">
+            Copy Only
+          </button>
+        </div>
+        <p class="text-[10px] text-gray-400 text-center">To enable 1-click automatic publishing without opening the browser, add your Google OAuth <code>client_secrets.json</code>.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const clipsData = {
+      1: {
+        title: "I Retired My Whole Family",
+        time: "1168.1s - 1224.4s (56.3s)",
+        score: "98.5 / 100",
+        music: "Carefree (Kevin MacLeod - CC-BY)",
+        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4",
+        excerpt: "Paid off the mortgage, rev. I'm rich. Who cares? The same money can't buy happiness, one it can. But second of all, like, me earning so much money has brought time for my family..."
+      },
+      2: {
+        title: "Salute to My Daughter (10,000 Bodies Climax)",
+        time: "1118.8s - 1174.8s (56.0s)",
+        score: "97.2 / 100",
+        music: "The Complex (Kevin MacLeod - CC-BY)",
+        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_02.mp4",
+        excerpt: "Going to his grave saying, like, daddy, I hit ten thousand bodies. That is mad, rev! Salute to my daughter. Well, he's supportive now. So there's no reason why he won't be..."
+      },
+      3: {
+        title: "Order of the Men / Post Office Lottery",
+        time: "423.5s - 479.0s (55.5s)",
+        score: "95.8 / 100",
+        music: "Monkeys Spinning Monkeys (Kevin MacLeod - CC-BY)",
+        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_03.mp4",
+        excerpt: "How do you know the order of the men? Yeah, so there's no order. Lottery team! Like when you go to the post office and you wait in line..."
+      },
+      4: {
+        title: "Hydration & Spraying Coffee into Audience",
+        time: "2182.1s - 2237.1s (55.0s)",
+        score: "94.6 / 100",
+        music: "Airport Lounge (Kevin MacLeod - CC-BY)",
+        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_04.mp4",
+        excerpt: "Spray champagne into the audience? We could spray coffee! Imagine how hydrated it would be for everyone. Better than putting champagne in people's eyes!"
+      },
+      5: {
+        title: "Divorce at 25 / Whole World Ahead",
+        time: "1048.0s - 1103.5s (55.5s)",
+        score: "94.0 / 100",
+        music: "Sneaky Snitch (Kevin MacLeod - CC-BY)",
+        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_05.mp4",
+        excerpt: "Divorce at 25? You're chatting shit bro. You got a whole world ahead of you! Anyone goes through divorce it's stressful..."
+      }
+    };
+
+    let activeClipIdx = 1;
+
+    function switchClip(idx) {
+      activeClipIdx = idx;
+      const data = clipsData[idx];
+      if (!data) return;
+
+      document.getElementById('currentTitle').innerText = data.title;
+      document.getElementById('currentTime').innerText = data.time;
+      document.getElementById('currentExcerpt').innerText = `"${data.excerpt}"`;
+      document.getElementById('currentMusic').innerText = data.music;
+      document.getElementById('downloadBtn').href = data.file;
+
+      const player = document.getElementById('playerVideo');
+      player.src = data.file;
+      player.load();
+
+      // Update Tab Styles
+      const tabs = document.querySelectorAll('.tab-btn');
+      tabs.forEach((tab, i) => {
+        if (i + 1 === idx) {
+          tab.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-gray-950";
+        } else {
+          tab.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600";
+        }
+      });
+    }
+
+    function updateLivePreview() {
+      const pColor = document.getElementById('primaryColor').value;
+      const aColor = document.getElementById('activeColor').value;
+      const sColor = document.getElementById('strokeColor').value;
+      const autoEmphasis = document.getElementById('autoEmphasis').checked;
+
+      document.getElementById('primaryHex').innerText = pColor.toUpperCase();
+      document.getElementById('activeHex').innerText = aColor.toUpperCase();
+      document.getElementById('strokeHex').innerText = sColor.toUpperCase();
+
+      const canvas = document.getElementById('previewCanvas');
+      const activeWord = document.getElementById('previewActiveWord');
+
+      canvas.style.color = pColor;
+      canvas.style.textShadow = `
+        -2px -2px 0 ${sColor},  2px -2px 0 ${sColor},
+        -2px  2px 0 ${sColor},  2px  2px 0 ${sColor},
+         0px  3px 6px rgba(0,0,0,0.8)
+      `;
+
+      activeWord.style.color = aColor;
+      if (autoEmphasis) {
+        activeWord.className = "inline-block transform scale-125 px-1 font-black underline";
+      } else {
+        activeWord.className = "inline-block transform scale-105 px-1 font-extrabold";
+      }
+    }
+
+    async function triggerClipping() {
+      const btn = document.getElementById('startBtn');
+      btn.disabled = true;
+      btn.classList.add('opacity-60', 'cursor-not-allowed');
+
+      const payload = {
+        video_path: document.getElementById('videoPath').value,
+        n_clips: parseInt(document.getElementById('nClips').value),
+        max_duration: parseFloat(document.getElementById('maxDuration').value),
+        font_file: document.getElementById('fontFamily').value,
+        font_size: parseInt(document.getElementById('fontSize').value),
+        primary_color: document.getElementById('primaryColor').value,
+        active_color: document.getElementById('activeColor').value,
+        stroke_color: document.getElementById('strokeColor').value,
+        auto_detect_emphasis: document.getElementById('autoEmphasis').checked,
+        selected_track_id: document.getElementById('ostSelect').value,
+        music_level_db: parseFloat(document.getElementById('musicLevel').value),
+        effects_flash: document.getElementById('fxFlash').checked,
+        effects_progress: document.getElementById('fxProgress').checked,
+        effects_vignette: document.getElementById('fxVignette').checked,
+        hook_zoom: document.getElementById('fxZoom').checked ? 1.12 : 1.0
+      };
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log("Generation started:", data);
+        pollStatus();
+      } catch (err) {
+        alert("Failed to start generation: " + err);
+        btn.disabled = false;
+        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+      }
+    }
+
+    let pollInterval = null;
+    function pollStatus() {
+      if (pollInterval) clearInterval(pollInterval);
+
+      pollInterval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/status');
+          const status = await res.json();
+
+          document.getElementById('stageText').innerText = status.stage;
+          document.getElementById('percentText').innerText = status.progress + '%';
+          document.getElementById('progressBar').style.width = status.progress + '%';
+
+          const consoleDiv = document.getElementById('logConsole');
+          consoleDiv.innerHTML = status.logs.map(l => `<div>${l}</div>`).join('');
+          consoleDiv.scrollTop = consoleDiv.scrollHeight;
+
+          if (status.status === 'completed' || status.status === 'error') {
+            clearInterval(pollInterval);
+            const btn = document.getElementById('startBtn');
+            btn.disabled = false;
+            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            if (status.status === 'completed') {
+              switchClip(1);
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }, 1000);
+    }
+
+    async function handleOstUpload(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('ostFile');
+      if (!fileInput.files.length) return;
+
+      const formData = new FormData();
+      formData.append('file', fileInput.files[0]);
+      formData.append('title', document.getElementById('ostTitle').value);
+      formData.append('mood', document.getElementById('ostMood').value);
+
+      const res = await fetch('/api/upload-ost', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        alert("Track uploaded and indexed into music library!");
+        document.getElementById('ostUploadModal').classList.add('hidden');
+        
+        // Add to select
+        const sel = document.getElementById('ostSelect');
+        const opt = document.createElement('option');
+        opt.value = data.tracks[data.tracks.length - 1].id;
+        opt.innerText = `🎵 Custom: ${data.tracks[data.tracks.length - 1].title}`;
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function openYouTubeModalForCurrent() {
+      const data = clipsData[activeClipIdx];
+      document.getElementById('ytTitle').value = `${data.title} #shorts`;
+      document.getElementById('ytDesc').value = `${data.excerpt}\n\n🎙️ Grilling with Castillo\nSoundtrack: ${data.music}\n\n#shorts #podcast #viral #funny`;
+      document.getElementById('youtubeModal').classList.remove('hidden');
+    }
+
+    function openYouTubeModal() {
+      openYouTubeModalForCurrent();
+    }
+
+    function simulatePublish() {
+      const btn = document.getElementById('ytPublishBtn');
+      btn.innerText = "Publishing via YouTube Data API v3...";
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.innerText = "✓ Published Successfully to YouTube Shorts!";
+        btn.className = "flex-1 py-2.5 rounded-xl bg-emerald-600 font-bold text-xs text-white transition";
+        setTimeout(() => {
+          document.getElementById('youtubeModal').classList.add('hidden');
+          btn.innerText = "Upload Directly to YouTube Channel";
+          btn.className = "flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 font-bold text-xs text-white transition";
+          btn.disabled = false;
+        }, 1800);
+      }, 1200);
+    }
+
+    function copyMetadata() {
+      const text = `${document.getElementById('ytTitle').value}\n\n${document.getElementById('ytDesc').value}`;
+      navigator.clipboard.writeText(text);
+      alert("Metadata copied to clipboard!");
+    }
+
+    function copyAndOpenStudio() {
+      const text = `${document.getElementById('ytTitle').value}\n\n${document.getElementById('ytDesc').value}`;
+      navigator.clipboard.writeText(text);
+      alert("Copied Title & Description with tags to your clipboard!\n\nOpening YouTube Studio upload page in a new tab. Simply drop the downloaded MP4 video file there.");
+      window.open("https://studio.youtube.com/channel/UC/videos/upload?d=ud", "_blank");
+    }
+
+    // Initialize preview
+    updateLivePreview();
+  </script>
+</body>
+</html>
