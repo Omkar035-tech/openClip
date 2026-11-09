@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Clipper Studio — AI Podcast to Viral Shorts</title>
+  <title>openClip — AI Video to Viral Shorts Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -35,16 +36,15 @@
   <!-- Top Navigation Bar -->
   <header class="border-b border-dark-700 bg-dark-800/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
     <div class="flex items-center space-x-3">
-      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-500/20">
-        <svg class="w-5 h-5 text-gray-950 font-bold" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M4 4h4v16H4V4zm6 0h4v16h-4V4zm6 0h4v16h-4V4z"/>
-        </svg>
+      <div class="h-10 flex items-center">
+        <img src="/logo.svg" alt="openClip Logo" class="h-10 w-auto rounded-lg shadow-md cursor-pointer" onclick="toggleSettingsSidebar()">
       </div>
-      <div>
-        <h1 class="text-lg font-bold tracking-tight flex items-center gap-2">
-          Clipper Studio <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">M4 Metal GPU</span>
-        </h1>
-        <p class="text-xs text-gray-400">Autonomous Podcast-to-Viral-Short Engine</p>
+      <div class="hidden sm:block border-l border-dark-700 pl-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold" id="topArchBadge">Standard (1.0)</span>
+          <span class="text-[10px] text-gray-400 font-mono" id="topHwBadge">GPU Accelerated</span>
+        </div>
+        <p class="text-[11px] text-gray-400">Autonomous Viral Moments & Shorts Engine</p>
       </div>
     </div>
 
@@ -109,104 +109,7 @@
         </div>
       </div>
 
-      <!-- Architecture & Pipeline Engine Selector Card -->
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-amber-400 font-bold text-base">⚡</span>
-            <div>
-              <h2 class="text-sm font-bold text-gray-200">Pipeline Engine Architecture</h2>
-              <p class="text-[10px] text-gray-400">Select moment detection & virality ranking workflow</p>
-            </div>
-          </div>
-          <span id="archBadge" class="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">Standard</span>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <label class="relative flex flex-col p-3 rounded-xl border border-dark-600 bg-dark-900 cursor-pointer hover:border-amber-400 transition" id="cardArchStandard">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-gray-200">openClip 1.0 (Default)</span>
-              <input type="radio" name="engineArchRadio" value="openclip_standard" checked onchange="handleArchChange()" class="accent-amber-400">
-            </div>
-            <p class="text-[10px] text-gray-400 leading-snug">Original acoustic RMS + heuristic keyword moment detection.</p>
-          </label>
-
-          <label class="relative flex flex-col p-3 rounded-xl border border-dark-600 bg-dark-900 cursor-pointer hover:border-amber-400 transition" id="cardArchWayin">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-amber-300 flex items-center gap-1">openClip 2.0 <span class="text-[9px] bg-amber-400/20 text-amber-400 px-1 py-0.2 rounded">BETA</span></span>
-              <input type="radio" name="engineArchRadio" value="wayin_2_0" onchange="handleArchChange()" class="accent-amber-400">
-            </div>
-            <p class="text-[10px] text-gray-400 leading-snug">Wayin.ai Funnel: 1-3s Hook-First scoring + Speech velocity + Gemini AI.</p>
-          </label>
-        </div>
-
-        <!-- Wayin.ai openClip 2.0 Engine Configuration (Groq LPU -> Gemini -> 62-Tag Math) -->
-        <div id="wayinPromptContainer" class="hidden space-y-3 pt-2 border-t border-dark-700/60">
-          <!-- Primary LLM Provider & Model Selection -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <div>
-              <label class="text-[11px] font-semibold text-gray-300 block mb-1 flex items-center gap-1">
-                <span>⚡ GroqCloud Model (Default)</span>
-              </label>
-              <select id="groqModelSelect" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-amber-300 focus:outline-none focus:border-amber-400 font-mono">
-                <option value="llama-3.3-70b-versatile" selected>⚡ llama-3.3-70b-versatile (280 T/s)</option>
-                <option value="llama-3.1-8b-instant">🚀 llama-3.1-8b-instant (560 T/s)</option>
-                <option value="openai/gpt-oss-120b">🧠 openai/gpt-oss-120b (500 T/s)</option>
-                <option value="openai/gpt-oss-20b">⚡ openai/gpt-oss-20b (1000 T/s)</option>
-                <option value="qwen/qwen3.8-27b">🌐 qwen/qwen3.8-27b (450 T/s)</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-[11px] font-semibold text-gray-300 block mb-1">Fallback Strategy</label>
-              <div class="bg-dark-900/80 border border-dark-600 rounded-xl px-2.5 py-1.5 text-[11px] text-gray-300 flex items-center justify-between">
-                <span>1. Gemini ➜ 2. 62-Tag Math</span>
-                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">Resilient</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- API Keys Drawer with Show/Hide & LocalStorage Caching -->
-          <div class="bg-dark-950/70 border border-dark-700 rounded-xl p-3 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
-                <span>🔑 Engine API Keys</span>
-                <span class="text-[9px] text-gray-500 font-normal">(Cached in Browser)</span>
-              </span>
-              <span id="apiKeyStatus" class="text-[9px] text-amber-400 font-mono">Synced</span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <div class="flex justify-between items-center mb-1 text-[10px]">
-                  <span class="text-gray-400">Groq API Key (gsk_...)</span>
-                  <button type="button" onclick="toggleKeyVisibility('groqApiKey', this)" class="text-amber-400 hover:underline">Show</button>
-                </div>
-                <input type="password" id="groqApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="gsk_...">
-              </div>
-              <div>
-                <div class="flex justify-between items-center mb-1 text-[10px]">
-                  <span class="text-gray-400">Gemini API Key (AQ...)</span>
-                  <button type="button" onclick="toggleKeyVisibility('geminiApiKey', this)" class="text-amber-400 hover:underline">Show</button>
-                </div>
-                <input type="password" id="geminiApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="AQ.Ab8...">
-              </div>
-            </div>
-          </div>
-
-          <!-- Optional Wayin.ai Prompt Moment Finder -->
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <label class="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
-                <span>🎯 Custom Moment Finder ("Find Moments" Prompt)</span>
-              </label>
-              <span class="text-[10px] text-gray-400">Optional</span>
-            </div>
-            <input type="text" id="wayinPrompt" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-sans"
-              placeholder="e.g. Find the most intense screaming moments, funny jokes, or business advice">
-            <p class="text-[10px] text-gray-400">Groq LPU guides reasoning across 62 virality tags to prioritize moments matching your intent.</p>
-          </div>
-        </div>
-      </div>
 
       <!-- Format & Aspect Ratio Card -->
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
@@ -355,85 +258,7 @@
         </div>
       </div>
 
-      <!-- Hardware Acceleration & Performance Engine Card -->
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="text-amber-400">⚡</span>
-            <h2 class="text-sm font-semibold text-gray-200">Hardware & Processing Engine</h2>
-          </div>
-          <span id="detectedHwBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Detecting...</span>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Whisper Speech AI</label>
-            <select id="whisperHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
-              <option value="auto" selected>⚡ Auto (Fastest GPU / Metal)</option>
-              <option value="gpu">🚀 GPU (CUDA / Metal Float16)</option>
-              <option value="cpu">💻 CPU (INT8 Multi-Thread)</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Video Render Encoder</label>
-            <select id="renderHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
-              <option value="auto" selected>⚡ Auto (NVENC / VideoToolbox)</option>
-              <option value="gpu">🚀 Hardware GPU (NVENC / Apple)</option>
-              <option value="cpu">💻 Software CPU (libx264)</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 pt-1">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">CPU Threads (Speech/Audio)</label>
-            <select id="cpuThreads" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
-              <option value="2">2 Threads</option>
-              <option value="4" selected>4 Threads (Balanced)</option>
-              <option value="8">8 Threads (High Perf)</option>
-              <option value="16">16 Threads (Full CPU)</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Concurrent Render Workers</label>
-            <select id="renderWorkers" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
-              <option value="1">1 Clip (Sequential)</option>
-              <option value="2" selected>2 Clips Parallel</option>
-              <option value="3">3 Clips Parallel (High GPU)</option>
-              <option value="4">4 Clips Parallel (Max Throughput)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Face Tracking Tuning for Reels -->
-        <div class="border-t border-dark-700/70 pt-3 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-gray-300">Face Tracking Reel Tuning</span>
-            <span class="text-[10px] text-gray-400">Cinematic Reel Centering</span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <div class="flex justify-between text-[11px] mb-1">
-                <span class="text-gray-400">Smoothing Inertia</span>
-                <span id="alphaLabel" class="text-amber-400 font-mono">0.08 (Smooth)</span>
-              </div>
-              <input type="range" id="faceAlpha" min="0.03" max="0.25" value="0.08" step="0.01"
-                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
-                oninput="document.getElementById('alphaLabel').innerText = this.value + (this.value < 0.08 ? ' (Cinematic)' : ' (Responsive)')">
-            </div>
-            <div>
-              <div class="flex justify-between text-[11px] mb-1">
-                <span class="text-gray-400">Deadband Zone</span>
-                <span id="deadbandLabel" class="text-amber-400 font-mono">16 px</span>
-              </div>
-              <input type="range" id="faceDeadband" min="6" max="36" value="16" step="2"
-                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
-                oninput="document.getElementById('deadbandLabel').innerText = this.value + ' px'">
-            </div>
-          </div>
-        </div>
-      </div>
 
       <!-- Typography & Interactive Live Preview Card -->
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
@@ -1226,24 +1051,38 @@
     }
 
     function handleArchChange() {
-      const selected = document.querySelector('input[name="engineArchRadio"]:checked').value;
+      const radio = document.querySelector('input[name="engineArchRadio"]:checked');
+      const selected = radio ? radio.value : 'openclip_standard';
       const wayinBox = document.getElementById('wayinPromptContainer');
-      const badge = document.getElementById('archBadge');
+      const topBadge = document.getElementById('topArchBadge');
+      const sideBadge = document.getElementById('sidebarArchStatus');
       const cardStd = document.getElementById('cardArchStandard');
       const cardWayin = document.getElementById('cardArchWayin');
 
       if (selected === 'wayin_2_0') {
-        wayinBox.classList.remove('hidden');
-        badge.innerText = 'openClip 2.0 (Beta)';
-        badge.className = 'text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
-        cardWayin.classList.add('border-amber-400');
-        cardStd.classList.remove('border-amber-400');
+        if (wayinBox) wayinBox.classList.remove('hidden');
+        if (topBadge) {
+          topBadge.innerText = 'openClip 2.0 (Beta)';
+          topBadge.className = 'text-xs font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
+        }
+        if (sideBadge) {
+          sideBadge.innerText = '2.0 Beta';
+          sideBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold';
+        }
+        if (cardWayin) cardWayin.classList.add('border-amber-400');
+        if (cardStd) cardStd.classList.remove('border-amber-400');
       } else {
-        wayinBox.classList.add('hidden');
-        badge.innerText = 'Standard';
-        badge.className = 'text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-dark-700 text-gray-300 border border-dark-600 font-bold';
-        cardStd.classList.add('border-amber-400');
-        cardWayin.classList.remove('border-amber-400');
+        if (wayinBox) wayinBox.classList.add('hidden');
+        if (topBadge) {
+          topBadge.innerText = 'openClip 1.0 (Standard)';
+          topBadge.className = 'text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold';
+        }
+        if (sideBadge) {
+          sideBadge.innerText = 'Standard';
+          sideBadge.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-dark-900 text-gray-300';
+        }
+        if (cardStd) cardStd.classList.add('border-amber-400');
+        if (cardWayin) cardWayin.classList.remove('border-amber-400');
       }
     }
 
@@ -1595,8 +1434,33 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       loadApiKeysFromStorage();
+      handleArchChange();
+
+      // Dynamic hardware detection
+      try {
+        const res = await fetch('/api/hardware');
+        const data = await res.json();
+        const hw = data.hardware;
+        const topHw = document.getElementById('topHwBadge');
+        const sideHw = document.getElementById('detectedHwBadge');
+        
+        let label = 'CPU';
+        if (hw.cuda) {
+          label = `NVIDIA CUDA (${hw.device_name || 'GPU'})`;
+        } else if (hw.metal) {
+          label = 'Apple Silicon (Metal)';
+        }
+
+        if (topHw) topHw.innerText = label;
+        if (sideHw) {
+          sideHw.innerText = label;
+          sideHw.className = 'text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        }
+      } catch (err) {
+        console.error("Hardware fetch failed:", err);
+      }
     });
 
     async function triggerClipping() {
@@ -2163,33 +2027,79 @@
         <button onclick="toggleSettingsSidebar()" class="text-gray-400 hover:text-gray-200 text-sm font-bold p-1">✕</button>
       </div>
 
-      <!-- Quick AI Model Setup in Sidebar -->
+      <!-- Pipeline Engine Architecture Selection in Sidebar -->
       <div class="space-y-3">
-        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">AI Virality & Reasoning</h3>
-        <div>
-          <label class="text-[11px] text-gray-400 block mb-1">Active Groq Model</label>
-          <select id="sidebarGroqModel" onchange="document.getElementById('groqModelSelect').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200">
-            <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Recommended)</option>
-            <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fastest 560 tps)</option>
-            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
-            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
-            <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b</option>
-          </select>
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Engine Architecture</h3>
+          <span id="sidebarArchStatus" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-dark-900 text-gray-300">Standard</span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2">
+          <label class="p-2.5 rounded-xl border border-dark-600 bg-dark-900 cursor-pointer hover:border-amber-400 transition" id="cardArchStandard">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-gray-200">1.0 Standard</span>
+              <input type="radio" name="engineArchRadio" value="openclip_standard" checked onchange="handleArchChange()" class="accent-amber-400">
+            </div>
+            <p class="text-[9px] text-gray-400">Acoustic RMS + local heuristic.</p>
+          </label>
+
+          <label class="p-2.5 rounded-xl border border-dark-600 bg-dark-900 cursor-pointer hover:border-amber-400 transition" id="cardArchWayin">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-amber-300">2.0 Beta</span>
+              <input type="radio" name="engineArchRadio" value="wayin_2_0" onchange="handleArchChange()" class="accent-amber-400">
+            </div>
+            <p class="text-[9px] text-gray-400">Wayin.ai: Groq LPU + 62-tag virality.</p>
+          </label>
         </div>
 
-        <div>
-          <label class="text-[11px] text-gray-400 block mb-1">Groq API Key</label>
-          <input type="password" id="sidebarGroqKey" oninput="document.getElementById('groqApiKey').value = this.value; saveApiKeysToStorage();" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono" placeholder="gsk_...">
+        <!-- Wayin 2.0 Engine Controls -->
+        <div id="wayinPromptContainer" class="hidden space-y-2.5 pt-2 border-t border-dark-700/60">
+          <div>
+            <label class="text-[11px] text-gray-300 block mb-1">GroqCloud Model (Default)</label>
+            <select id="groqModelSelect" onchange="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-amber-300 focus:outline-none focus:border-amber-400 font-mono">
+              <option value="llama-3.3-70b-versatile" selected>⚡ llama-3.3-70b-versatile (280 T/s)</option>
+              <option value="llama-3.1-8b-instant">🚀 llama-3.1-8b-instant (560 T/s)</option>
+              <option value="openai/gpt-oss-120b">🧠 openai/gpt-oss-120b (500 T/s)</option>
+              <option value="openai/gpt-oss-20b">⚡ openai/gpt-oss-20b (1000 T/s)</option>
+              <option value="qwen/qwen3.8-27b">🌐 qwen/qwen3.8-27b (450 T/s)</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1 text-[10px]">
+              <span class="text-gray-400">Groq API Key</span>
+              <button type="button" onclick="toggleKeyVisibility('groqApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+            </div>
+            <input type="password" id="groqApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="gsk_...">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1 text-[10px]">
+              <span class="text-gray-400">Gemini API Key (Fallback 1)</span>
+              <button type="button" onclick="toggleKeyVisibility('geminiApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+            </div>
+            <input type="password" id="geminiApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="AQ.Ab8...">
+          </div>
+
+          <div>
+            <label class="text-[10px] text-amber-400 block mb-1 font-semibold">Custom Moment Finder ("Find Moments" Prompt)</label>
+            <input type="text" id="wayinPrompt" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 font-sans"
+              placeholder="e.g. Find screams, funny jokes, or shocking advice">
+          </div>
         </div>
       </div>
 
-      <!-- Hardware & Processing Engine -->
+      <!-- Hardware & Processing Engine in Sidebar -->
       <div class="space-y-3 pt-3 border-t border-dark-700">
-        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Hardware & Performance</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Hardware & Performance</h3>
+          <span id="detectedHwBadge" class="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Detecting...</span>
+        </div>
+
         <div>
           <label class="text-[11px] text-gray-400 block mb-1">Whisper Speech AI Engine</label>
-          <select id="sidebarWhisperHw" onchange="document.getElementById('whisperHw').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
-            <option value="auto">⚡ Auto (Fastest GPU / Metal)</option>
+          <select id="whisperHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
+            <option value="auto" selected>⚡ Auto (Fastest GPU / Metal)</option>
             <option value="gpu">🚀 GPU (CUDA / Metal Float16)</option>
             <option value="cpu">💻 CPU (INT8 Multi-Thread)</option>
           </select>
@@ -2197,8 +2107,8 @@
 
         <div>
           <label class="text-[11px] text-gray-400 block mb-1">Video Render Encoder</label>
-          <select id="sidebarRenderHw" onchange="document.getElementById('renderHw').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
-            <option value="auto">⚡ Auto (NVENC / VideoToolbox)</option>
+          <select id="renderHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
+            <option value="auto" selected>⚡ Auto (NVENC / VideoToolbox)</option>
             <option value="gpu">🚀 Hardware GPU (NVENC)</option>
             <option value="cpu">💻 Software CPU (libx264)</option>
           </select>
@@ -2207,7 +2117,7 @@
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="text-[11px] text-gray-400 block mb-1">CPU Threads</label>
-            <select id="sidebarCpuThreads" onchange="document.getElementById('cpuThreads').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
+            <select id="cpuThreads" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
               <option value="2">2 Threads</option>
               <option value="4" selected>4 Threads</option>
               <option value="8">8 Threads</option>
@@ -2216,12 +2126,40 @@
           </div>
           <div>
             <label class="text-[11px] text-gray-400 block mb-1">Render Workers</label>
-            <select id="sidebarRenderWorkers" onchange="document.getElementById('renderWorkers').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
+            <select id="renderWorkers" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
               <option value="1">1 Worker</option>
               <option value="2" selected>2 Workers</option>
               <option value="3">3 Workers</option>
               <option value="4">4 Workers</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Face Tracking Reel Tuning -->
+        <div class="border-t border-dark-700/60 pt-2.5 space-y-2">
+          <div class="flex items-center justify-between text-[11px] text-gray-300 font-semibold">
+            <span>Face Tracking Centering</span>
+            <span class="text-[10px] text-gray-400">Reel Tuning</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-gray-400">Inertia</span>
+                <span id="alphaLabel" class="text-amber-400 font-mono">0.08</span>
+              </div>
+              <input type="range" id="faceAlpha" min="0.03" max="0.25" value="0.08" step="0.01"
+                class="w-full accent-amber-400 bg-dark-700 h-1 rounded cursor-pointer"
+                oninput="document.getElementById('alphaLabel').innerText = this.value">
+            </div>
+            <div>
+              <div class="flex justify-between text-[10px] mb-1">
+                <span class="text-gray-400">Deadband</span>
+                <span id="deadbandLabel" class="text-amber-400 font-mono">16px</span>
+              </div>
+              <input type="range" id="faceDeadband" min="6" max="36" value="16" step="2"
+                class="w-full accent-amber-400 bg-dark-700 h-1 rounded cursor-pointer"
+                oninput="document.getElementById('deadbandLabel').innerText = this.value + 'px'">
+            </div>
           </div>
         </div>
       </div>
