@@ -113,6 +113,72 @@ async def upload_custom_ost(
     tracks, _ = load_music_library(str(BASE_DIR / "music_library"))
     return {"success": True, "message": f"Added '{t_title}' to music library", "tracks": tracks}
 
+@app.post("/api/captions/auto-detect")
+async def auto_detect_caption_emphasis(payload: Dict[str, Any]):
+    """Analyzes sample text and wraps high-impact viral words in {{...}} emphasis tags."""
+    text = payload.get("text", "").strip()
+    if not text:
+        return {"highlighted_text": "", "emphasis_words": []}
+        
+    import re
+    # Patterns to auto-detect: numbers, brand entities, emotional superlatives, power words
+    power_keywords = [
+        "seven 11", "7 11", "7-eleven", "7-11", "10,000", "10000", "million", "billion", "dollars",
+        "impossible", "conqueror", "strength", "discipline", "warrior", "suffer", "pain", "obsessed",
+        "never quit", "hack", "fucking suck", "truth", "mindset", "secret", "biggest mistake",
+        "life changing", "conquer", "destroy", "failure"
+    ]
+    
+    highlighted = text
+    found_words = []
+    
+    # 1. Multi-word phrase matches first
+    for kw in power_keywords:
+        pattern = re.compile(re.escape(kw), re.IGNORECASE)
+        if pattern.search(highlighted):
+            found_words.append(kw)
+            highlighted = pattern.sub(f"{{{{{kw}}}}}", highlighted)
+            
+    # 2. Single word matches if no phrase was matched
+    if not found_words:
+        words = text.split()
+        for w in words:
+            clean_w = w.strip(" ,.!?\"'")
+            if (len(clean_w) >= 6 and clean_w.isupper()) or clean_w.lower() in ["never", "crazy", "truth", "power", "money", "mind", "hate", "fight"]:
+                found_words.append(clean_w)
+                highlighted = highlighted.replace(clean_w, f"{{{{{clean_w}}}}}")
+                break
+                
+    return {"highlighted_text": highlighted, "emphasis_words": found_words}
+
+@app.post("/api/captions/save-style")
+async def save_captions_style(payload: Dict[str, Any]):
+    """Saves custom caption playground styling into config.yaml."""
+    cfg = load_config()
+    if "captions" not in cfg:
+        cfg["captions"] = {}
+        
+    cfg["captions"]["font_file"] = payload.get("font_file", "Montserrat-ExtraBold.ttf")
+    cfg["captions"]["font_size"] = int(payload.get("font_size", 68))
+    cfg["captions"]["primary_color"] = payload.get("primary_color", "#FFFFFF")
+    cfg["captions"]["active_color"] = payload.get("active_color", "#FFD400")
+    cfg["captions"]["emphasis_color"] = payload.get("emphasis_color", "#FFD400")
+    cfg["captions"]["stroke_color"] = payload.get("stroke_color", "#000000")
+    cfg["captions"]["stroke_width"] = int(payload.get("stroke_width", 7))
+    cfg["captions"]["rotation_angle"] = float(payload.get("rotation_angle", 0.0))
+    cfg["captions"]["bg_mode"] = payload.get("bg_mode", "none")
+    cfg["captions"]["bg_color"] = payload.get("bg_color", "rgba(0,0,0,0.65)")
+    cfg["captions"]["bg_radius"] = int(payload.get("bg_radius", 14))
+    cfg["captions"]["fade_duration"] = float(payload.get("fade_duration", 0.12))
+    cfg["captions"]["auto_detect_emphasis"] = bool(payload.get("auto_detect_emphasis", True))
+    
+    cfg_path = BASE_DIR / "config.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f, sort_keys=False)
+        
+    log_event(f"Applied new caption style from Playground (Rotation: {cfg['captions']['rotation_angle']}°, Font: {cfg['captions']['font_file']})")
+    return {"success": True, "message": "Caption style saved to config and active for all renders."}
+
 def run_pipeline_thread(payload: Dict[str, Any]):
     try:
         studio_state["status"] = "processing"
@@ -138,12 +204,19 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["clip"]["min_duration"] = min_duration
         config["clip"]["target_duration"] = min(75.0, max_duration - 5.0)
         
-        # Caption customization
+        # Caption customization from playground / UI
         config["captions"]["font_file"] = payload.get("font_file", "Montserrat-ExtraBold.ttf")
         config["captions"]["font_size"] = int(payload.get("font_size", 68))
         config["captions"]["primary_color"] = payload.get("primary_color", "#FFFFFF")
         config["captions"]["active_color"] = payload.get("active_color", "#FFD400")
+        config["captions"]["emphasis_color"] = payload.get("emphasis_color", payload.get("active_color", "#FFD400"))
         config["captions"]["stroke_color"] = payload.get("stroke_color", "#000000")
+        config["captions"]["stroke_width"] = int(payload.get("stroke_width", 7))
+        config["captions"]["rotation_angle"] = float(payload.get("rotation_angle", 0.0))
+        config["captions"]["bg_mode"] = payload.get("bg_mode", "none")
+        config["captions"]["bg_color"] = payload.get("bg_color", "rgba(0,0,0,0.65)")
+        config["captions"]["bg_radius"] = int(payload.get("bg_radius", 14))
+        config["captions"]["fade_duration"] = float(payload.get("fade_duration", 0.12))
         config["captions"]["auto_detect_emphasis"] = bool(payload.get("auto_detect_emphasis", True))
         
         # Effects customization

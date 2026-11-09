@@ -54,6 +54,9 @@
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="text-xs font-medium text-emerald-300">Antigravity AI Engine: Active</span>
       </div>
+      <button onclick="openCaptionPlayground()" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-gray-950 px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow">
+        <span>🎨 Caption Studio & Playground</span>
+      </button>
       <button onclick="openYouTubeModal()" class="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition">
         <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
         YouTube Automation
@@ -124,8 +127,13 @@
       <!-- Typography & Interactive Live Preview Card -->
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-sm font-semibold text-gray-200">Kinetic Captions & Live Font Test</h2>
-          <span class="text-xs text-amber-400 font-medium">Real-time Preview</span>
+          <div>
+            <h2 class="text-sm font-semibold text-gray-200">Kinetic Captions & Styling</h2>
+            <p class="text-[10px] text-gray-400">Word-level karaoke, tilt angles & dynamic badges</p>
+          </div>
+          <button onclick="openCaptionPlayground()" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/30 transition flex items-center gap-1">
+            <span>✨ Open Playground</span>
+          </button>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -145,27 +153,55 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-4 gap-2">
           <div>
             <label class="text-[11px] text-gray-400 block mb-1">Text Color</label>
-            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
-              <input type="color" id="primaryColor" value="#FFFFFF" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
-              <span id="primaryHex" class="text-[11px] text-gray-300 font-mono">#FFF</span>
+            <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="primaryColor" value="#FFFFFF" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="primaryHex" class="text-[10px] text-gray-300 font-mono">#FFF</span>
             </div>
           </div>
           <div>
-            <label class="text-[11px] text-gray-400 block mb-1">Active Pop Color</label>
-            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
-              <input type="color" id="activeColor" value="#FFD400" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
-              <span id="activeHex" class="text-[11px] text-gray-300 font-mono">#FFD400</span>
+            <label class="text-[11px] text-gray-400 block mb-1">Active Pop</label>
+            <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="activeColor" value="#FFD400" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="activeHex" class="text-[10px] text-gray-300 font-mono">#FFD400</span>
             </div>
           </div>
           <div>
-            <label class="text-[11px] text-gray-400 block mb-1">Outline Color</label>
-            <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
-              <input type="color" id="strokeColor" value="#000000" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
-              <span id="strokeHex" class="text-[11px] text-gray-300 font-mono">#000</span>
+            <label class="text-[11px] text-gray-400 block mb-1">Emphasis {{Tag}}</label>
+            <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="emphasisColor" value="#00FFCC" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="emphasisHex" class="text-[10px] text-gray-300 font-mono">#00FFCC</span>
             </div>
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">Stroke Outline</label>
+            <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+              <input type="color" id="strokeColor" value="#000000" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="updateLivePreview()">
+              <span id="strokeHex" class="text-[10px] text-gray-300 font-mono">#000</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-0.5">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-gray-400">Dynamic Tilt Angle</span>
+              <span id="rotLabel" class="text-amber-400 font-mono font-semibold">0°</span>
+            </div>
+            <input type="range" id="rotationAngle" min="-12" max="12" value="0" step="1"
+              class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+              oninput="document.getElementById('rotLabel').innerText = this.value + '°'; updateLivePreview()">
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Background Style</label>
+            <select id="bgMode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400" onchange="updateLivePreview()">
+              <option value="none" selected>None (Clean Text)</option>
+              <option value="word">Active Word Pill</option>
+              <option value="emphasis">Emphasis {{Tag}} Pill</option>
+              <option value="phrase">Full Dark Translucent Box</option>
+            </select>
           </div>
         </div>
 
@@ -173,17 +209,18 @@
         <label class="flex items-center justify-between p-2.5 bg-dark-900 rounded-xl border border-dark-600 cursor-pointer">
           <div class="space-y-0.5">
             <span class="text-xs font-medium text-gray-200">Auto-Detect Text Emphasis</span>
-            <p class="text-[10px] text-gray-400">Automatically scales & bolds viral punchline words</p>
+            <p class="text-[10px] text-gray-400">Automatically bolds & tags punchline words (e.g. {{seven 11}})</p>
           </div>
           <input type="checkbox" id="autoEmphasis" checked class="accent-amber-400 w-4 h-4 cursor-pointer" onchange="updateLivePreview()">
         </label>
 
         <!-- LIVE INTERACTIVE SUBTITLE PREVIEW BOX -->
-        <div class="relative bg-gradient-to-b from-gray-900 to-black rounded-xl border border-dark-600 p-4 text-center overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[95px]">
+        <div class="relative bg-gradient-to-b from-gray-900 to-black rounded-xl border border-dark-600 p-5 text-center overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[110px]">
           <span class="text-[10px] uppercase tracking-wider text-gray-400 absolute top-2 left-3">Interactive Subtitle Canvas</span>
-          <div id="previewCanvas" class="text-xl font-extrabold tracking-wide uppercase transition-all duration-150">
-            <span>DADDY I HIT </span>
-            <span id="previewActiveWord" class="inline-block transform scale-110 px-1 text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">10,000 BODIES</span>
+          <div id="previewCanvas" class="text-xl font-extrabold tracking-wide uppercase transition-all duration-150 transform">
+            <span id="previewPrefix">I WORKED AT </span>
+            <span id="previewActiveWord" class="inline-block transform px-2 py-0.5 rounded-lg text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">SEVEN 11</span>
+            <span id="previewSuffix"> TO SURVIVE</span>
           </div>
         </div>
       </div>
@@ -344,6 +381,243 @@
     </div>
 
   </main>
+
+  <!-- Caption Style Studio & Interactive Playground Modal -->
+  <div id="captionPlaygroundModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-3xl max-w-5xl w-full p-6 space-y-5 shadow-2xl overflow-y-auto max-h-[92vh]">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b border-dark-700">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold">
+            🎨
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-100">Caption Style Studio & Playground</h3>
+            <p class="text-xs text-gray-400">Design animated kinetic captions, tilt angles, background pills, and {{emphasis}} tags</p>
+          </div>
+        </div>
+        <button onclick="closeCaptionPlayground()" class="text-gray-400 hover:text-white text-lg px-2">✕</button>
+      </div>
+
+      <!-- Playground Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Controls (7 cols) -->
+        <div class="lg:col-span-7 space-y-4">
+          
+          <!-- Presets Bar -->
+          <div>
+            <label class="text-[11px] font-semibold text-gray-400 block mb-1.5 uppercase tracking-wider">Quick Presets</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="applyPreset('mrbeast')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-amber-400 text-xs font-semibold text-gray-200 transition text-left">
+                ⚡ MrBeast Tilt (-4°)
+              </button>
+              <button onclick="applyPreset('cyberpunk')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-cyan-400 text-xs font-semibold text-gray-200 transition text-left">
+                🌐 Cyberpunk Glow
+              </button>
+              <button onclick="applyPreset('hormozi')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-emerald-400 text-xs font-semibold text-gray-200 transition text-left">
+                🔥 Hormozi Green Pill
+              </button>
+              <button onclick="applyPreset('cleanbox')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-blue-400 text-xs font-semibold text-gray-200 transition text-left">
+                🧊 Clean Minimal Box
+              </button>
+              <button onclick="applyPreset('hotred')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-red-400 text-xs font-semibold text-gray-200 transition text-left">
+                🚨 Red Punch (-5°)
+              </button>
+              <button onclick="applyPreset('goldpop')" class="px-2.5 py-1.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-amber-400 text-xs font-semibold text-gray-200 transition text-left">
+                ⭐ Classic Gold Pop
+              </button>
+            </div>
+          </div>
+
+          <!-- Sample Text & Auto-Detect Emphasis Box -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Sample Speech Text (Use {{word}} for Emphasis)</label>
+              <button onclick="runAutoDetectInPlayground()" class="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                <span>✨ Auto-Detect {{Emphasis}}</span>
+              </button>
+            </div>
+            <textarea id="pgSampleText" rows="2" class="w-full bg-dark-900 border border-dark-600 rounded-xl p-2.5 text-xs text-gray-200 font-mono focus:outline-none focus:border-amber-400"
+              oninput="renderPlaygroundScene()">I worked night shifts at {{seven 11}} to achieve my {{impossible goal}}</textarea>
+            <p class="text-[10px] text-gray-400">Words enclosed in <code>{{...}}</code> receive the special scaled badge and emphasis style automatically.</p>
+          </div>
+
+          <!-- Typography Controls -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Font Family</label>
+              <select id="pgFontFamily" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400" onchange="renderPlaygroundScene()">
+                <option value="Montserrat-ExtraBold.ttf" selected>Montserrat ExtraBold</option>
+                <option value="Inter-Bold.ttf">Inter Bold</option>
+                <option value="Poppins-ExtraBold.ttf">Poppins ExtraBold</option>
+                <option value="BebasNeue-Regular.ttf">Bebas Neue</option>
+                <option value="Anton-Regular.ttf">Anton</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Font Size</label>
+              <input type="number" id="pgFontSize" value="68" min="36" max="90" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400" oninput="renderPlaygroundScene()">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Letter Spacing</label>
+              <input type="range" id="pgLetterSpacing" min="-2" max="10" value="1" step="1" class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg mt-2 cursor-pointer" oninput="renderPlaygroundScene()">
+            </div>
+          </div>
+
+          <!-- Color Palette Grid -->
+          <div class="grid grid-cols-4 gap-2">
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-1">Primary Text</label>
+              <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1">
+                <input type="color" id="pgPrimaryColor" value="#FFFFFF" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="renderPlaygroundScene()">
+                <span id="pgPrimaryHex" class="text-[10px] text-gray-300 font-mono">#FFF</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-1">Active Pop</label>
+              <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1">
+                <input type="color" id="pgActiveColor" value="#FFD400" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="renderPlaygroundScene()">
+                <span id="pgActiveHex" class="text-[10px] text-gray-300 font-mono">#FFD400</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-1">Emphasis {{Tag}}</label>
+              <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1">
+                <input type="color" id="pgEmphasisColor" value="#00FFCC" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="renderPlaygroundScene()">
+                <span id="pgEmphasisHex" class="text-[10px] text-gray-300 font-mono">#00FFCC</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] text-gray-400 block mb-1">Stroke Outline</label>
+              <div class="flex items-center space-x-1 bg-dark-900 border border-dark-600 rounded-lg p-1">
+                <input type="color" id="pgStrokeColor" value="#000000" class="w-4 h-4 rounded cursor-pointer bg-transparent" onchange="renderPlaygroundScene()">
+                <span id="pgStrokeHex" class="text-[10px] text-gray-300 font-mono">#000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Tilt & Motion Controls -->
+          <div class="grid grid-cols-3 gap-2.5 pt-1">
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-gray-400">Dynamic Rotation</span>
+                <span id="pgRotVal" class="text-amber-400 font-mono font-bold">-4°</span>
+              </div>
+              <input type="range" id="pgRotation" min="-15" max="15" value="-4" step="1"
+                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+                oninput="document.getElementById('pgRotVal').innerText = this.value + '°'; renderPlaygroundScene()">
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Stroke Width</label>
+              <input type="number" id="pgStrokeWidth" value="8" min="0" max="14" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1 text-xs text-gray-200 focus:outline-none focus:border-amber-400" oninput="renderPlaygroundScene()">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-gray-400">Fade In/Out</span>
+                <span id="pgFadeVal" class="text-amber-400 font-mono font-bold">0.12s</span>
+              </div>
+              <input type="range" id="pgFadeDur" min="0.0" max="0.4" value="0.12" step="0.02"
+                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+                oninput="document.getElementById('pgFadeVal').innerText = this.value + 's'; renderPlaygroundScene()">
+            </div>
+          </div>
+
+          <!-- Background Pill & Badge Box Settings -->
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Background Pill Mode</label>
+              <select id="pgBgMode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400" onchange="renderPlaygroundScene()">
+                <option value="none">None (Clean Outline)</option>
+                <option value="word">Active Word Pill</option>
+                <option value="emphasis" selected>Emphasis {{Tag}} Badge</option>
+                <option value="phrase">Full Dark Translucent Box</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Badge Background Color</label>
+              <div class="flex items-center space-x-1.5 bg-dark-900 border border-dark-600 rounded-lg p-1.5">
+                <input type="color" id="pgBgColor" value="#000000" class="w-5 h-5 rounded cursor-pointer bg-transparent" onchange="renderPlaygroundScene()">
+                <span id="pgBgHex" class="text-[11px] text-gray-300 font-mono">#000000</span>
+              </div>
+            </div>
+            <div>
+              <label class="text-[11px] text-gray-400 block mb-1">Corner Radius</label>
+              <input type="number" id="pgBgRadius" value="14" min="0" max="24" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400" oninput="renderPlaygroundScene()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Live Simulated 9:16 Video Player (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col items-center">
+          <div class="w-full flex items-center justify-between mb-2">
+            <span class="text-xs font-semibold text-gray-300">Live 9:16 Kinetic Video Canvas</span>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="togglePlaygroundPlayback()" id="pgPlayBtn" class="px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-semibold text-amber-400 flex items-center gap-1 transition">
+                <span>▶ Play Karaoke</span>
+              </button>
+              <button onclick="resetPlaygroundPlayback()" class="px-2 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs text-gray-300">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulated Phone Viewport -->
+          <div class="w-full max-w-[280px] aspect-[9/16] bg-gradient-to-b from-gray-950 via-gray-900 to-black rounded-3xl border-2 border-dark-600 relative overflow-hidden shadow-2xl flex flex-col justify-between p-4">
+            
+            <!-- Video Mockup Top Bar -->
+            <div class="flex items-center justify-between z-10 opacity-70">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                <span class="text-[10px] font-mono text-gray-300">9:16 PREVIEW</span>
+              </div>
+              <span id="pgTimer" class="text-[10px] font-mono text-amber-400">00:01.4s</span>
+            </div>
+
+            <!-- Simulated Streamer / Video Silhouette Background -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+              <svg class="w-36 h-36 text-gray-700" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+              </svg>
+            </div>
+
+            <!-- Kinetic Subtitle Stage -->
+            <div class="my-auto w-full text-center z-20 flex flex-col items-center justify-center min-h-[140px]">
+              <div id="pgStageContainer" class="transition-all duration-150 inline-block">
+                <!-- Dynamically rendered word spans appear here -->
+              </div>
+            </div>
+
+            <!-- Bottom Progress Indicator inside safe zone -->
+            <div class="w-full space-y-1.5 z-10 pb-1">
+              <div class="h-1 bg-dark-700 rounded-full overflow-hidden">
+                <div id="pgTimelineBar" class="h-full bg-amber-400 transition-all duration-100" style="width: 35%"></div>
+              </div>
+              <div class="flex justify-between text-[9px] text-gray-400 font-mono">
+                <span>Safe Zone Top 12%</span>
+                <span>Bottom Safe 20%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between pt-4 border-t border-dark-700">
+        <span class="text-xs text-gray-400">Styles applied here will immediately configure <code>config.yaml</code> and all newly rendered shorts.</span>
+        <div class="flex items-center space-x-2.5">
+          <button onclick="closeCaptionPlayground()" class="px-4 py-2.5 rounded-xl bg-dark-700 hover:bg-dark-600 font-semibold text-xs text-gray-300 transition">
+            Cancel
+          </button>
+          <button onclick="savePlaygroundStyleToPipeline()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 font-bold text-xs text-gray-950 transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+            <span>💾 Apply Style to Pipeline & Save</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Upload Custom OST Modal -->
   <div id="ostUploadModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -511,16 +785,21 @@
     function updateLivePreview() {
       const pColor = document.getElementById('primaryColor').value;
       const aColor = document.getElementById('activeColor').value;
+      const eColor = document.getElementById('emphasisColor') ? document.getElementById('emphasisColor').value : '#00FFCC';
       const sColor = document.getElementById('strokeColor').value;
+      const rotAngle = document.getElementById('rotationAngle') ? document.getElementById('rotationAngle').value : '0';
+      const bgMode = document.getElementById('bgMode') ? document.getElementById('bgMode').value : 'none';
       const autoEmphasis = document.getElementById('autoEmphasis').checked;
 
       document.getElementById('primaryHex').innerText = pColor.toUpperCase();
       document.getElementById('activeHex').innerText = aColor.toUpperCase();
+      if (document.getElementById('emphasisHex')) document.getElementById('emphasisHex').innerText = eColor.toUpperCase();
       document.getElementById('strokeHex').innerText = sColor.toUpperCase();
 
       const canvas = document.getElementById('previewCanvas');
       const activeWord = document.getElementById('previewActiveWord');
 
+      canvas.style.transform = `rotate(${rotAngle}deg)`;
       canvas.style.color = pColor;
       canvas.style.textShadow = `
         -2px -2px 0 ${sColor},  2px -2px 0 ${sColor},
@@ -528,11 +807,26 @@
          0px  3px 6px rgba(0,0,0,0.8)
       `;
 
-      activeWord.style.color = aColor;
-      if (autoEmphasis) {
-        activeWord.className = "inline-block transform scale-125 px-1 font-black underline";
+      if (bgMode === 'phrase') {
+        canvas.className = "text-xl font-extrabold tracking-wide uppercase transition-all duration-150 transform bg-black/70 px-4 py-2 rounded-xl inline-block border border-white/10";
       } else {
-        activeWord.className = "inline-block transform scale-105 px-1 font-extrabold";
+        canvas.className = "text-xl font-extrabold tracking-wide uppercase transition-all duration-150 transform inline-block";
+      }
+
+      if (autoEmphasis) {
+        activeWord.style.color = eColor;
+        if (bgMode === 'emphasis' || bgMode === 'word') {
+          activeWord.className = "inline-block transform scale-110 px-2 py-0.5 rounded-lg bg-black/80 border border-white/20 font-black shadow-lg";
+        } else {
+          activeWord.className = "inline-block transform scale-120 px-1 font-black underline";
+        }
+      } else {
+        activeWord.style.color = aColor;
+        if (bgMode === 'word') {
+          activeWord.className = "inline-block transform scale-105 px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 font-extrabold";
+        } else {
+          activeWord.className = "inline-block transform scale-105 px-1 font-extrabold";
+        }
       }
     }
 
@@ -550,7 +844,10 @@
         font_size: parseInt(document.getElementById('fontSize').value),
         primary_color: document.getElementById('primaryColor').value,
         active_color: document.getElementById('activeColor').value,
+        emphasis_color: document.getElementById('emphasisColor') ? document.getElementById('emphasisColor').value : document.getElementById('activeColor').value,
         stroke_color: document.getElementById('strokeColor').value,
+        rotation_angle: parseFloat(document.getElementById('rotationAngle') ? document.getElementById('rotationAngle').value : 0),
+        bg_mode: document.getElementById('bgMode') ? document.getElementById('bgMode').value : 'none',
         auto_detect_emphasis: document.getElementById('autoEmphasis').checked,
         selected_track_id: document.getElementById('ostSelect').value,
         music_level_db: parseFloat(document.getElementById('musicLevel').value),
@@ -672,6 +969,356 @@
       navigator.clipboard.writeText(text);
       alert("Copied Title & Description with tags to your clipboard!\n\nOpening YouTube Studio upload page in a new tab. Simply drop the downloaded MP4 video file there.");
       window.open("https://studio.youtube.com/channel/UC/videos/upload?d=ud", "_blank");
+    }
+
+    // ==========================================
+    // CAPTION STUDIO & PLAYGROUND LOGIC
+    // ==========================================
+    let pgCurrentWordIndex = 0;
+    let pgPlaybackInterval = null;
+    let pgTokens = [];
+
+    const PRESETS = {
+      mrbeast: {
+        font: "Montserrat-ExtraBold.ttf",
+        size: 68,
+        primary: "#FFFFFF",
+        active: "#FFD400",
+        emphasis: "#00FFCC",
+        stroke: "#000000",
+        strokeWidth: 8,
+        rotation: -4,
+        bgMode: "emphasis",
+        bgColor: "#000000",
+        bgRadius: 14,
+        fadeDur: 0.12,
+        spacing: 1
+      },
+      cyberpunk: {
+        font: "Anton-Regular.ttf",
+        size: 72,
+        primary: "#00F0FF",
+        active: "#FFE600",
+        emphasis: "#FF0055",
+        stroke: "#000000",
+        strokeWidth: 8,
+        rotation: 0,
+        bgMode: "word",
+        bgColor: "#090D16",
+        bgRadius: 8,
+        fadeDur: 0.08,
+        spacing: 2
+      },
+      hormozi: {
+        font: "Montserrat-ExtraBold.ttf",
+        size: 68,
+        primary: "#FFFFFF",
+        active: "#22C55E",
+        emphasis: "#22C55E",
+        stroke: "#000000",
+        strokeWidth: 9,
+        rotation: 0,
+        bgMode: "word",
+        bgColor: "#000000",
+        bgRadius: 12,
+        fadeDur: 0.10,
+        spacing: 1
+      },
+      cleanbox: {
+        font: "Inter-Bold.ttf",
+        size: 60,
+        primary: "#FFFFFF",
+        active: "#38BDF8",
+        emphasis: "#38BDF8",
+        stroke: "#000000",
+        strokeWidth: 4,
+        rotation: 0,
+        bgMode: "phrase",
+        bgColor: "#000000",
+        bgRadius: 16,
+        fadeDur: 0.14,
+        spacing: 0
+      },
+      hotred: {
+        font: "Poppins-ExtraBold.ttf",
+        size: 70,
+        primary: "#FFFFFF",
+        active: "#EF4444",
+        emphasis: "#F97316",
+        stroke: "#000000",
+        strokeWidth: 8,
+        rotation: -5,
+        bgMode: "emphasis",
+        bgColor: "#000000",
+        bgRadius: 14,
+        fadeDur: 0.10,
+        spacing: 1
+      },
+      goldpop: {
+        font: "BebasNeue-Regular.ttf",
+        size: 74,
+        primary: "#FFFFFF",
+        active: "#F59E0B",
+        emphasis: "#FCD34D",
+        stroke: "#000000",
+        strokeWidth: 8,
+        rotation: 2,
+        bgMode: "word",
+        bgColor: "#1A1612",
+        bgRadius: 10,
+        fadeDur: 0.12,
+        spacing: 2
+      }
+    };
+
+    function openCaptionPlayground() {
+      if (document.getElementById('fontFamily')) document.getElementById('pgFontFamily').value = document.getElementById('fontFamily').value;
+      if (document.getElementById('fontSize')) document.getElementById('pgFontSize').value = document.getElementById('fontSize').value;
+      if (document.getElementById('primaryColor')) document.getElementById('pgPrimaryColor').value = document.getElementById('primaryColor').value;
+      if (document.getElementById('activeColor')) document.getElementById('pgActiveColor').value = document.getElementById('activeColor').value;
+      if (document.getElementById('emphasisColor')) document.getElementById('pgEmphasisColor').value = document.getElementById('emphasisColor').value;
+      if (document.getElementById('strokeColor')) document.getElementById('pgStrokeColor').value = document.getElementById('strokeColor').value;
+      if (document.getElementById('rotationAngle')) {
+        const rot = document.getElementById('rotationAngle').value;
+        document.getElementById('pgRotation').value = rot;
+        document.getElementById('pgRotVal').innerText = rot + '°';
+      }
+      if (document.getElementById('bgMode')) document.getElementById('pgBgMode').value = document.getElementById('bgMode').value;
+
+      document.getElementById('captionPlaygroundModal').classList.remove('hidden');
+      renderPlaygroundScene();
+    }
+
+    function closeCaptionPlayground() {
+      resetPlaygroundPlayback();
+      document.getElementById('captionPlaygroundModal').classList.add('hidden');
+    }
+
+    function applyPreset(name) {
+      const p = PRESETS[name];
+      if (!p) return;
+      document.getElementById('pgFontFamily').value = p.font;
+      document.getElementById('pgFontSize').value = p.size;
+      document.getElementById('pgPrimaryColor').value = p.primary;
+      document.getElementById('pgActiveColor').value = p.active;
+      document.getElementById('pgEmphasisColor').value = p.emphasis;
+      document.getElementById('pgStrokeColor').value = p.stroke;
+      document.getElementById('pgStrokeWidth').value = p.strokeWidth;
+      document.getElementById('pgRotation').value = p.rotation;
+      document.getElementById('pgRotVal').innerText = p.rotation + '°';
+      document.getElementById('pgBgMode').value = p.bgMode;
+      document.getElementById('pgBgColor').value = p.bgColor;
+      document.getElementById('pgBgRadius').value = p.bgRadius;
+      document.getElementById('pgFadeDur').value = p.fadeDur;
+      document.getElementById('pgFadeVal').innerText = p.fadeDur + 's';
+      document.getElementById('pgLetterSpacing').value = p.spacing;
+
+      renderPlaygroundScene();
+    }
+
+    async function runAutoDetectInPlayground() {
+      const text = document.getElementById('pgSampleText').value.trim();
+      if (!text) return;
+
+      try {
+        const res = await fetch('/api/captions/auto-detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (data.highlighted_text) {
+          document.getElementById('pgSampleText').value = data.highlighted_text;
+          renderPlaygroundScene();
+        }
+      } catch (err) {
+        console.error("Auto-detect failed:", err);
+      }
+    }
+
+    function tokenizeSampleText(rawText) {
+      const tokens = [];
+      const parts = rawText.split(/(\{\{[^}]+\}\})/g);
+      for (const part of parts) {
+        if (!part) continue;
+        if (part.startsWith('{{') && part.endsWith('}}')) {
+          const inner = part.slice(2, -2).trim();
+          const words = inner.split(/\s+/);
+          for (const w of words) {
+            if (w) tokens.push({ word: w, isEmphasis: true });
+          }
+        } else {
+          const words = part.split(/\s+/);
+          for (const w of words) {
+            if (w) tokens.push({ word: w, isEmphasis: false });
+          }
+        }
+      }
+      return tokens;
+    }
+
+    function renderPlaygroundScene() {
+      const primaryCol = document.getElementById('pgPrimaryColor').value;
+      const activeCol = document.getElementById('pgActiveColor').value;
+      const emphasisCol = document.getElementById('pgEmphasisColor').value;
+      const strokeCol = document.getElementById('pgStrokeColor').value;
+      const strokeW = parseInt(document.getElementById('pgStrokeWidth').value) || 0;
+      const bgCol = document.getElementById('pgBgColor').value;
+      const bgMode = document.getElementById('pgBgMode').value;
+      const bgRadius = parseInt(document.getElementById('pgBgRadius').value) || 12;
+      const rotation = document.getElementById('pgRotation').value;
+      const letterSpacing = document.getElementById('pgLetterSpacing').value + 'px';
+      const fontSize = parseInt(document.getElementById('pgFontSize').value) || 68;
+
+      // Update color labels
+      document.getElementById('pgPrimaryHex').innerText = primaryCol.toUpperCase();
+      document.getElementById('pgActiveHex').innerText = activeCol.toUpperCase();
+      document.getElementById('pgEmphasisHex').innerText = emphasisCol.toUpperCase();
+      document.getElementById('pgStrokeHex').innerText = strokeCol.toUpperCase();
+      document.getElementById('pgBgHex').innerText = bgCol.toUpperCase();
+
+      const stage = document.getElementById('pgStageContainer');
+      stage.style.transform = `rotate(${rotation}deg)`;
+      stage.style.letterSpacing = letterSpacing;
+      
+      // Scaled font size for phone mockup (canvas 1080 -> mockup 280)
+      const previewSize = Math.max(16, Math.round(fontSize * 0.28));
+      stage.style.fontSize = `${previewSize}px`;
+
+      // Text stroke shadow
+      const s = Math.max(1, Math.round(strokeW * 0.3));
+      const strokeShadow = strokeW > 0
+        ? `-${s}px -${s}px 0 ${strokeCol}, ${s}px -${s}px 0 ${strokeCol}, -${s}px ${s}px 0 ${strokeCol}, ${s}px ${s}px 0 ${strokeCol}, 0 ${s+1}px ${s*2}px rgba(0,0,0,0.85)`
+        : `0 2px 4px rgba(0,0,0,0.8)`;
+      stage.style.textShadow = strokeShadow;
+
+      if (bgMode === 'phrase') {
+        stage.style.background = `${bgCol}c0`;
+        stage.style.borderRadius = `${bgRadius}px`;
+        stage.style.padding = '8px 14px';
+        stage.style.backdropFilter = 'blur(4px)';
+      } else {
+        stage.style.background = 'transparent';
+        stage.style.borderRadius = '0';
+        stage.style.padding = '0';
+        stage.style.backdropFilter = 'none';
+      }
+
+      pgTokens = tokenizeSampleText(document.getElementById('pgSampleText').value);
+      if (pgTokens.length === 0) {
+        stage.innerHTML = '<span class="text-xs text-gray-500 italic">Enter speech text above</span>';
+        return;
+      }
+
+      let html = '';
+      pgTokens.forEach((t, i) => {
+        const isActive = (i === pgCurrentWordIndex);
+        let color = primaryCol;
+        let badgeStyle = '';
+        let transformClass = 'transform scale-100';
+
+        if (t.isEmphasis) {
+          color = emphasisCol;
+          if (bgMode === 'emphasis') {
+            badgeStyle = `background: ${bgCol}e6; border-radius: ${bgRadius}px; padding: 2px 8px; border: 1px solid ${emphasisCol}55; box-shadow: 0 0 10px ${emphasisCol}40;`;
+            transformClass = 'transform scale-110 font-black';
+          }
+        }
+
+        if (isActive) {
+          color = activeCol;
+          if (bgMode === 'word') {
+            badgeStyle = `background: ${bgCol}e6; border-radius: ${bgRadius}px; padding: 2px 8px; border: 1px solid ${activeCol}66; box-shadow: 0 0 12px ${activeCol}50;`;
+          }
+          transformClass = 'transform scale-120 font-black inline-block z-10';
+        }
+
+        html += `<span id="pgWord_${i}" class="inline-block mx-1 my-0.5 font-extrabold uppercase transition-all duration-150 ${transformClass}" style="color: ${color}; ${badgeStyle}">${t.word}</span>`;
+      });
+
+      stage.innerHTML = html;
+    }
+
+    function togglePlaygroundPlayback() {
+      const btn = document.getElementById('pgPlayBtn');
+      if (pgPlaybackInterval) {
+        clearInterval(pgPlaybackInterval);
+        pgPlaybackInterval = null;
+        btn.innerHTML = '<span>▶ Play Karaoke</span>';
+      } else {
+        if (!pgTokens.length) renderPlaygroundScene();
+        btn.innerHTML = '<span>❚❚ Pause</span>';
+        pgPlaybackInterval = setInterval(() => {
+          if (!pgTokens.length) return;
+          pgCurrentWordIndex = (pgCurrentWordIndex + 1) % pgTokens.length;
+          
+          // Update timeline bar & mock timer
+          const pct = Math.round(((pgCurrentWordIndex + 1) / pgTokens.length) * 100);
+          document.getElementById('pgTimelineBar').style.width = pct + '%';
+          const sec = ((pgCurrentWordIndex + 1) * 0.35).toFixed(1);
+          document.getElementById('pgTimer').innerText = `00:0${sec}s`;
+          
+          renderPlaygroundScene();
+        }, 340);
+      }
+    }
+
+    function resetPlaygroundPlayback() {
+      if (pgPlaybackInterval) {
+        clearInterval(pgPlaybackInterval);
+        pgPlaybackInterval = null;
+      }
+      pgCurrentWordIndex = 0;
+      document.getElementById('pgPlayBtn').innerHTML = '<span>▶ Play Karaoke</span>';
+      document.getElementById('pgTimelineBar').style.width = '10%';
+      document.getElementById('pgTimer').innerText = '00:00.0s';
+      renderPlaygroundScene();
+    }
+
+    async function savePlaygroundStyleToPipeline() {
+      const payload = {
+        font_file: document.getElementById('pgFontFamily').value,
+        font_size: parseInt(document.getElementById('pgFontSize').value),
+        primary_color: document.getElementById('pgPrimaryColor').value,
+        active_color: document.getElementById('pgActiveColor').value,
+        emphasis_color: document.getElementById('pgEmphasisColor').value,
+        stroke_color: document.getElementById('pgStrokeColor').value,
+        stroke_width: parseInt(document.getElementById('pgStrokeWidth').value),
+        rotation_angle: parseFloat(document.getElementById('pgRotation').value),
+        bg_mode: document.getElementById('pgBgMode').value,
+        bg_color: document.getElementById('pgBgColor').value,
+        bg_radius: parseInt(document.getElementById('pgBgRadius').value),
+        fade_duration: parseFloat(document.getElementById('pgFadeDur').value),
+        auto_detect_emphasis: true
+      };
+
+      try {
+        const res = await fetch('/api/captions/save-style', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        // Sync values back to main sidebar controls
+        if (document.getElementById('fontFamily')) document.getElementById('fontFamily').value = payload.font_file;
+        if (document.getElementById('fontSize')) document.getElementById('fontSize').value = payload.font_size;
+        if (document.getElementById('primaryColor')) document.getElementById('primaryColor').value = payload.primary_color;
+        if (document.getElementById('activeColor')) document.getElementById('activeColor').value = payload.active_color;
+        if (document.getElementById('emphasisColor')) document.getElementById('emphasisColor').value = payload.emphasis_color;
+        if (document.getElementById('strokeColor')) document.getElementById('strokeColor').value = payload.stroke_color;
+        if (document.getElementById('rotationAngle')) {
+          document.getElementById('rotationAngle').value = payload.rotation_angle;
+          document.getElementById('rotLabel').innerText = payload.rotation_angle + '°';
+        }
+        if (document.getElementById('bgMode')) document.getElementById('bgMode').value = payload.bg_mode;
+
+        updateLivePreview();
+        closeCaptionPlayground();
+        alert("✨ Caption style successfully saved! All future generated clips will use this exact typography, tilt, and badges.");
+      } catch (err) {
+        alert("Failed to save style to pipeline: " + err);
+      }
     }
 
     // Initialize preview

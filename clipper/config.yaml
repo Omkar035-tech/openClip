@@ -1,80 +1,74 @@
-# ==============================================================================
-# Clipper Configuration
-# Reusable, fast, open-source podcast-to-viral-short engine for Apple Silicon M4
-# ==============================================================================
-
 general:
-  output_dir: "out"
-  cache_dir: "cache"
-  temp_dir: "/tmp/clipper_work"
+  output_dir: out
+  cache_dir: cache
+  temp_dir: /tmp/clipper_work
   n_clips: 5
-
 models:
-  # Transcription: 'mlx' (Apple Silicon GPU), 'faster-whisper' (CPU)
-  whisper_backend: "mlx"
-  whisper_model: "mlx-community/whisper-large-v3-turbo"
-  fallback_whisper_model: "base.en"
-  # Selection LLM: current Gemini Flash model
-  gemini_model: "gemini-2.5-flash"
-  ollama_model: "qwen2.5:7b-instruct"
-  # Verification: proxy video check (disabled by default)
+  whisper_backend: mlx
+  whisper_model: mlx-community/whisper-large-v3-turbo
+  fallback_whisper_model: base.en
+  gemini_model: gemini-2.5-flash
+  ollama_model: qwen2.5:7b-instruct
   visual_verify: false
-
 clip:
-  layout: "podcast_vertical"  # Options: podcast_vertical, streamer_split, landscape
+  layout: podcast_vertical
   target_duration: 65.0
   min_duration: 35.0
   max_duration: 120.0
-  resolution: [1080, 1920]
+  resolution:
+  - 1080
+  - 1920
   fps: 30
-
 captions:
-  style: "bold-pop"  # Options: bold-pop, clean-box, highlight-sweep
-  font_dir: "fonts"
-  font_file: "Montserrat-ExtraBold.ttf"
+  style: bold-pop
+  font_dir: fonts
+  font_file: Montserrat-ExtraBold.ttf
   font_size: 68
   max_safe_width: 920
-  primary_color: "#FFFFFF"
-  active_color: "#FFD400"
-  stroke_color: "#000000"
+  primary_color: '#FFFFFF'
+  active_color: '#FFD400'
+  stroke_color: '#000000'
   stroke_width: 7
-  vertical_position_ratio: 0.70  # Lower third (62% - 72%)
+  vertical_position_ratio: 0.7
   max_words_per_phrase: 3
-  karaoke_pop_scale: 1.10
+  karaoke_pop_scale: 1.1
   show_title_card: true
   title_card_duration: 2.2
-
+  emphasis_color: '#00FFCC'
+  rotation_angle: -4.0
+  bg_mode: emphasis
+  bg_color: '#000000'
+  bg_radius: 14
+  fade_duration: 0.12
+  auto_detect_emphasis: true
 camera:
-  detector: "mediapipe"  # Options: mediapipe, opencv_haar
-  smoothing_alpha: 0.08  # One-Euro / EMA smoothing factor
+  detector: mediapipe
+  smoothing_alpha: 0.08
   deadband_px: 16
-  hook_zoom: 1.12        # Initial hook punch-in (0 - 2.8s)
-  punch_zoom: 1.20       # Climax / punchline emphasis
+  hook_zoom: 1.12
+  punch_zoom: 1.2
   pacing_seconds: 3.5
-
 effects:
   white_flash: true
   flash_frames: 3
   progress_bar: true
-  progress_bar_color: "#FFD400"
+  progress_bar_color: '#FFD400'
   progress_bar_height: 8
   vignette: true
   sfx_on_punch: true
-
 music:
   enabled: true
-  library_dir: "music_library"
-  level_db: -22.0          # Base music volume (-14dB below speech)
+  library_dir: music_library
+  level_db: -22.0
   ducking_threshold_db: -30.0
   ducking_ratio: 7.0
   ducking_attack_ms: 20
   ducking_release_ms: 300
   highpass_hz: 60.0
-  speech_dip_hz: 2500.0    # Carve 2.5kHz pocket for vocal clarity
+  speech_dip_hz: 2500.0
   fade_in_sec: 0.6
   fade_out_sec: 1.2
   generate: false
-
 audio:
   voice_highpass_hz: 80.0
   voice_denoise: true
