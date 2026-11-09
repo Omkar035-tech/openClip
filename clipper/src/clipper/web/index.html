@@ -70,19 +70,39 @@
     <!-- LEFT COLUMN: Studio Controls & Customizer (5 cols) -->
     <div class="lg:col-span-5 space-y-5">
       
-      <!-- Video Input Card -->
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+      <!-- Source Video Input Card -->
+      <div class="bg-dark-800 border border-dark-700/80 rounded-2xl p-5 shadow-sm space-y-3.5">
         <div class="flex items-center justify-between">
-          <label class="text-sm font-semibold text-gray-200 flex items-center gap-2">
+          <label class="text-sm font-bold text-gray-200 flex items-center gap-2">
             <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Source Podcast Video
+            Source Video
           </label>
-          <span class="text-xs text-gray-400">42 min sample loaded</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="openLocalVideosModal()" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-amber-400 border border-dark-600 transition flex items-center gap-1">
+              <span>⚡ Pick Detected</span>
+            </button>
+            <button type="button" onclick="document.getElementById('sourceFileInput').click()" class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition flex items-center gap-1">
+              <span>📁 Upload (.mp4 / .mkv)</span>
+            </button>
+            <input type="file" id="sourceFileInput" accept=".mp4,.mkv,.mov,.webm,.avi" class="hidden" onchange="handleSourceVideoUpload(event)">
+          </div>
         </div>
-        <div class="relative">
-          <input type="text" id="videoPath" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3.5 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono"
-            placeholder="/path/to/podcast_or_stream.mp4"
+
+        <div class="relative space-y-2">
+          <input type="text" id="videoPath" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3.5 py-2.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono shadow-inner"
+            placeholder="/path/to/source_video.mp4 or .mkv"
             value="/Users/omkar-dev/Downloads/How to Build Immense Inner Strength David Goggins (1080p, en).mp4">
+            
+          <!-- Upload Progress indicator -->
+          <div id="videoUploadProgressContainer" class="hidden bg-dark-900/90 border border-amber-500/30 rounded-xl p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px]">
+              <span id="videoUploadStatusText" class="text-amber-400 font-medium">Uploading video to workspace...</span>
+              <span id="videoUploadPercent" class="text-gray-300 font-mono font-bold">0%</span>
+            </div>
+            <div class="w-full bg-dark-700 h-1.5 rounded-full overflow-hidden">
+              <div id="videoUploadBar" class="bg-amber-400 h-full w-0 transition-all duration-150"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -314,25 +334,39 @@
         </div>
       </div>
 
-      <!-- Finished Video Gallery & Player -->
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+      <!-- Finished Video Gallery & Player (Folder-Based Architecture) -->
+      <div class="bg-dark-800 border border-dark-700/80 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-sm font-semibold text-gray-200">Rendered Shorts Gallery</h2>
-            <p class="text-xs text-gray-400">Instant 9:16 vertical playback with sound & subtitles</p>
+            <h2 class="text-sm font-bold text-gray-200 flex items-center gap-2">
+              <span>Rendered Shorts Gallery</span>
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Folder Organized</span>
+            </h2>
+            <p class="text-xs text-gray-400">Select any video project folder to browse and preview its rendered reels</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span id="clipCountBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-dark-700 text-gray-300">5 Clips Ready</span>
+          <button onclick="loadGalleryFolders()" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-300 border border-dark-600 transition flex items-center gap-1">
+            <span>🔄 Refresh</span>
+          </button>
+        </div>
+
+        <!-- FOLDER SELECTOR (Folder-based structure) -->
+        <div class="space-y-1.5 bg-dark-900/60 p-3 rounded-xl border border-dark-700">
+          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">📁 Video Project Folders (clipper/out/)</label>
+          <div id="galleryFoldersBar" class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+            <!-- Dynamically populated project folder buttons -->
+            <div class="text-xs text-gray-500 py-1 italic">Scanning output folders...</div>
           </div>
         </div>
 
-        <!-- Clip Selector Tabs -->
-        <div class="flex space-x-2 overflow-x-auto pb-1" id="clipTabs">
-          <button onclick="switchClip(1)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-gray-950">Short #1</button>
-          <button onclick="switchClip(2)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #2</button>
-          <button onclick="switchClip(3)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #3</button>
-          <button onclick="switchClip(4)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #4</button>
-          <button onclick="switchClip(5)" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600">Short #5</button>
+        <!-- REELS LIST IN SELECTED FOLDER -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">🎬 Reels inside Selected Project</label>
+            <span id="folderShortsCount" class="text-[11px] text-amber-400 font-mono font-semibold">Loading...</span>
+          </div>
+          <div id="galleryClipsBar" class="flex gap-2 overflow-x-auto pb-1.5 custom-scrollbar">
+            <!-- Dynamically populated reel tabs for the current folder -->
+          </div>
         </div>
 
         <!-- 9:16 Phone Mockup Player & Metadata View -->
@@ -341,7 +375,7 @@
           <!-- 9:16 Phone Mockup -->
           <div class="sm:col-span-6 flex justify-center">
             <div class="phone-mockup w-full max-w-[240px] bg-black rounded-[28px] overflow-hidden border-4 border-dark-600 shadow-2xl relative flex items-center justify-center">
-              <video id="playerVideo" controls playsinline class="w-full h-full object-cover rounded-[24px]" src="/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4">
+              <video id="playerVideo" controls playsinline class="w-full h-full object-cover rounded-[24px]">
               </video>
             </div>
           </div>
@@ -349,23 +383,23 @@
           <!-- Metadata & One-Click YouTube Posting -->
           <div class="sm:col-span-6 space-y-3.5">
             <div>
-              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded">Viral Hook Score: 98.5 / 100</span>
-              <h3 id="currentTitle" class="text-base font-bold text-gray-100 mt-1.5">I Retired My Whole Family</h3>
-              <p id="currentTime" class="text-xs text-gray-400 font-mono">1168.1s - 1224.4s (56.3s)</p>
+              <span id="currentScoreBadge" class="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">Viral Hook Score: 98.5 / 100</span>
+              <h3 id="currentTitle" class="text-base font-bold text-gray-100 mt-1.5 line-clamp-2">Select a reel to preview</h3>
+              <p id="currentTime" class="text-xs text-gray-400 font-mono mt-0.5">--</p>
             </div>
 
             <div class="bg-dark-800 p-3 rounded-lg border border-dark-700 text-xs text-gray-300 space-y-1">
-              <p class="text-gray-400 font-medium">Transcript Hook:</p>
-              <p id="currentExcerpt" class="italic line-clamp-3">"Paid off the mortgage, rev. I'm rich. Who cares? The same money can't buy happiness, one it can. But second of all, earning so much money has brought time for my family..."</p>
+              <p class="text-gray-400 font-semibold text-[11px]">Transcript Hook / Excerpt:</p>
+              <p id="currentExcerpt" class="italic line-clamp-3 text-gray-300">--</p>
             </div>
 
             <div class="flex items-center justify-between text-xs text-gray-400 pt-1 border-t border-dark-700">
-              <span>Mood Track:</span>
-              <span id="currentMusic" class="font-semibold text-gray-200">Carefree (Kevin MacLeod)</span>
+              <span>Soundtrack:</span>
+              <span id="currentMusic" class="font-semibold text-gray-200">--</span>
             </div>
 
             <div class="space-y-2 pt-2">
-              <a id="downloadBtn" href="/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4" download class="w-full py-2 px-3 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-semibold text-gray-200 text-center block transition">
+              <a id="downloadBtn" href="#" download class="w-full py-2 px-3 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-semibold text-gray-200 text-center block transition">
                 ⬇ Download 1080x1920 MP4
               </a>
               <button onclick="openYouTubeModalForCurrent()" class="w-full py-2.5 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white flex items-center justify-center gap-1.5 transition shadow-lg shadow-red-600/20">
@@ -711,76 +745,255 @@
     </div>
   </div>
 
+  <!-- Local Detected Videos Modal -->
+  <div id="localVideosModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-2 border-b border-dark-700">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs">
+            ⚡
+          </div>
+          <h3 class="text-sm font-bold text-gray-100">Select Local Source Video</h3>
+        </div>
+        <button onclick="document.getElementById('localVideosModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-sm">✕</button>
+      </div>
+      <p class="text-xs text-gray-400">Available .mp4 & .mkv files detected in your Downloads, Uploads, and Movies directories:</p>
+      
+      <div id="localVideosList" class="max-h-72 overflow-y-auto custom-scrollbar space-y-2 pr-1">
+        <div class="text-xs text-gray-500 py-3 text-center italic">Scanning directories...</div>
+      </div>
+
+      <div class="pt-2 border-t border-dark-700 flex justify-end">
+        <button onclick="document.getElementById('localVideosModal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-xs font-semibold text-gray-300">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    const clipsData = {
-      1: {
-        title: "I Retired My Whole Family",
-        time: "1168.1s - 1224.4s (56.3s)",
-        score: "98.5 / 100",
-        music: "Carefree (Kevin MacLeod - CC-BY)",
-        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_01.mp4",
-        excerpt: "Paid off the mortgage, rev. I'm rich. Who cares? The same money can't buy happiness, one it can. But second of all, like, me earning so much money has brought time for my family..."
-      },
-      2: {
-        title: "Salute to My Daughter (10,000 Bodies Climax)",
-        time: "1118.8s - 1174.8s (56.0s)",
-        score: "97.2 / 100",
-        music: "The Complex (Kevin MacLeod - CC-BY)",
-        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_02.mp4",
-        excerpt: "Going to his grave saying, like, daddy, I hit ten thousand bodies. That is mad, rev! Salute to my daughter. Well, he's supportive now. So there's no reason why he won't be..."
-      },
-      3: {
-        title: "Order of the Men / Post Office Lottery",
-        time: "423.5s - 479.0s (55.5s)",
-        score: "95.8 / 100",
-        music: "Monkeys Spinning Monkeys (Kevin MacLeod - CC-BY)",
-        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_03.mp4",
-        excerpt: "How do you know the order of the men? Yeah, so there's no order. Lottery team! Like when you go to the post office and you wait in line..."
-      },
-      4: {
-        title: "Hydration & Spraying Coffee into Audience",
-        time: "2182.1s - 2237.1s (55.0s)",
-        score: "94.6 / 100",
-        music: "Airport Lounge (Kevin MacLeod - CC-BY)",
-        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_04.mp4",
-        excerpt: "Spray champagne into the audience? We could spray coffee! Imagine how hydrated it would be for everyone. Better than putting champagne in people's eyes!"
-      },
-      5: {
-        title: "Divorce at 25 / Whole World Ahead",
-        time: "1048.0s - 1103.5s (55.5s)",
-        score: "94.0 / 100",
-        music: "Sneaky Snitch (Kevin MacLeod - CC-BY)",
-        file: "/api/videos/vidssave.com _10,000 bodies is my target_ _ Grilling with Castillo 720P/short_05.mp4",
-        excerpt: "Divorce at 25? You're chatting shit bro. You got a whole world ahead of you! Anyone goes through divorce it's stressful..."
+    // --- State Management ---
+    let galleryProjects = [];
+    let activeProjectIdx = 0;
+    let activeClipIdx = 0;
+    let currentSelectedClip = null;
+
+    // --- Dynamic Folder-Based Gallery Engine ---
+    async function loadGalleryFolders(preferredFolderName = null) {
+      const foldersBar = document.getElementById('galleryFoldersBar');
+      const countBadge = document.getElementById('folderShortsCount');
+      
+      try {
+        const res = await fetch('/api/gallery');
+        const data = await res.json();
+        galleryProjects = data.projects || [];
+        
+        if (galleryProjects.length === 0) {
+          foldersBar.innerHTML = '<span class="text-xs text-gray-500 py-1 italic">No rendered projects found in clipper/out/. Click Generate above to create your first shorts batch!</span>';
+          document.getElementById('galleryClipsBar').innerHTML = '<span class="text-xs text-gray-500 italic">No clips available</span>';
+          if (countBadge) countBadge.innerText = '0 Shorts';
+          return;
+        }
+
+        // Render project folders
+        let html = '';
+        let targetIdx = 0;
+        galleryProjects.forEach((proj, idx) => {
+          if (preferredFolderName && proj.folder_name === preferredFolderName) {
+            targetIdx = idx;
+          }
+          const isSelected = (idx === targetIdx);
+          const activeClass = isSelected
+            ? 'bg-amber-500 text-gray-950 font-bold border-amber-400 shadow-md shadow-amber-500/20'
+            : 'bg-dark-800 text-gray-300 hover:bg-dark-700 border-dark-600';
+          
+          html += `
+            <button onclick="selectGalleryProject(${idx})" id="folderBtn_${idx}" class="folder-tab-btn flex-shrink-0 px-3.5 py-2 rounded-xl text-xs border transition flex items-center gap-2 ${activeClass}">
+              <span>📁</span>
+              <span class="max-w-[210px] truncate text-left">${proj.display_name}</span>
+              <span class="px-1.5 py-0.5 rounded-full text-[10px] ${isSelected ? 'bg-black/20 text-gray-900' : 'bg-dark-900 text-gray-400'}">${proj.clip_count}</span>
+            </button>
+          `;
+        });
+        foldersBar.innerHTML = html;
+        selectGalleryProject(targetIdx);
+        
+      } catch (err) {
+        console.error("Failed to load gallery folders:", err);
       }
-    };
+    }
 
-    let activeClipIdx = 1;
-
-    function switchClip(idx) {
-      activeClipIdx = idx;
-      const data = clipsData[idx];
-      if (!data) return;
-
-      document.getElementById('currentTitle').innerText = data.title;
-      document.getElementById('currentTime').innerText = data.time;
-      document.getElementById('currentExcerpt').innerText = `"${data.excerpt}"`;
-      document.getElementById('currentMusic').innerText = data.music;
-      document.getElementById('downloadBtn').href = data.file;
-
-      const player = document.getElementById('playerVideo');
-      player.src = data.file;
-      player.load();
-
-      // Update Tab Styles
-      const tabs = document.querySelectorAll('.tab-btn');
-      tabs.forEach((tab, i) => {
-        if (i + 1 === idx) {
-          tab.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-500 text-gray-950";
+    function selectGalleryProject(projIdx) {
+      if (!galleryProjects[projIdx]) return;
+      activeProjectIdx = projIdx;
+      const proj = galleryProjects[projIdx];
+      
+      // Update folder buttons UI
+      document.querySelectorAll('.folder-tab-btn').forEach((btn, i) => {
+        if (i === projIdx) {
+          btn.className = 'folder-tab-btn flex-shrink-0 px-3.5 py-2 rounded-xl text-xs border transition flex items-center gap-2 bg-amber-500 text-gray-950 font-bold border-amber-400 shadow-md shadow-amber-500/20';
         } else {
-          tab.className = "tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-700 text-gray-300 hover:bg-dark-600";
+          btn.className = 'folder-tab-btn flex-shrink-0 px-3.5 py-2 rounded-xl text-xs border transition flex items-center gap-2 bg-dark-800 text-gray-300 hover:bg-dark-700 border-dark-600';
         }
       });
+
+      const countBadge = document.getElementById('folderShortsCount');
+      if (countBadge) countBadge.innerText = `${proj.clip_count} Shorts in Project`;
+
+      // Render clips for this project
+      const clipsBar = document.getElementById('galleryClipsBar');
+      let html = '';
+      proj.clips.forEach((clip, cIdx) => {
+        html += `
+          <button onclick="selectGalleryClip(${cIdx})" id="clipBtn_${cIdx}" class="clip-tab-btn flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 bg-dark-700 text-gray-300 border-dark-600 hover:bg-dark-600">
+            <span>#${clip.id}</span>
+            <span class="max-w-[130px] truncate">${clip.title}</span>
+            <span class="text-[10px] text-gray-400 font-mono">${clip.duration}s</span>
+          </button>
+        `;
+      });
+      clipsBar.innerHTML = html;
+
+      // Select and play first clip in folder
+      selectGalleryClip(0);
+    }
+
+    function selectGalleryClip(clipIdx) {
+      const proj = galleryProjects[activeProjectIdx];
+      if (!proj || !proj.clips || !proj.clips[clipIdx]) return;
+      
+      activeClipIdx = clipIdx;
+      const clip = proj.clips[clipIdx];
+      currentSelectedClip = clip;
+
+      // Update UI active styles for clip tabs
+      document.querySelectorAll('.clip-tab-btn').forEach((btn, i) => {
+        if (i === clipIdx) {
+          btn.className = 'clip-tab-btn flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1.5 bg-amber-500 text-gray-950 border-amber-400 shadow';
+        } else {
+          btn.className = 'clip-tab-btn flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 bg-dark-700 text-gray-300 border-dark-600 hover:bg-dark-600';
+        }
+      });
+
+      // Update Player & Details
+      document.getElementById('currentTitle').innerText = clip.title;
+      document.getElementById('currentTime').innerText = clip.time_range;
+      document.getElementById('currentExcerpt').innerText = `"${clip.excerpt}"`;
+      document.getElementById('currentMusic').innerText = clip.music;
+      document.getElementById('downloadBtn').href = clip.file;
+      document.getElementById('downloadBtn').download = `${clip.clip_id}.mp4`;
+      
+      const scoreBadge = document.getElementById('currentScoreBadge');
+      if (scoreBadge) scoreBadge.innerText = `Viral Hook Score: ${clip.score}`;
+
+      const player = document.getElementById('playerVideo');
+      player.src = clip.file;
+      player.load();
+    }
+
+    // Legacy switchClip bridge
+    function switchClip(idx) {
+      selectGalleryClip(idx - 1);
+    }
+
+    // --- Source Video Upload & Detection Engine ---
+    async function openLocalVideosModal() {
+      const modal = document.getElementById('localVideosModal');
+      const listDiv = document.getElementById('localVideosList');
+      modal.classList.remove('hidden');
+      listDiv.innerHTML = '<div class="text-xs text-gray-400 py-3 text-center italic">Scanning Downloads, Uploads, and Movies...</div>';
+
+      try {
+        const res = await fetch('/api/local-videos');
+        const data = await res.json();
+        const videos = data.videos || [];
+
+        if (videos.length === 0) {
+          listDiv.innerHTML = '<div class="text-xs text-gray-500 py-3 text-center">No .mp4 or .mkv files detected in standard folders. Use the Upload button to add one!</div>';
+          return;
+        }
+
+        let html = '';
+        videos.forEach(v => {
+          html += `
+            <div onclick="selectLocalVideo('${v.path.replace(/'/g, "\\'")}')" class="group p-2.5 rounded-xl bg-dark-900 border border-dark-600 hover:border-amber-400 cursor-pointer transition flex items-center justify-between">
+              <div class="space-y-0.5 overflow-hidden pr-2">
+                <div class="text-xs font-semibold text-gray-200 group-hover:text-amber-400 truncate">${v.name}</div>
+                <div class="text-[10px] text-gray-400 font-mono truncate">${v.path}</div>
+              </div>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <span class="text-[10px] font-mono text-gray-400">${v.size_mb} MB</span>
+                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-dark-700 text-gray-300 font-bold">${v.source}</span>
+              </div>
+            </div>
+          `;
+        });
+        listDiv.innerHTML = html;
+
+      } catch (err) {
+        listDiv.innerHTML = `<div class="text-xs text-red-400 py-3 text-center">Error listing local videos: ${err}</div>`;
+      }
+    }
+
+    function selectLocalVideo(filePath) {
+      document.getElementById('videoPath').value = filePath;
+      document.getElementById('localVideosModal').classList.add('hidden');
+    }
+
+    function handleSourceVideoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const progressContainer = document.getElementById('videoUploadProgressContainer');
+      const progressBar = document.getElementById('videoUploadBar');
+      const percentText = document.getElementById('videoUploadPercent');
+      const statusText = document.getElementById('videoUploadStatusText');
+
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      percentText.innerText = '0%';
+      statusText.innerText = `Uploading ${file.name} to workspace...`;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload-video', true);
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressBar.style.width = pct + '%';
+          percentText.innerText = pct + '%';
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            if (data.success) {
+              progressBar.style.width = '100%';
+              percentText.innerText = '100%';
+              statusText.innerText = `✓ Uploaded ${data.filename} (${data.size_mb} MB)`;
+              document.getElementById('videoPath').value = data.path;
+              setTimeout(() => {
+                progressContainer.classList.add('hidden');
+              }, 2500);
+            }
+          } catch (e) {
+            statusText.innerText = 'Upload completed.';
+          }
+        } else {
+          statusText.innerText = `Upload failed: ${xhr.statusText}`;
+        }
+      };
+
+      xhr.onerror = () => {
+        statusText.innerText = 'Network error during upload.';
+      };
+
+      xhr.send(formData);
     }
 
     function updateLivePreview() {
@@ -897,7 +1110,7 @@
             btn.disabled = false;
             btn.classList.remove('opacity-60', 'cursor-not-allowed');
             if (status.status === 'completed') {
-              switchClip(1);
+              loadGalleryFolders();
             }
           }
         } catch (e) {
@@ -933,9 +1146,14 @@
     }
 
     function openYouTubeModalForCurrent() {
-      const data = clipsData[activeClipIdx];
-      document.getElementById('ytTitle').value = `${data.title} #shorts`;
-      document.getElementById('ytDesc').value = `${data.excerpt}\n\n🎙️ Grilling with Castillo\nSoundtrack: ${data.music}\n\n#shorts #podcast #viral #funny`;
+      const clip = currentSelectedClip;
+      if (!clip) {
+        alert("Please select a rendered short from the gallery first.");
+        return;
+      }
+      document.getElementById('ytTitle').value = `${clip.title} #shorts`;
+      const desc = clip.description || `${clip.excerpt}\n\nSoundtrack: ${clip.music}\n\n#shorts #podcast #viral #interview`;
+      document.getElementById('ytDesc').value = desc;
       document.getElementById('youtubeModal').classList.remove('hidden');
     }
 
@@ -1322,8 +1540,9 @@
       }
     }
 
-    // Initialize preview
+    // Initialize preview and dynamic folder gallery
     updateLivePreview();
+    loadGalleryFolders();
   </script>
 </body>
 </html>

@@ -379,6 +379,153 @@ async def stream_output_video(video_name: str, filename: str):
     media_type = "video/mp4" if filename.endswith(".mp4") else "text/plain"
     return FileResponse(file_path, media_type=media_type)
 
+@app.get("/api/gallery")
+async def get_rendered_gallery():
+    """
+    Returns hierarchical folder-based structure of all rendered video projects and their shorts.
+    """
+    import urllib.parse
+    out_dir = BASE_DIR / "out"
+    projects = []
+    
+    if out_dir.exists():
+        for p in sorted(out_dir.iterdir(), key=lambda d: d.stat().st_mtime if d.is_dir() else 0, reverse=True):
+            if not p.is_dir() or p.name.startswith("."):
+                continue
+                
+            mp4_files = sorted(list(p.glob("short_*.mp4")), key=lambda f: f.name)
+            if not mp4_files:
+                continue
+                
+            # Clean display name
+            display_name = (
+                p.name
+                .replace("vidssave.com _", "")
+                .replace("_ Grilling with Castillo 720P", " (Castillo Interview)")
+                .replace("(1080p, en)", "")
+                .strip()
+            )
+            
+            clips = []
+            for idx, mp4_file in enumerate(mp4_files, 1):
+                base_name = mp4_file.stem
+                manifest_file = p / f"{base_name}_manifest.json"
+                desc_file = p / f"{base_name}_description.txt"
+                
+                manifest_data = {}
+                if manifest_file.exists():
+                    try:
+                        with open(manifest_file, "r", encoding="utf-8") as mf:
+                            manifest_data = json.load(mf)
+                    except Exception:
+                        pass
+                        
+                desc_text = ""
+                if desc_file.exists():
+                    try:
+                        with open(desc_file, "r", encoding="utf-8") as df:
+                            desc_text = df.read()
+                    except Exception:
+                        pass
+                        
+                title = manifest_data.get("title", f"Short #{idx}")
+                dur = round(float(manifest_data.get("duration", 60.0)), 1)
+                t_start = manifest_data.get("source_start", 0.0)
+                t_end = manifest_data.get("source_end", dur)
+                music = manifest_data.get("music_track", "Carefree (CC-BY)")
+                score = manifest_data.get("scores", {}).get("total", 96.0)
+                
+                encoded_folder = urllib.parse.quote(p.name)
+                clips.append({
+                    "id": idx,
+                    "clip_id": base_name,
+                    "title": title,
+                    "duration": dur,
+                    "time_range": f"{t_start:.1f}s - {t_end:.1f}s ({dur}s)",
+                    "music": music,
+                    "score": f"{score:.1f} / 100",
+                    "file": f"/api/videos/{encoded_folder}/{mp4_file.name}",
+                    "srt": f"/api/videos/{encoded_folder}/{base_name}.srt",
+                    "description": desc_text or f"Highlights from {display_name}",
+                    "excerpt": (desc_text.splitlines()[0] if desc_text else title).strip()
+                })
+                
+            projects.append({
+                "folder_name": p.name,
+                "display_name": display_name,
+                "clip_count": len(clips),
+                "clips": clips
+            })
+            
+    return {"projects": projects}
+
+@app.post("/api/upload-video")
+async def upload_source_video(file: UploadFile = File(...)):
+    """
+    Handles upload of source videos (.mp4, .mkv, .mov, .webm) into local workspace uploads directory.
+    """
+    allowed_exts = {".mp4", ".mkv", ".mov", ".webm", ".avi", ".m4v"}
+    ext = Path(file.filename).suffix.lower()
+    if ext not in allowed_exts:
+        raise HTTPException(status_code=400, detail=f"Unsupported format {ext}. Allowed: {', '.join(allowed_exts)}")
+        
+    uploads_dir = BASE_DIR / "uploads"
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    
+    clean_filename = Path(file.filename).name
+    dest_path = uploads_dir / clean_filename
+    
+    total_bytes = 0
+    with open(dest_path, "wb") as f:
+        while chunk := await file.read(1024 * 1024):
+            f.write(chunk)
+            total_bytes += len(chunk)
+            
+    size_mb = round(total_bytes / (1024 * 1024), 2)
+    log_event(f"Uploaded source video: {clean_filename} ({size_mb} MB) -> {dest_path}")
+    
+    return {
+        "success": True,
+        "filename": clean_filename,
+        "path": str(dest_path.resolve()),
+        "size_mb": size_mb
+    }
+
+@app.get("/api/local-videos")
+async def list_local_videos():
+    """
+    Scans uploads and common local directories for ready-to-clip .mp4 and .mkv videos.
+    """
+    found = []
+    seen_paths = set()
+    
+    scan_dirs = [
+        ("Uploads", BASE_DIR / "uploads"),
+        ("Downloads", Path.home() / "Downloads"),
+        ("Movies", Path.home() / "Movies")
+    ]
+    
+    for label, folder in scan_dirs:
+        if not folder.exists():
+            continue
+        try:
+            for item in folder.glob("*.*"):
+                if item.is_file() and item.suffix.lower() in [".mp4", ".mkv", ".mov"]:
+                    full_p = str(item.resolve())
+                    if full_p not in seen_paths and item.stat().st_size > 1024 * 1024:
+                        seen_paths.add(full_p)
+                        size_mb = round(item.stat().st_size / (1024 * 1024), 1)
+                        found.append({
+                            "name": item.name,
+                            "path": full_p,
+                            "size_mb": size_mb,
+                            "source": label
+                        })
+        except Exception:
+            pass
+            
+    return {"videos": found[:20]}
+
 @app.api_route("/api/music/{filename}", methods=["GET", "HEAD"])
 async def stream_music_track(filename: str):
     track_path = BASE_DIR / "music_library" / "tracks" / filename
