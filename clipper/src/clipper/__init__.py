@@ -6,6 +6,28 @@ from pathlib import Path
 
 __version__ = "0.1.0"
 
+# Fix Windows console charmap UnicodeEncodeError globally across all processes
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+def strip_emojis(text: str) -> str:
+    """
+    Sanitizes strings by stripping high-surrogate emojis and astral plane characters
+    that crash Windows legacy codecs, rendering engines, and subtitles.
+    """
+    if not text:
+        return ""
+    # Strip emojis and astral plane characters (ord >= 0x10000) and common dingbats
+    return "".join(c for c in str(text) if ord(c) < 0x10000 and not (0x2600 <= ord(c) <= 0x27BF))
+
 def _ensure_cuda_dlls():
     """Ensures nvidia cuBLAS, cuDNN, and CUDA runtime DLLs are available in PATH and os.add_dll_directory."""
     if os.name != "nt":
