@@ -244,6 +244,25 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["captions"]["fade_duration"] = float(payload.get("fade_duration", 0.12))
         config["captions"]["auto_detect_emphasis"] = bool(payload.get("auto_detect_emphasis", True))
         
+        # Aspect ratio customization (16:9, 1:1, 4:5, 2:3, 9:16)
+        if "clip" not in config:
+            config["clip"] = {}
+        config["clip"]["aspect_ratio"] = payload.get("aspect_ratio", "4:5")
+        
+        # Streamer webcam split layout customization
+        is_streamer = bool(payload.get("streamer_layout_enabled", False))
+        if is_streamer:
+            config["clip"]["layout"] = "streamer_split"
+            config["clip"]["cam_placement"] = payload.get("cam_placement", "top")
+            config["clip"]["streamer_mode"] = payload.get("streamer_mode", "auto")
+            manual_box = payload.get("manual_cam_box")
+            if manual_box and isinstance(manual_box, list) and len(manual_box) == 4:
+                config["clip"]["manual_cam_box"] = [int(v) for v in manual_box]
+            else:
+                config["clip"]["manual_cam_box"] = None
+        else:
+            config["clip"]["layout"] = payload.get("layout", "podcast_vertical")
+
         # Effects customization
         config["effects"]["white_flash"] = bool(payload.get("effects_flash", True))
         config["effects"]["progress_bar"] = bool(payload.get("effects_progress", True))
@@ -579,6 +598,61 @@ async def stream_music_track(filename: str):
     if not track_path.exists():
         raise HTTPException(status_code=404, detail="Track not found")
     return FileResponse(track_path, media_type="audio/mpeg")
+
+@app.get("/api/video/frame")
+async def get_video_frame(path: str, timestamp: float = 2.0):
+    """Extracts a single frame from the video as JPEG for previewing and manual crop area selection."""
+    v_path = Path(path)
+    if not v_path.is_absolute():
+        v_path = (BASE_DIR / v_path).resolve()
+    if not v_path.exists():
+        raise HTTPException(status_code=404, detail="Video file not found")
+        
+    cap = cv2.VideoCapture(str(v_path))
+    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+    frame_idx = max(0, int(timestamp * fps))
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+    ret, frame = cap.read()
+    cap.release()
+    
+    if not ret or frame is None:
+        raise HTTPException(status_code=500, detail="Could not extract video frame")
+        
+    h, w = frame.shape[:2]
+    # Check if face can be auto-detected to return suggested box
+    cascade_path = BASE_DIR / "assets" / "haarcascade_frontalface_default.xml"
+    detected_box = None
+    if cascade_path.exists():
+        face_cascade = cv2.CascadeClassifier(str(cascade_path.resolve()))
+        scale = 960.0 / float(w)
+        detect_h = int(h * scale)
+        small = cv2.resize(frame, (960, detect_h), interpolation=cv2.INTER_LINEAR)
+        gray = cv2.equalizeHist(cv2.cvtColor(small, cv2.COLOR_BGR2GRAY))
+        faces = face_cascade.detectMultiScale(gray, 1.10, 4, minSize=(20, 20))
+        if len(faces) > 0:
+            faces = sorted(faces, key=lambda b: b[2] * b[3], reverse=True)
+            bx, by, bw, bh = faces[0]
+            bx, by, bw, bh = bx / scale, by / scale, bw / scale, bh / scale
+            fcx, fcy = bx + bw / 2.0, by + bh / 2.0
+            cam_w = int(max(bw * 3.2, w * 0.28))
+            cam_h = int(cam_w * 0.65)
+            cx1 = max(0, min(w - cam_w, int(fcx - cam_w / 2.0)))
+            cy1 = max(0, min(h - cam_h, int(fcy - cam_h * 0.48)))
+            detected_box = [cx1, cy1, cam_w, cam_h]
+            
+    success, buffer = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    if not success:
+        raise HTTPException(status_code=500, detail="Encoding frame failed")
+        
+    return Response(
+        content=buffer.tobytes(),
+        media_type="image/jpeg",
+        headers={
+            "X-Video-Width": str(w),
+            "X-Video-Height": str(h),
+            "X-Detected-Cam-Box": json.dumps(detected_box) if detected_box else "null"
+        }
+    )
 
 @app.post("/api/youtube/prepare")
 async def prepare_youtube_short(payload: Dict[str, Any]):

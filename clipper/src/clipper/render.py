@@ -70,10 +70,31 @@ def render_short_clip(
     end_frame = int(t_end * src_fps)
     num_frames = end_frame - start_frame
     
-    target_w, target_h = config.get("clip", {}).get("resolution", [1080, 1920])
+    # Target aspect ratio & resolution handling
+    # Supported ratios: 16:9, 1:1, 4:5, 2:3, 9:16
+    aspect_ratio_map = {
+        "16:9": (1920, 1080),
+        "1:1": (1080, 1080),
+        "4:5": (1080, 1350),
+        "2:3": (1080, 1620),
+        "9:16": (1080, 1920)
+    }
+    selected_ar = config.get("clip", {}).get("aspect_ratio", "4:5")
+    if selected_ar in aspect_ratio_map:
+        target_w, target_h = aspect_ratio_map[selected_ar]
+    else:
+        target_w, target_h = config.get("clip", {}).get("resolution", [1080, 1350])
+        
     target_fps = config.get("clip", {}).get("fps", 30)
-    crop_w = int(src_h * 9 / 16) # 405
-    crop_h = src_h # 720
+    
+    # Calculate source crop dimensions based on target aspect ratio
+    calc_crop_w = int(src_h * (target_w / float(target_h)))
+    if calc_crop_w > src_w:
+        crop_w = src_w
+        crop_h = int(src_w * (target_h / float(target_w)))
+    else:
+        crop_w = calc_crop_w
+        crop_h = src_h
     
     # 3. Framing & Tracking setup
     split_tracker = None
@@ -84,19 +105,36 @@ def render_short_clip(
     cam_alpha = float(config.get("camera", {}).get("smoothing_alpha", 0.08))
     deadband_px = int(config.get("camera", {}).get("deadband_px", 16))
     
+    streamer_mode = config.get("clip", {}).get("streamer_mode", "auto")
+    cam_placement = config.get("clip", {}).get("cam_placement", "top")
+    manual_cam_box = config.get("clip", {}).get("manual_cam_box", None)
+    
     if layout_mode == "streamer_split":
-        print(f"[{clip_id_str.upper()}] Initializing Streamer Split layout (Top Facecam + Bottom Gameplay)...")
-        split_tracker = StreamerSplitTracker(src_w, src_h, alpha=cam_alpha)
-        cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
-        sample_boxes = []
-        for _ in range(min(20, max(1, num_frames))):
-            r, f = cap.read()
-            if r:
-                sample_boxes.append(split_tracker.detect_facecam_box(f))
-        streamer_cam_box = sample_boxes[len(sample_boxes) // 2] if sample_boxes else (0, 0, int(src_w * 0.35), int(src_w * 0.35 * 760 / 1080))
+        print(f"[{clip_id_str.upper()}] Initializing Streamer Layout (placement: {cam_placement}, mode: {streamer_mode}, target: {target_w}x{target_h})...")
+        split_tracker = StreamerSplitTracker(
+            src_w, src_h,
+            cam_placement=cam_placement,
+            mode=streamer_mode,
+            manual_cam_box=tuple(manual_cam_box) if manual_cam_box and len(manual_cam_box) == 4 else None,
+            alpha=cam_alpha
+        )
+        if streamer_mode == "manual" and manual_cam_box:
+            streamer_cam_box = tuple(manual_cam_box)
+        else:
+            cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+            sample_boxes = []
+            for _ in range(min(25, max(1, num_frames))):
+                r, f = cap.read()
+                if r:
+                    sample_boxes.append(split_tracker.detect_facecam_box(f))
+            streamer_cam_box = sample_boxes[len(sample_boxes) // 2] if sample_boxes else (0, 0, int(src_w * 0.32), int(src_w * 0.32 * 0.65))
     elif layout_mode == "podcast_vertical":
-        tracker = FaceTracker(src_w, src_h, alpha=cam_alpha, deadband_px=deadband_px, step=4)
-        print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames (alpha={cam_alpha}, deadband={deadband_px}px)...")
+        tracker = FaceTracker(
+            src_w, src_h,
+            target_w=target_w, target_h=target_h,
+            alpha=cam_alpha, deadband_px=deadband_px, step=4
+        )
+        print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames (target {target_w}x{target_h}, alpha={cam_alpha}, deadband={deadband_px}px)...")
         cx_trajectory = tracker.compute_trajectory(cap, start_frame, num_frames)
     
     # 4. Prepare kinetic captions (Robust cross-platform font resolution)

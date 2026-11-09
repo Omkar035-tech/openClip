@@ -17,8 +17,12 @@ clip:
   max_duration: 120.0
   resolution:
   - 1080
-  - 1920
+  - 1350
   fps: 30
+  aspect_ratio: '4:5'
+  cam_placement: top
+  streamer_mode: auto
+  manual_cam_box: null
 captions:
   style: bold-pop
   font_dir: fonts
