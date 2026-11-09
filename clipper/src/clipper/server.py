@@ -24,6 +24,7 @@ from clipper.audio_features import compute_audio_features
 from clipper.pick import select_and_rank_clips
 from clipper.render import render_short_clip
 from clipper.music import load_music_library, add_track_to_library
+from clipper.hardware import detect_hardware
 
 app = FastAPI(title="Clipper Studio API", version="1.0.0")
 
@@ -69,6 +70,10 @@ async def serve_studio_ui():
         return HTMLResponse("<h2>Clipper Studio UI not found.</h2>")
     with open(index_file, "r", encoding="utf-8") as f:
         return HTMLResponse(f.read())
+
+@app.get("/api/hardware")
+async def get_hardware():
+    return {"hardware": detect_hardware()}
 
 @app.get("/api/config")
 async def get_studio_config():
@@ -241,6 +246,20 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["effects"]["vignette"] = bool(payload.get("effects_vignette", True))
         config["camera"]["hook_zoom"] = float(payload.get("hook_zoom", 1.12))
         
+        # Performance & Hardware Customization (GPU/CPU selection per module)
+        if "performance" not in config:
+            config["performance"] = {}
+        config["performance"]["whisper_hardware"] = payload.get("whisper_hardware", "auto")
+        config["performance"]["render_hardware"] = payload.get("render_hardware", "auto")
+        config["performance"]["cpu_threads"] = int(payload.get("cpu_threads", os.cpu_count() or 4))
+        render_workers = max(1, min(4, int(payload.get("render_workers", 2))))
+
+        # Face Tracking & Camera Customization
+        if "camera" not in config:
+            config["camera"] = {}
+        config["camera"]["smoothing_alpha"] = float(payload.get("face_alpha", 0.08))
+        config["camera"]["deadband_px"] = int(payload.get("face_deadband", 16))
+
         # Music customization
         music_mode = payload.get("music_mode", "auto")
         if music_mode == "off":
@@ -302,7 +321,7 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         selected_track_id = payload.get("selected_track_id")
         
         total_clips = len(ranked_clips)
-        log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts (2 workers)...")
+        log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts ({render_workers} workers, encoder: {config['performance']['render_hardware']})...")
         
         # Prepare render tasks
         render_jobs = []
@@ -322,7 +341,7 @@ def run_pipeline_thread(payload: Dict[str, Any]):
             manifest = render_short_clip(str(v_path), c_meta, idx, out_dir, config, excluded_music)
             return idx, c_meta, manifest
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=render_workers) as executor:
             future_to_job = {executor.submit(render_worker, job): job for job in render_jobs}
             for future in concurrent.futures.as_completed(future_to_job):
                 idx, c_meta, manifest = future.result()

@@ -13,6 +13,7 @@ from .camera import VirtualCamera
 from .captions import CaptionRenderer, chunk_words, generate_srt, generate_ass
 from .music import select_track_for_clip
 from .mix import mix_audio_track
+from .hardware import get_h264_encoder_params
 
 def render_short_clip(
     video_path: str,
@@ -34,6 +35,8 @@ def render_short_clip(
     output_dir.mkdir(parents=True, exist_ok=True)
     clip_id_str = f"short_{clip_idx:02d}"
     out_mp4 = output_dir / f"{clip_id_str}.mp4"
+    
+    # Safe cross-platform temporary directory
     temp_dir_base = config.get("general", {}).get("temp_dir")
     if not temp_dir_base or (os.name == "nt" and temp_dir_base.startswith("/tmp")):
         import tempfile
@@ -77,9 +80,13 @@ def render_short_clip(
     streamer_cam_box = None
     cx_trajectory = []
     
+    # Face tracking tuning knobs
+    cam_alpha = float(config.get("camera", {}).get("smoothing_alpha", 0.08))
+    deadband_px = int(config.get("camera", {}).get("deadband_px", 16))
+    
     if layout_mode == "streamer_split":
         print(f"[{clip_id_str.upper()}] Initializing Streamer Split layout (Top Facecam + Bottom Gameplay)...")
-        split_tracker = StreamerSplitTracker(src_w, src_h)
+        split_tracker = StreamerSplitTracker(src_w, src_h, alpha=cam_alpha)
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
         sample_boxes = []
         for _ in range(min(20, max(1, num_frames))):
@@ -88,11 +95,11 @@ def render_short_clip(
                 sample_boxes.append(split_tracker.detect_facecam_box(f))
         streamer_cam_box = sample_boxes[len(sample_boxes) // 2] if sample_boxes else (0, 0, int(src_w * 0.35), int(src_w * 0.35 * 760 / 1080))
     elif layout_mode == "podcast_vertical":
-        tracker = FaceTracker(src_w, src_h, alpha=config.get("camera", {}).get("smoothing_alpha", 0.08))
-        print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames...")
+        tracker = FaceTracker(src_w, src_h, alpha=cam_alpha, deadband_px=deadband_px, step=4)
+        print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames (alpha={cam_alpha}, deadband={deadband_px}px)...")
         cx_trajectory = tracker.compute_trajectory(cap, start_frame, num_frames)
     
-    # 4. Prepare kinetic captions
+    # 4. Prepare kinetic captions (Robust cross-platform font resolution)
     font_file = config.get("captions", {}).get("font_file", "Montserrat-ExtraBold.ttf")
     base_fonts_dir = Path(__file__).resolve().parent.parent.parent / "fonts"
     font_path = base_fonts_dir / font_file
@@ -117,8 +124,12 @@ def render_short_clip(
     # 5. Virtual camera & effects
     camera = VirtualCamera(config)
     
-    # 6. Pipe frames directly to ffmpeg (H.264 30fps)
+    # 6. Pipe frames directly to ffmpeg with user-selectable hardware encoder (NVENC / VideoToolbox / libx264)
     temp_raw_video = temp_dir / "raw_video.mp4"
+    encoder_hw = config.get("performance", {}).get("render_hardware", "auto")
+    enc_params = get_h264_encoder_params(encoder_hw)
+    print(f"[{clip_id_str.upper()}] Video encoder: {' '.join(enc_params[:2])} (mode: {encoder_hw})")
+
     cmd_ffmpeg = [
         "ffmpeg", "-y",
         "-f", "rawvideo",
@@ -128,12 +139,8 @@ def render_short_clip(
         "-r", str(src_fps),
         "-i", "-",
         "-vf", f"fps={target_fps}",
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "18",
-        "-pix_fmt", "yuv420p",
-        str(temp_raw_video)
-    ]
+    ] + enc_params + [str(temp_raw_video)]
+    
     pipe = subprocess.Popen(cmd_ffmpeg, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
     
     cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)

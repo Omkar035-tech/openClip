@@ -74,3 +74,8 @@ audio:
   voice_denoise: true
   target_lufs: -14.0
   max_true_peak: -1.0
+performance:
+  whisper_hardware: auto
+  render_hardware: auto
+  cpu_threads: 4
+  render_workers: 2
