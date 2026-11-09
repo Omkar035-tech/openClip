@@ -22,23 +22,23 @@ clip:
 captions:
   style: bold-pop
   font_dir: fonts
-  font_file: Montserrat-ExtraBold.ttf
-  font_size: 68
+  font_file: Inter-Bold.ttf
+  font_size: 60
   max_safe_width: 920
-  primary_color: '#FFFFFF'
-  active_color: '#FFD400'
+  primary_color: '#ffffff'
+  active_color: '#38bdf8'
   stroke_color: '#000000'
-  stroke_width: 7
+  stroke_width: 4
   vertical_position_ratio: 0.7
   max_words_per_phrase: 3
   karaoke_pop_scale: 1.1
   show_title_card: true
   title_card_duration: 2.2
-  emphasis_color: '#00FFCC'
-  rotation_angle: -4.0
-  bg_mode: emphasis
+  emphasis_color: '#38bdf8'
+  rotation_angle: 0.0
+  bg_mode: phrase
   bg_color: '#000000'
-  bg_radius: 14
+  bg_radius: 16
   fade_duration: 0.12
   auto_detect_emphasis: true
 camera:
