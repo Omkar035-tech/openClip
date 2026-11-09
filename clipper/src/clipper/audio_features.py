@@ -20,20 +20,62 @@ def compute_audio_features(wav_path: str, transcript: List[Dict[str, Any]], cach
             return json.load(f)
             
     print(f"Analyzing acoustic signals (RMS energy, spectral variance) on {wav_path}...")
-    # Load audio at 16kHz
-    y, sr = librosa.load(wav_path, sr=16000)
-    duration = float(len(y) / sr)
     
-    # Hop length of 1 second (16000 samples)
-    hop_length = sr
-    frame_length = sr
+    rms_list = []
+    spec_list = []
+    total_samples = 0
+    sr = 16000
+
+    # High-speed vectorized streaming via SoundFile (O(1) memory, zero RAM spikes)
+    try:
+        import soundfile as sf
+        info = sf.info(wav_path)
+        sr = info.samplerate
+        duration = float(info.duration)
+        
+        # Stream 1-second chunks
+        block_size = sr
+        freqs = np.fft.rfftfreq(block_size, 1.0 / sr)
+        
+        for block in sf.blocks(wav_path, blocksize=block_size, dtype='float32', always_2d=False):
+            if len(block.shape) > 1:
+                block = np.mean(block, axis=1) # Convert to mono
+            total_samples += len(block)
+            
+            # Vectorized RMS
+            rms_val = float(np.sqrt(np.mean(block ** 2)))
+            rms_list.append(rms_val)
+            
+            # Vectorized Spectral Centroid
+            if len(block) == block_size:
+                mag = np.abs(np.fft.rfft(block))
+                mag_sum = float(np.sum(mag))
+                if mag_sum > 1e-6:
+                    sc = float(np.sum(mag * freqs) / mag_sum)
+                else:
+                    sc = 0.0
+            else:
+                sc = 0.0
+            spec_list.append(sc)
+            
+    except Exception as e:
+        print(f"SoundFile streaming unavailable ({e}), using librosa fallback...")
+        y, sr = librosa.load(wav_path, sr=16000)
+        duration = float(len(y) / sr)
+        hop_length = sr
+        frame_length = sr
+        rms_list = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0].tolist()
+        spec_list = librosa.feature.spectral_centroid(y=y, sr=sr, hop_length=hop_length)[0].tolist()
     
-    rms = librosa.feature.rms(y=y, frame_length=frame_length, hop_length=hop_length)[0]
-    spec_cent = librosa.feature.spectral_centroid(y=y, sr=sr, hop_length=hop_length)[0]
+    rms_arr = np.array(rms_list, dtype=np.float32)
+    spec_arr = np.array(spec_list, dtype=np.float32)
     
     # Normalize features to [0, 1]
-    rms_norm = (rms - np.min(rms)) / (np.max(rms) - np.min(rms) + 1e-6)
-    spec_norm = (spec_cent - np.min(spec_cent)) / (np.max(spec_cent) - np.min(spec_cent) + 1e-6)
+    rms_min, rms_max = float(np.min(rms_arr)), float(np.max(rms_arr))
+    spec_min, spec_max = float(np.min(spec_arr)), float(np.max(spec_arr))
+    
+    rms_norm = (rms_arr - rms_min) / (rms_max - rms_min + 1e-6)
+    spec_norm = (spec_arr - spec_min) / (spec_max - spec_min + 1e-6)
     
     # Per-second timeline
     timeline = []
