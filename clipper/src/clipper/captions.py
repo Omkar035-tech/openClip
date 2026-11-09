@@ -4,6 +4,50 @@ from pathlib import Path
 from typing import Dict, List, Any, Tuple
 from PIL import Image, ImageDraw, ImageFont
 
+# Initialize better-profanity censor
+try:
+    from better_profanity import profanity
+    profanity.load_censor_words()
+except Exception:
+    profanity = None
+
+def censor_word_partial(raw_word: str) -> str:
+    """
+    Censors vulgar words by retaining first and last letter and replacing middle characters with asterisks:
+    e.g., 'fuck' -> 'f**k', 'bitch' -> 'b***h', 'ass' -> 'a*s', 'motherfucker' -> 'm**********r'
+    Preserves leading and trailing punctuation marks.
+    """
+    if not raw_word or not profanity:
+        return raw_word
+        
+    # Extract leading & trailing punctuation
+    prefix = ""
+    for c in raw_word:
+        if not c.isalnum():
+            prefix += c
+        else:
+            break
+            
+    suffix = ""
+    for c in reversed(raw_word):
+        if not c.isalnum():
+            suffix = c + suffix
+        else:
+            break
+            
+    core = raw_word[len(prefix):len(raw_word) - len(suffix)] if len(suffix) > 0 else raw_word[len(prefix):]
+    if not core:
+        return raw_word
+        
+    if profanity.contains_profanity(core.lower()):
+        if len(core) <= 2:
+            censored_core = core[0] + "*"
+        else:
+            censored_core = core[0] + ("*" * (len(core) - 2)) + core[-1]
+        return prefix + censored_core + suffix
+        
+    return raw_word
+
 def format_timestamp_srt(seconds: float) -> str:
     hrs = int(seconds // 3600)
     mins = int((seconds % 3600) // 60)
@@ -64,8 +108,11 @@ def chunk_words(words: List[Dict[str, Any]], max_words: int = 3, max_gap: float 
         else:
             clean_word = raw_word
             
+        # Apply partial asterisk profanity censoring (e.g. fuck -> f**k)
+        censored_clean_word = censor_word_partial(clean_word)
+
         w_item = dict(w)
-        w_item["word"] = clean_word
+        w_item["word"] = censored_clean_word
         if is_tagged_emphasis:
             w_item["is_emphasis"] = True
             
