@@ -83,9 +83,16 @@ def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -
     if results is None:
         print(f"Running faster-whisper fallback ({fallback_model})...")
         t0 = time.time()
-        from faster_whisper import WhisperModel
-        model = WhisperModel(fallback_model, device="cpu", compute_type="int8")
-        segments_gen, _ = model.transcribe(str(wav_path), word_timestamps=True, vad_filter=True)
+        # Faster-whisper with CTranslate2 INT8 quantization & optimized greedy decoding
+        model = WhisperModel(fallback_model, device="cpu", compute_type="int8", cpu_threads=4)
+        segments_gen, _ = model.transcribe(
+            str(wav_path),
+            word_timestamps=True,
+            vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=400),
+            beam_size=1,
+            condition_on_previous_text=False
+        )
         results = []
         for s in segments_gen:
             words = []
