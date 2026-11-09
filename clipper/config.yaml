@@ -22,24 +22,24 @@ clip:
 captions:
   style: bold-pop
   font_dir: fonts
-  font_file: Inter-Bold.ttf
-  font_size: 60
+  font_file: Anton-Regular.ttf
+  font_size: 72
   max_safe_width: 920
-  primary_color: '#ffffff'
-  active_color: '#38bdf8'
+  primary_color: '#00f0ff'
+  active_color: '#ffe600'
   stroke_color: '#000000'
-  stroke_width: 4
+  stroke_width: 8
   vertical_position_ratio: 0.7
   max_words_per_phrase: 3
   karaoke_pop_scale: 1.1
   show_title_card: true
   title_card_duration: 2.2
-  emphasis_color: '#38bdf8'
+  emphasis_color: '#ff0055'
   rotation_angle: 0.0
-  bg_mode: phrase
-  bg_color: '#000000'
-  bg_radius: 16
-  fade_duration: 0.12
+  bg_mode: word
+  bg_color: '#090d16'
+  bg_radius: 8
+  fade_duration: 0.08
   auto_detect_emphasis: true
 camera:
   detector: mediapipe
