@@ -5,6 +5,16 @@ import time
 import subprocess
 from pathlib import Path
 from typing import Dict, List, Any
+from faster_whisper import WhisperModel
+try:
+    import av
+    _orig_av_open = av.open
+    def _patched_av_open(*args, **kwargs):
+        kwargs.pop("metadata_errors", None)
+        return _orig_av_open(*args, **kwargs)
+    av.open = _patched_av_open
+except ImportError:
+    pass
 
 def extract_audio(video_path: str, output_wav: str) -> str:
     """Extracts 16kHz mono WAV from input video."""
@@ -43,8 +53,8 @@ def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -
     
     results = None
     
-    # 1. Primary: MLX-Whisper on Apple Silicon GPU
-    if backend == "mlx":
+    # 1. Primary: MLX-Whisper on Apple Silicon GPU (macOS only)
+    if backend == "mlx" and sys.platform == "darwin":
         try:
             print(f"Running mlx-whisper GPU transcription ({model_name})...")
             t0 = time.time()

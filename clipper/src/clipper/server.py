@@ -187,11 +187,26 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         studio_state["progress"] = 5
         studio_state["completed_clips"] = []
         
-        video_path = payload.get("video_path", "").strip()
-        if not video_path or not os.path.exists(video_path):
-            raise FileNotFoundError(f"Video file not found: {video_path}")
+        raw_video_path = payload.get("video_path", "").strip().strip('"').strip("'")
+        if not raw_video_path:
+            raise FileNotFoundError("No video path provided")
             
-        v_path = Path(video_path).resolve()
+        # Cross-platform path resolution (Windows backslashes / POSIX slashes)
+        v_path = Path(raw_video_path).expanduser().resolve()
+        if not v_path.exists():
+            alt_candidates = [
+                BASE_DIR / "uploads" / v_path.name,
+                BASE_DIR / raw_video_path,
+                Path.home() / "Downloads" / v_path.name,
+                Path.home() / "Videos" / v_path.name,
+                Path.home() / "Movies" / v_path.name,
+                Path.home() / "Desktop" / v_path.name,
+            ]
+            found_alt = next((c for c in alt_candidates if c.exists()), None)
+            if found_alt:
+                v_path = found_alt.resolve()
+            else:
+                raise FileNotFoundError(f"Video file not found: {raw_video_path}")
         config = load_config()
         
         # Apply user knobs
@@ -502,7 +517,9 @@ async def list_local_videos():
     scan_dirs = [
         ("Uploads", BASE_DIR / "uploads"),
         ("Downloads", Path.home() / "Downloads"),
-        ("Movies", Path.home() / "Movies")
+        ("Movies", Path.home() / "Movies"),
+        ("Videos", Path.home() / "Videos"),
+        ("Desktop", Path.home() / "Desktop")
     ]
     
     for label, folder in scan_dirs:

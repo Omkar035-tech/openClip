@@ -34,7 +34,11 @@ def render_short_clip(
     output_dir.mkdir(parents=True, exist_ok=True)
     clip_id_str = f"short_{clip_idx:02d}"
     out_mp4 = output_dir / f"{clip_id_str}.mp4"
-    temp_dir = Path(config.get("general", {}).get("temp_dir", "/tmp/clipper_work")) / clip_id_str
+    temp_dir_base = config.get("general", {}).get("temp_dir")
+    if not temp_dir_base or (os.name == "nt" and temp_dir_base.startswith("/tmp")):
+        import tempfile
+        temp_dir_base = str(Path(tempfile.gettempdir()) / "clipper_work")
+    temp_dir = Path(temp_dir_base) / clip_id_str
     temp_dir.mkdir(parents=True, exist_ok=True)
     
     t_start = clip_meta["start"]
@@ -90,9 +94,18 @@ def render_short_clip(
     
     # 4. Prepare kinetic captions
     font_file = config.get("captions", {}).get("font_file", "Montserrat-ExtraBold.ttf")
-    font_path = Path("fonts") / font_file
+    base_fonts_dir = Path(__file__).resolve().parent.parent.parent / "fonts"
+    font_path = base_fonts_dir / font_file
     if not font_path.exists():
-        font_path = Path("/System/Library/Fonts/Supplemental/Arial Black.ttf")
+        font_path = Path("fonts") / font_file
+    if not font_path.exists():
+        system_fonts = [
+            Path("/System/Library/Fonts/Supplemental/Arial Black.ttf"),
+            Path("/Library/Fonts/Arial Black.ttf"),
+            Path("C:/Windows/Fonts/ariblk.ttf"),
+            Path("C:/Windows/Fonts/arial.ttf"),
+        ]
+        font_path = next((sf for sf in system_fonts if sf.exists()), font_path)
         
     caption_cfg = dict(config.get("captions", {}))
     if layout_mode == "streamer_split":
