@@ -1487,6 +1487,115 @@
       }
     }
 
+    async function testGroqHealth() {
+      const btn = document.getElementById('groqHealthBtn');
+      const spin = document.getElementById('groqHealthSpin');
+      const statusBox = document.getElementById('groqHealthStatus');
+      const keyInput = document.getElementById('groqApiKey');
+      const key = keyInput ? keyInput.value.trim() : '';
+
+      if (!key) {
+        statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300';
+        statusBox.innerText = '⚠️ Please enter a Groq API key first.';
+        statusBox.classList.remove('hidden');
+        return;
+      }
+
+      if (spin) spin.classList.remove('hidden');
+      if (btn) btn.disabled = true;
+      statusBox.classList.remove('hidden');
+      statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-dark-900 border border-dark-600 text-gray-400';
+      statusBox.innerText = 'Testing GroqCloud service & model availability...';
+
+      try {
+        const res = await fetch('/api/health/groq', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'healthy') {
+          statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300';
+          statusBox.innerText = `● Verified: ${data.message}`;
+
+          // Dynamically refresh Groq model select dropdown with accessible models
+          if (data.models && data.models.length > 0) {
+            const select = document.getElementById('groqModelSelect');
+            if (select) {
+              const currentVal = select.value;
+              select.innerHTML = '';
+              data.models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.innerText = `⚡ ${m}`;
+                if (m === currentVal) opt.selected = true;
+                select.appendChild(opt);
+              });
+              // If previous value wasn't in the list, select first available
+              if (!data.models.includes(currentVal)) {
+                select.value = data.models[0];
+              }
+              saveApiKeysToStorage();
+            }
+          }
+        } else {
+          statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-red-500/10 border border-red-500/30 text-red-300';
+          statusBox.innerText = `✕ Error: ${data.message}`;
+        }
+      } catch (err) {
+        statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-red-500/10 border border-red-500/30 text-red-300';
+        statusBox.innerText = `✕ Health check failed: ${err.message}`;
+      } finally {
+        if (spin) spin.classList.add('hidden');
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function testGeminiHealth() {
+      const btn = document.getElementById('geminiHealthBtn');
+      const spin = document.getElementById('geminiHealthSpin');
+      const statusBox = document.getElementById('geminiHealthStatus');
+      const keyInput = document.getElementById('geminiApiKey');
+      const key = keyInput ? keyInput.value.trim() : '';
+
+      if (!key) {
+        statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300';
+        statusBox.innerText = '⚠️ Please enter a Gemini API key first.';
+        statusBox.classList.remove('hidden');
+        return;
+      }
+
+      if (spin) spin.classList.remove('hidden');
+      if (btn) btn.disabled = true;
+      statusBox.classList.remove('hidden');
+      statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-dark-900 border border-dark-600 text-gray-400';
+      statusBox.innerText = 'Testing Google Gemini API connection...';
+
+      try {
+        const res = await fetch('/api/health/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'healthy') {
+          statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300';
+          statusBox.innerText = `● Verified: ${data.message}`;
+        } else {
+          statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-red-500/10 border border-red-500/30 text-red-300';
+          statusBox.innerText = `✕ Error: ${data.message}`;
+        }
+      } catch (err) {
+        statusBox.className = 'text-[10px] mt-1 px-2 py-1 rounded bg-red-500/10 border border-red-500/30 text-red-300';
+        statusBox.innerText = `✕ Health check failed: ${err.message}`;
+      } finally {
+        if (spin) spin.classList.add('hidden');
+        if (btn) btn.disabled = false;
+      }
+    }
+
     function loadApiKeysFromStorage() {
       const savedGroq = localStorage.getItem('openclip_groq_api_key');
       const savedGemini = localStorage.getItem('openclip_gemini_api_key');
@@ -2139,17 +2248,31 @@
           <div>
             <div class="flex justify-between items-center mb-1 text-[10px]">
               <span class="text-gray-400">Groq API Key</span>
-              <button type="button" onclick="toggleKeyVisibility('groqApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="testGroqHealth()" id="groqHealthBtn" class="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-0.5">
+                  <span id="groqHealthSpin" class="hidden animate-spin">⏳</span>
+                  <span>Health Check</span>
+                </button>
+                <button type="button" onclick="toggleKeyVisibility('groqApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+              </div>
             </div>
             <input type="password" id="groqApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="gsk_...">
+            <div id="groqHealthStatus" class="hidden text-[10px] mt-1 px-2 py-1 rounded bg-dark-900 border leading-tight"></div>
           </div>
 
           <div>
             <div class="flex justify-between items-center mb-1 text-[10px]">
               <span class="text-gray-400">Gemini API Key (Fallback 1)</span>
-              <button type="button" onclick="toggleKeyVisibility('geminiApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="testGeminiHealth()" id="geminiHealthBtn" class="text-cyan-400 hover:text-cyan-300 font-semibold flex items-center gap-0.5">
+                  <span id="geminiHealthSpin" class="hidden animate-spin">⏳</span>
+                  <span>Health Check</span>
+                </button>
+                <button type="button" onclick="toggleKeyVisibility('geminiApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+              </div>
             </div>
             <input type="password" id="geminiApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="AQ.Ab8...">
+            <div id="geminiHealthStatus" class="hidden text-[10px] mt-1 px-2 py-1 rounded bg-dark-900 border leading-tight"></div>
           </div>
 
           <div>

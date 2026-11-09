@@ -28,6 +28,7 @@ from clipper.pick import select_and_rank_clips
 from clipper.render import render_short_clip
 from clipper.music import load_music_library, add_track_to_library
 from clipper.hardware import detect_hardware
+from clipper.health import check_groq_health, check_gemini_health
 from clipper import strip_emojis
 
 app = FastAPI(title="Clipper Studio API", version="1.0.0")
@@ -100,6 +101,16 @@ async def serve_logo():
     if logo.exists():
         return FileResponse(logo, media_type="image/svg+xml")
     raise HTTPException(status_code=404, detail="Logo not found")
+
+@app.post("/api/health/groq")
+async def api_check_groq_health(payload: Dict[str, Any]):
+    key = payload.get("api_key") or os.getenv("GROQ_API_KEY", "")
+    return check_groq_health(key)
+
+@app.post("/api/health/gemini")
+async def api_check_gemini_health(payload: Dict[str, Any]):
+    key = payload.get("api_key") or os.getenv("GEMINI_API_KEY", "")
+    return check_gemini_health(key)
 
 @app.get("/api/hardware")
 async def get_hardware():
