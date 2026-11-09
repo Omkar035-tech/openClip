@@ -338,9 +338,15 @@ def select_and_rank_clips(transcript: List[Dict[str, Any]], features: Dict[str, 
     Saves ranked.json and selection_report.md.
     """
     ranked_file = cache_dir / "ranked.json"
+    n_target = int(config.get("general", {}).get("n_clips", 5))
     if ranked_file.exists():
-        with open(ranked_file, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(ranked_file, "r", encoding="utf-8") as f:
+                cached_clips = json.load(f)
+                if isinstance(cached_clips, list) and len(cached_clips) >= n_target:
+                    return cached_clips[:n_target]
+        except Exception:
+            pass
             
     candidates = extract_candidate_windows(transcript, features, config)
     if not candidates:
@@ -382,6 +388,7 @@ def select_and_rank_clips(transcript: List[Dict[str, Any]], features: Dict[str, 
         if len(final_clips) == n_clips:
             break
             
+    final_clips = final_clips[:n_clips]
     with open(ranked_file, "w", encoding="utf-8") as f:
         json.dump(final_clips, f, indent=2)
         

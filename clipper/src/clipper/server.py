@@ -78,6 +78,21 @@ async def serve_studio_ui():
     with open(index_file, "r", encoding="utf-8") as f:
         return HTMLResponse(f.read())
 
+@app.get("/favicon.svg")
+@app.get("/favicon.ico")
+async def serve_favicon():
+    fav = Path(__file__).resolve().parent / "web" / "favicon.svg"
+    if fav.exists():
+        return FileResponse(fav, media_type="image/svg+xml")
+    raise HTTPException(status_code=404, detail="Favicon not found")
+
+@app.get("/logo.svg")
+async def serve_logo():
+    logo = Path(__file__).resolve().parent / "web" / "logo.svg"
+    if logo.exists():
+        return FileResponse(logo, media_type="image/svg+xml")
+    raise HTTPException(status_code=404, detail="Logo not found")
+
 @app.get("/api/hardware")
 async def get_hardware():
     return {"hardware": detect_hardware()}
@@ -331,6 +346,17 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         wav_path = cache_dir / "audio_16k.wav"
         features = compute_audio_features(str(wav_path), transcript, cache_dir)
         
+        # If clip count differs from cached ranked.json, invalidate stale ranked cache
+        ranked_cached = cache_dir / "ranked.json"
+        if ranked_cached.exists():
+            try:
+                with open(ranked_cached, "r", encoding="utf-8") as rf:
+                    cached_data = json.load(rf)
+                    if isinstance(cached_data, list) and len(cached_data) != n_clips:
+                        ranked_cached.unlink(missing_ok=True)
+            except Exception:
+                pass
+
         # 4. Multimodal Selection & Viral Hook Scoring (40% - 50%)
         studio_state["stage"] = "AI Semantic & Viral Moment Detection"
         studio_state["progress"] = 45
