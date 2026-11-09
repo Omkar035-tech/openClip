@@ -50,7 +50,13 @@ def render_short_clip(
     words = clip_meta["words"]
     layout_mode = config.get("clip", {}).get("layout", "podcast_vertical")
     
-    print(f"\n[{clip_id_str.upper()}] Rendering '{clip_meta['suggested_title']}' ({duration:.2f}s, {t_start:.1f}s -> {t_end:.1f}s, layout: {layout_mode})...")
+    from . import strip_emojis
+    safe_title = strip_emojis(clip_meta.get('suggested_title', ''))
+    try:
+        sys.stdout.write(f"\n[{clip_id_str.upper()}] Rendering '{safe_title}' ({duration:.2f}s, {t_start:.1f}s -> {t_end:.1f}s, layout: {layout_mode})...\n")
+        sys.stdout.flush()
+    except Exception:
+        pass
     
     # 1. Select mood-matched music track
     library_dir = config.get("music", {}).get("library_dir", "music_library")
@@ -301,7 +307,7 @@ def render_short_clip(
         f.write(credits_content)
         
     theme_tag = clip_meta.get("mood", {}).get("theme", "interview").replace(" ", "").replace("&", "")
-    desc_content = f"""{clip_meta['suggested_title']} 🎙️🔥
+    desc_content = f"""{safe_title}
 
 {clip_meta['text'][:180]}...
 

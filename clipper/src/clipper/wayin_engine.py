@@ -208,7 +208,9 @@ CANDIDATES:
                 cid = item.get("candidate_id")
                 if cid in id_map:
                     base = dict(id_map[cid])
-                    base["suggested_title"] = item.get("viral_title", base["suggested_title"])
+                    from . import strip_emojis
+                    clean_title = strip_emojis(item.get("viral_title", base["suggested_title"]))
+                    base["suggested_title"] = clean_title if clean_title.strip() else base["suggested_title"]
                     base["score_hook"] = float(item.get("hook_score", base["score_hook"]))
                     base["score_total"] = float(item.get("virality_score", base["score_total"]))
                     base["reason"] = item.get("selection_reason", base["reason"])
@@ -307,7 +309,9 @@ CANDIDATES:
                 cid = item.get("candidate_id")
                 if cid in id_map:
                     base = dict(id_map[cid])
-                    base["suggested_title"] = item.get("viral_title", base["suggested_title"])
+                    from . import strip_emojis
+                    clean_title = strip_emojis(item.get("viral_title", base["suggested_title"]))
+                    base["suggested_title"] = clean_title if clean_title.strip() else base["suggested_title"]
                     base["score_hook"] = float(item.get("hook_score", base["score_hook"]))
                     base["score_total"] = float(item.get("virality_score", base["score_total"]))
                     base["reason"] = item.get("selection_reason", base["reason"])

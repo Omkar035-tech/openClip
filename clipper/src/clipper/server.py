@@ -28,6 +28,7 @@ from clipper.pick import select_and_rank_clips
 from clipper.render import render_short_clip
 from clipper.music import load_music_library, add_track_to_library
 from clipper.hardware import detect_hardware
+from clipper import strip_emojis
 
 app = FastAPI(title="Clipper Studio API", version="1.0.0")
 
@@ -53,15 +54,22 @@ studio_state = {
 
 def log_event(message: str):
     timestamp = time.strftime("%H:%M:%S")
-    entry = f"[{timestamp}] {message}"
+    # Clean emojis from log messages to prevent Windows charmap crashes
+    safe_msg = strip_emojis(str(message))
+    entry = f"[{timestamp}] {safe_msg}"
     studio_state["logs"].append(entry)
     if len(studio_state["logs"]) > 100:
         studio_state["logs"] = studio_state["logs"][-100:]
     try:
-        print(entry)
-    except UnicodeEncodeError:
-        safe_entry = entry.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
-        print(safe_entry)
+        sys.stdout.write(entry + "\n")
+        sys.stdout.flush()
+    except Exception:
+        safe_entry = entry.encode("ascii", errors="replace").decode("ascii")
+        try:
+            sys.stdout.write(safe_entry + "\n")
+            sys.stdout.flush()
+        except Exception:
+            pass
 
 def load_config() -> dict:
     cfg_path = BASE_DIR / "config.yaml"

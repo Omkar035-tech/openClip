@@ -12,6 +12,9 @@ except Exception:
     profanity = None
 
 def censor_word_partial(raw_word: str) -> str:
+    # First strip any unmappable non-BMP emoji characters from word
+    if raw_word:
+        raw_word = "".join(c for c in str(raw_word) if ord(c) < 0x10000)
     """
     Censors vulgar words by retaining first and last letter and replacing middle characters with asterisks:
     e.g., 'fuck' -> 'f**k', 'bitch' -> 'b***h', 'ass' -> 'a*s', 'motherfucker' -> 'm**********r'
