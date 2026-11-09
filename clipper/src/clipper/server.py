@@ -673,8 +673,12 @@ async def get_video_frame(path: str, timestamp: float = 2.0):
 
     cap = cv2.VideoCapture(str(v_path))
     ret, frame = False, None
+    duration_sec = 0.0
     if cap.isOpened():
         fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+        total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0
+        if fps > 0 and total_frames > 0:
+            duration_sec = round(float(total_frames / fps), 1)
         frame_idx = max(0, int(timestamp * fps))
         cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
         ret, frame = cap.read()
@@ -739,6 +743,7 @@ async def get_video_frame(path: str, timestamp: float = 2.0):
         headers={
             "X-Video-Width": str(w),
             "X-Video-Height": str(h),
+            "X-Video-Duration": str(duration_sec),
             "X-Detected-Cam-Box": json.dumps(detected_box) if detected_box else "null"
         }
     )
