@@ -129,13 +129,14 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         
         # Apply user knobs
         n_clips = min(5, max(1, int(payload.get("n_clips", 5))))
-        max_duration = float(payload.get("max_duration", 59.5))
-        min_duration = min(max_duration - 5.0, 45.0)
+        max_duration = float(payload.get("max_duration", 75.0))
+        min_duration = min(max_duration - 10.0, 35.0)
         
         config["general"]["n_clips"] = n_clips
+        config["clip"]["layout"] = payload.get("layout", "podcast_vertical")
         config["clip"]["max_duration"] = max_duration
         config["clip"]["min_duration"] = min_duration
-        config["clip"]["target_duration"] = min(55.0, max_duration - 2.0)
+        config["clip"]["target_duration"] = min(75.0, max_duration - 5.0)
         
         # Caption customization
         config["captions"]["font_file"] = payload.get("font_file", "Montserrat-ExtraBold.ttf")

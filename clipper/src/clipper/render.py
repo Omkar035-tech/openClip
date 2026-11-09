@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 from typing import Dict, List, Any
 
-from .reframe import FaceTracker
+from .reframe import FaceTracker, StreamerSplitTracker
 from .camera import VirtualCamera
 from .captions import CaptionRenderer, chunk_words, generate_srt, generate_ass
 from .music import select_track_for_clip
@@ -24,7 +24,7 @@ def render_short_clip(
 ) -> Dict[str, Any]:
     """
     Renders one full vertical short with:
-    - 9:16 Face tracking & reframing
+    - 9:16 Face tracking & reframing OR Streamer Split Screen (Facecam Top + Content Bottom)
     - Dynamic virtual camera moves (hook zoom, push-ins)
     - Visual effects (flash, progress bar)
     - Kinetic animated captions
@@ -41,8 +41,9 @@ def render_short_clip(
     t_end = clip_meta["end"]
     duration = t_end - t_start
     words = clip_meta["words"]
+    layout_mode = config.get("clip", {}).get("layout", "podcast_vertical")
     
-    print(f"\n[{clip_id_str.upper()}] Rendering '{clip_meta['suggested_title']}' ({duration:.2f}s, {t_start:.1f}s -> {t_end:.1f}s)...")
+    print(f"\n[{clip_id_str.upper()}] Rendering '{clip_meta['suggested_title']}' ({duration:.2f}s, {t_start:.1f}s -> {t_end:.1f}s, layout: {layout_mode})...")
     
     # 1. Select mood-matched music track
     library_dir = config.get("music", {}).get("library_dir", "music_library")
@@ -67,10 +68,25 @@ def render_short_clip(
     crop_w = int(src_h * 9 / 16) # 405
     crop_h = src_h # 720
     
-    # 3. Compute face tracking trajectory
-    tracker = FaceTracker(src_w, src_h, alpha=config.get("camera", {}).get("smoothing_alpha", 0.08))
-    print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames...")
-    cx_trajectory = tracker.compute_trajectory(cap, start_frame, num_frames)
+    # 3. Framing & Tracking setup
+    split_tracker = None
+    streamer_cam_box = None
+    cx_trajectory = []
+    
+    if layout_mode == "streamer_split":
+        print(f"[{clip_id_str.upper()}] Initializing Streamer Split layout (Top Facecam + Bottom Gameplay)...")
+        split_tracker = StreamerSplitTracker(src_w, src_h)
+        cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
+        sample_boxes = []
+        for _ in range(min(20, max(1, num_frames))):
+            r, f = cap.read()
+            if r:
+                sample_boxes.append(split_tracker.detect_facecam_box(f))
+        streamer_cam_box = sample_boxes[len(sample_boxes) // 2] if sample_boxes else (0, 0, int(src_w * 0.35), int(src_w * 0.35 * 760 / 1080))
+    elif layout_mode == "podcast_vertical":
+        tracker = FaceTracker(src_w, src_h, alpha=config.get("camera", {}).get("smoothing_alpha", 0.08))
+        print(f"[{clip_id_str.upper()}] Computing face tracking across {num_frames} frames...")
+        cx_trajectory = tracker.compute_trajectory(cap, start_frame, num_frames)
     
     # 4. Prepare kinetic captions
     font_file = config.get("captions", {}).get("font_file", "Montserrat-ExtraBold.ttf")
@@ -78,7 +94,11 @@ def render_short_clip(
     if not font_path.exists():
         font_path = Path("/System/Library/Fonts/Supplemental/Arial Black.ttf")
         
-    caption_renderer = CaptionRenderer(str(font_path), config.get("captions", {}))
+    caption_cfg = dict(config.get("captions", {}))
+    if layout_mode == "streamer_split":
+        # Place captions right along the divider seam so both webcam & gameplay are fully unobstructed
+        caption_cfg["position_ratio"] = 0.405
+    caption_renderer = CaptionRenderer(str(font_path), caption_cfg)
     phrases = chunk_words(words, max_words=config.get("captions", {}).get("max_words_per_phrase", 3))
     
     # 5. Virtual camera & effects
@@ -123,24 +143,30 @@ def render_short_clip(
                     break
                     
         zoom = camera.get_zoom_at(cur_t_rel, is_punchline)
-        cur_crop_w = int(crop_w / zoom)
-        cur_crop_h = int(crop_h / zoom)
         
-        cx = cx_trajectory[f_idx]
-        x1 = int(cx - cur_crop_w / 2)
-        x2 = x1 + cur_crop_w
-        if x1 < 0:
-            x1 = 0
-            x2 = cur_crop_w
-        elif x2 > src_w:
-            x2 = src_w
-            x1 = src_w - cur_crop_w
+        if layout_mode == "streamer_split" and split_tracker:
+            resized = split_tracker.composite_streamer_frame(frame, streamer_cam_box, target_w, target_h)
+        elif layout_mode == "landscape":
+            resized = cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+        else:
+            cur_crop_w = int(crop_w / zoom)
+            cur_crop_h = int(crop_h / zoom)
             
-        y1 = int((src_h - cur_crop_h) / 2)
-        y2 = y1 + cur_crop_h
-        
-        cropped = frame[y1:y2, x1:x2]
-        resized = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+            cx = cx_trajectory[f_idx] if f_idx < len(cx_trajectory) else src_w / 2
+            x1 = int(cx - cur_crop_w / 2)
+            x2 = x1 + cur_crop_w
+            if x1 < 0:
+                x1 = 0
+                x2 = cur_crop_w
+            elif x2 > src_w:
+                x2 = src_w
+                x1 = src_w - cur_crop_w
+                
+            y1 = int((src_h - cur_crop_h) / 2)
+            y2 = y1 + cur_crop_h
+            
+            cropped = frame[y1:y2, x1:x2]
+            resized = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
         
         # Apply camera visual effects (flash, progress bar)
         effect_frame = camera.apply_effects(resized, f_idx, num_frames)
@@ -216,11 +242,12 @@ def render_short_clip(
     with open(output_dir / f"{clip_id_str}_credits.md", "w", encoding="utf-8") as f:
         f.write(credits_content)
         
+    theme_tag = clip_meta.get("mood", {}).get("theme", "interview").replace(" ", "").replace("&", "")
     desc_content = f"""{clip_meta['suggested_title']} 🎙️🔥
 
 {clip_meta['text'][:180]}...
 
-#shorts #podcast #viral #interview #grillingwithcastillo
+#shorts #podcast #viral #interview #{theme_tag}
 
 Music:
 {attr_text}

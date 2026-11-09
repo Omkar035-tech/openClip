@@ -61,5 +61,50 @@
     "commercial_ok": true,
     "attribution_required": true,
     "attribution": "\"Scheming Weasel (faster version)\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "volatile_reaction": {
+    "title": "Volatile Reaction",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Volatile%20Reaction.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Volatile Reaction\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "future_gladiator": {
+    "title": "Future Gladiator",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Future%20Gladiator.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Future Gladiator\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "hitman": {
+    "title": "Hitman",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hitman.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Hitman\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "hero_down": {
+    "title": "Hero Down",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hero%20Down.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Hero Down\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
+  },
+  "movement_proposition": {
+    "title": "Movement Proposition",
+    "artist": "Kevin MacLeod",
+    "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Movement%20Proposition.mp3",
+    "license": "CC-BY 4.0",
+    "commercial_ok": true,
+    "attribution_required": true,
+    "attribution": "\"Movement Proposition\" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License"
   }
 }

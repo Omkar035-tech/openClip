@@ -88,10 +88,11 @@
         
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Creation Type</label>
-            <select id="videoFormat" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
-              <option value="reel_vertical" selected>9:16 Vertical Reel/Short (1080x1920)</option>
-              <option value="video_landscape">16:9 Standard Landscape</option>
+            <label class="text-xs text-gray-400 block mb-1">Layout Mode</label>
+            <select id="layoutMode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="podcast_vertical" selected>🎙️ 9:16 Single Speaker (Face Centered)</option>
+              <option value="streamer_split">🎮 9:16 Streamer Split (Webcam Top + Content Bottom)</option>
+              <option value="landscape">📺 16:9 Standard Landscape</option>
             </select>
           </div>
           <div>
@@ -106,16 +107,16 @@
 
         <div>
           <div class="flex justify-between text-xs mb-1">
-            <span class="text-gray-400">Max Clip Duration</span>
-            <span id="durLabel" class="text-amber-400 font-semibold font-mono">56 seconds</span>
+            <span class="text-gray-400">Max Clip Duration (No Mid-Sentence Cutoffs)</span>
+            <span id="durLabel" class="text-amber-400 font-semibold font-mono">75 seconds</span>
           </div>
-          <input type="range" id="maxDuration" min="15" max="60" value="56" step="1"
+          <input type="range" id="maxDuration" min="20" max="120" value="75" step="1"
             class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
             oninput="document.getElementById('durLabel').innerText = this.value + ' seconds'">
           <div class="flex justify-between text-[10px] text-gray-400 mt-0.5">
-            <span>15s (Punchy)</span>
-            <span>45s</span>
-            <span>60s (YouTube Max)</span>
+            <span>20s (Punchy)</span>
+            <span>60s (Standard)</span>
+            <span>120s (Full 2-Min Story)</span>
           </div>
         </div>
       </div>
@@ -542,6 +543,7 @@
 
       const payload = {
         video_path: document.getElementById('videoPath').value,
+        layout: document.getElementById('layoutMode').value,
         n_clips: parseInt(document.getElementById('nClips').value),
         max_duration: parseFloat(document.getElementById('maxDuration').value),
         font_file: document.getElementById('fontFamily').value,

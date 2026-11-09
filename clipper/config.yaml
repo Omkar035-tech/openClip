@@ -21,9 +21,10 @@ models:
   visual_verify: false
 
 clip:
-  target_duration: 55.0
-  min_duration: 48.0
-  max_duration: 59.5
+  layout: "podcast_vertical"  # Options: podcast_vertical, streamer_split, landscape
+  target_duration: 65.0
+  min_duration: 35.0
+  max_duration: 120.0
   resolution: [1080, 1920]
   fps: 30
 

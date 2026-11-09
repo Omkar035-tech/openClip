@@ -42,37 +42,58 @@ def select_track_for_clip(clip_meta: Dict[str, Any], library_dir: str = "music_l
     primary_mood = mood_info.get("primary_mood", "casual").lower()
     target_energy = mood_info.get("energy_0_to_10", 5.0)
     bpm_range = mood_info.get("bpm_range", [90, 140])
+    genre_hints = [g.lower() for g in mood_info.get("genre_hints", [])]
     
+    # Polar mood categories for strict anti-clash
+    INTENSE_MOODS = {"intense", "motivational", "gritty", "discipline", "hard", "epic", "strength", "power", "warrior", "heavy", "tense", "dark", "rock"}
+    PLAYFUL_MOODS = {"playful", "comedy", "funny", "quirky", "silly", "mischievous", "banter", "chaotic"}
+    CHILL_MOODS = {"chill", "lo-fi", "ambient", "conversation", "relaxed", "casual"}
+    EMOTIONAL_MOODS = {"emotional", "reflective", "sad", "serious", "heartbreaking", "piano"}
+    INSPIRING_MOODS = {"inspiring", "uplifting", "growth", "warm", "hopeful", "triumphant"}
+
     scored_tracks = []
     for t in available:
         score = 0.0
+        t_moods = set(m.lower() for m in t.get("moods", []))
         
-        # 1. Mood match (50%)
-        t_moods = [m.lower() for m in t.get("moods", [])]
+        # Anti-Clash Check: Never allow playful/silly music over intense/discipline moments!
+        if primary_mood in INTENSE_MOODS or any(h in INTENSE_MOODS for h in genre_hints):
+            if t_moods.intersection(PLAYFUL_MOODS):
+                score -= 200.0  # Massive veto
+            if t_moods.intersection(INTENSE_MOODS):
+                score += 80.0
+        elif primary_mood in PLAYFUL_MOODS or any(h in PLAYFUL_MOODS for h in genre_hints):
+            if t_moods.intersection(INTENSE_MOODS) or t_moods.intersection(EMOTIONAL_MOODS):
+                score -= 150.0  # Do not put dark/tragic music on comedy
+            if t_moods.intersection(PLAYFUL_MOODS):
+                score += 80.0
+        elif primary_mood in EMOTIONAL_MOODS:
+            if t_moods.intersection(PLAYFUL_MOODS):
+                score -= 150.0
+            if t_moods.intersection(EMOTIONAL_MOODS):
+                score += 80.0
+
+        # Direct Mood Matching (up to 60 pts)
         if primary_mood in t_moods:
-            score += 50.0
-        elif any(genre in t_moods for genre in mood_info.get("genre_hints", [])):
-            score += 35.0
-        else:
-            score += 15.0
+            score += 60.0
+        shared_genres = t_moods.intersection(genre_hints)
+        score += len(shared_genres) * 20.0
             
-        # 2. BPM match (20%)
-        bpm = t.get("bpm", 120.0)
-        if bpm_range[0] <= bpm <= bpm_range[1]:
-            score += 20.0
-        else:
-            dist = min(abs(bpm - bpm_range[0]), abs(bpm - bpm_range[1]))
-            score += max(0.0, 20.0 - dist * 0.4)
-            
-        # 3. Energy match (20%)
+        # Energy Match (up to 25 pts)
         t_energy = t.get("energy", 5.0)
         e_diff = abs(t_energy - target_energy)
-        score += max(0.0, 20.0 - e_diff * 3.0)
+        score += max(0.0, 25.0 - e_diff * 3.5)
         
-        # 4. Duration fit (10%)
-        if t.get("duration", 0) >= clip_meta.get("duration", 55.0):
-            score += 10.0
+        # BPM Match (up to 15 pts)
+        bpm = t.get("bpm", 120.0)
+        if bpm_range[0] <= bpm <= bpm_range[1]:
+            score += 15.0
         else:
+            dist = min(abs(bpm - bpm_range[0]), abs(bpm - bpm_range[1]))
+            score += max(0.0, 15.0 - dist * 0.3)
+            
+        # Duration fit
+        if t.get("duration", 0) >= clip_meta.get("duration", 55.0):
             score += 5.0
             
         scored_tracks.append((score, t))

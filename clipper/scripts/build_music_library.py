@@ -118,6 +118,71 @@ TRACKS_METADATA = [
         "moods": ["mischievous", "comedy", "banter", "playful", "sneaky"],
         "energy": 6.8,
         "valence": 0.7
+    },
+    {
+        "id": "volatile_reaction",
+        "title": "Volatile Reaction",
+        "artist": "Kevin MacLeod",
+        "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Volatile%20Reaction.mp3",
+        "license": "CC-BY 4.0",
+        "commercial_ok": True,
+        "attribution_required": True,
+        "attribution": '"Volatile Reaction" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License',
+        "moods": ["intense", "energetic", "motivational", "gritty", "discipline", "hard", "driving", "inspiring", "rock"],
+        "energy": 9.0,
+        "valence": 0.5
+    },
+    {
+        "id": "future_gladiator",
+        "title": "Future Gladiator",
+        "artist": "Kevin MacLeod",
+        "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Future%20Gladiator.mp3",
+        "license": "CC-BY 4.0",
+        "commercial_ok": True,
+        "attribution_required": True,
+        "attribution": '"Future Gladiator" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License',
+        "moods": ["epic", "motivational", "intense", "heroic", "strength", "power", "heavy", "inspiring"],
+        "energy": 9.2,
+        "valence": 0.6
+    },
+    {
+        "id": "hitman",
+        "title": "Hitman",
+        "artist": "Kevin MacLeod",
+        "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hitman.mp3",
+        "license": "CC-BY 4.0",
+        "commercial_ok": True,
+        "attribution_required": True,
+        "attribution": '"Hitman" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License',
+        "moods": ["tense", "dark", "suspense", "focused", "relentless", "gritty", "intense"],
+        "energy": 8.0,
+        "valence": -0.2
+    },
+    {
+        "id": "hero_down",
+        "title": "Hero Down",
+        "artist": "Kevin MacLeod",
+        "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Hero%20Down.mp3",
+        "license": "CC-BY 4.0",
+        "commercial_ok": True,
+        "attribution_required": True,
+        "attribution": '"Hero Down" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License',
+        "moods": ["epic", "intense", "dramatic", "motivational", "heroic", "strength", "powerful"],
+        "energy": 8.8,
+        "valence": 0.3
+    },
+    {
+        "id": "movement_proposition",
+        "title": "Movement Proposition",
+        "artist": "Kevin MacLeod",
+        "url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Movement%20Proposition.mp3",
+        "license": "CC-BY 4.0",
+        "commercial_ok": True,
+        "attribution_required": True,
+        "attribution": '"Movement Proposition" Kevin MacLeod (incompetech.com) Licensed under Creative Commons: By Attribution 4.0 License',
+        "moods": ["driving", "intense", "motivational", "relentless", "focus", "discipline", "energetic"],
+        "energy": 8.5,
+        "valence": 0.4
     }
 ]
 

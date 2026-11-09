@@ -8,10 +8,55 @@ from pathlib import Path
 from typing import Dict, List, Any, Optional
 from .audio_features import get_window_energy
 
+SPONSOR_MARKERS = [
+    # General Podcast Sponsor Keywords
+    "sponsor", "sponsored by", "discount code", "promo code", "promocode",
+    "use code", "promo", "percent off", "$ off", "dollars off", "special offer",
+    "claim a special offer", "our sponsors", "today's sponsor", "presented by",
+    "brought to you by", "link in description", "check out the link", "patreon",
+    "slash huberman", "dot com slash", "subscribe to the channel",
+    # Well-Known Podcast Sponsors & Brands
+    "drinkag1", "athletic greens", "ag1", "eightsleep", "eight sleep", "pod 3",
+    "nordvpn", "expressvpn", "betterhelp", "insidetracker", "roka", "element",
+    "lmnt", "helix sleep", "whoop", "shopify", "squarespace", "draftkings",
+    "athleticgreens", "mattress",
+    # Podcast Disclaimers & Intros
+    "welcome to the huberman lab", "my guest today is", "today my guest is",
+    "before we begin", "disclaimer", "this podcast episode is probably not for you"
+]
+
+CLIFFHANGER_WORDS = [
+    "because", "and", "but", "so", "or", "if", "that", "which", "like", "when",
+    "although", "such as", "for example", "meaning that", "i'll never forget",
+    "and then", "what happened", "the reason is", "let me tell you", "to see if",
+    "he said that", "she said that", "you know what", "guess what", "about to say",
+    "said something that"
+]
+
+def is_sponsor_segment(text: str) -> bool:
+    t_low = text.lower()
+    return any(marker in t_low for marker in SPONSOR_MARKERS)
+
+def ends_cleanly(sentence_text: str) -> bool:
+    clean = sentence_text.strip().lower()
+    if not any(clean.endswith(p) for p in [".", "!", "?"]):
+        return False
+    clean_no_punc = clean.rstrip(".!? ").strip()
+    words = clean_no_punc.split()
+    if not words:
+        return False
+    last_word = words[-1]
+    last_two = " ".join(words[-2:]) if len(words) >= 2 else last_word
+    last_three = " ".join(words[-3:]) if len(words) >= 3 else last_two
+    
+    if last_word in CLIFFHANGER_WORDS or last_two in CLIFFHANGER_WORDS or last_three in CLIFFHANGER_WORDS:
+        return False
+    return True
+
 def extract_candidate_windows(transcript: List[Dict[str, Any]], features: Dict[str, Any], config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Stage 3: Extracts overlapping windows of 35-60s on sentence boundaries.
-    Filters out mid-sentence starts, incomplete thoughts, and ranks by acoustic energy.
+    Stage 3: Extracts overlapping windows up to 120s on complete sentence boundaries.
+    Filters out sponsor ads, mid-sentence starts, and incomplete thoughts.
     """
     all_words = []
     for s in transcript:
@@ -22,13 +67,14 @@ def extract_candidate_windows(transcript: List[Dict[str, Any]], features: Dict[s
         return []
         
     clip_cfg = config.get("clip", {})
-    min_dur = clip_cfg.get("min_duration", 48.0)
-    max_dur = clip_cfg.get("max_duration", 59.5)
-    target_dur = clip_cfg.get("target_duration", 55.0)
+    min_dur = float(clip_cfg.get("min_duration", 35.0))
+    max_dur = float(clip_cfg.get("max_duration", 120.0))
+    target_dur = float(clip_cfg.get("target_duration", min(75.0, max_dur - 5.0)))
     
     candidates = []
     n = len(all_words)
-    # Find all sentence boundary start indices (words following . ! ? or initial word or gap > 0.4s)
+    
+    # Find all sentence boundary start indices
     start_indices = [0]
     for idx in range(1, n):
         prev_word = all_words[idx - 1]["word"].strip()
@@ -40,55 +86,71 @@ def extract_candidate_windows(transcript: List[Dict[str, Any]], features: Dict[s
         t_start = all_words[i]["start"]
         w_start_text = all_words[i]["word"].strip()
         
-        # Avoid starting on punctuation / mid-word filler
+        # Avoid starting on punctuation, filler, or connector words
         if w_start_text.startswith((",", ".", "!", "?", "--", "-")):
             continue
+        if w_start_text.lower() in ["and", "but", "so", "or", "because", "like"]:
+            continue
             
-        target_end = t_start + target_dur
-        j = i
-        while j < n and all_words[j]["end"] < target_end:
-            j += 1
-            
-        if j >= n:
-            break
-            
-        # Extend to next clean sentence boundary within max_dur
-        best_j = j
-        for k in range(j, min(n, j + 35)):
+        # Collect all valid completed-sentence end points between min_dur and max_dur
+        valid_end_indices = []
+        clean_end_indices = []
+        
+        for k in range(i + 15, n):
             dur = all_words[k]["end"] - t_start
             if dur > max_dur:
                 break
-            w_txt = all_words[k]["word"].strip()
-            if any(w_txt.endswith(p) for p in [".", "!", "?"]) and dur >= min_dur:
-                best_j = k + 1
-                break
+            if dur < min_dur:
+                continue
                 
-        window_words = all_words[i:best_j]
-        if not window_words:
+            w_txt = all_words[k]["word"].strip()
+            # Check sentence ending
+            if any(w_txt.endswith(p) for p in [".", "!", "?"]):
+                valid_end_indices.append(k + 1)
+                
+                # Check trailing sentence snippet for clean resolution (no cliffhangers)
+                trailing_words = [w["word"].strip() for w in all_words[max(i, k - 7):k + 1]]
+                trailing_snippet = " ".join(trailing_words)
+                if ends_cleanly(trailing_snippet):
+                    clean_end_indices.append(k + 1)
+                    
+        # Prefer cleanest complete thought; if none, take closest sentence boundary to target_dur
+        best_end_j = None
+        if clean_end_indices:
+            best_end_j = min(clean_end_indices, key=lambda idx: abs((all_words[idx - 1]["end"] - t_start) - target_dur))
+        elif valid_end_indices:
+            best_end_j = min(valid_end_indices, key=lambda idx: abs((all_words[idx - 1]["end"] - t_start) - target_dur))
+            
+        if not best_end_j:
             continue
             
+        window_words = all_words[i:best_end_j]
         dur = window_words[-1]["end"] - window_words[0]["start"]
-        if min_dur <= dur <= max_dur:
-            full_text = " ".join(w["word"].strip() for w in window_words)
-            energy_score = get_window_energy(features, window_words[0]["start"], window_words[-1]["end"])
+        full_text = " ".join(w["word"].strip() for w in window_words)
+        
+        # CRITICAL FILTER: Drop sponsor ad reads
+        if is_sponsor_segment(full_text):
+            continue
             
-            # Prioritize windows mentioning title/viral topics
-            pre_boost = 0.0
-            txt_lower = full_text.lower()
-            if any(kw in txt_lower for kw in ["10,000", "10000", "ten thousand", "bodies", "target", "wheelies"]):
-                pre_boost += 45.0
-            if "?" in txt_lower[:80]:
-                pre_boost += 10.0
-                
-            candidates.append({
-                "start": round(window_words[0]["start"], 2),
-                "end": round(window_words[-1]["end"], 2),
-                "duration": round(dur, 2),
-                "text": full_text,
-                "words": window_words,
-                "energy_score": energy_score,
-                "pre_score": energy_score + pre_boost
-            })
+        energy_score = get_window_energy(features, window_words[0]["start"], window_words[-1]["end"])
+        
+        # Prioritize windows with strong hooks, questions, or raw emotion
+        pre_boost = 0.0
+        txt_lower = full_text.lower()
+        if "?" in txt_lower[:80] or any(txt_lower.startswith(q) for q in ["how", "why", "what", "if you"]):
+            pre_boost += 20.0
+        if any(w in txt_lower for w in ["truth", "suffer", "pain", "strength", "discipline", "never", "failure", "fucking"]):
+            pre_boost += 25.0
+            
+        candidates.append({
+            "start": round(window_words[0]["start"], 2),
+            "end": round(window_words[-1]["end"] + 0.35, 2), # Trailing comfort padding
+            "duration": round(dur + 0.35, 2),
+            "text": full_text,
+            "words": window_words,
+            "energy_score": energy_score,
+            "pre_score": energy_score + pre_boost
+        })
             
     # Deduplicate overlapping candidates keeping the highest candidate score
     candidates.sort(key=lambda c: c["pre_score"], reverse=True)
@@ -101,10 +163,10 @@ def extract_candidate_windows(transcript: List[Dict[str, Any]], features: Dict[s
                 break
         if not overlap:
             deduped.append(c)
-        if len(deduped) >= 40:
+        if len(deduped) >= 50:
             break
             
-    print(f"Generated {len(deduped)} top candidate windows on sentence boundaries.")
+    print(f"Generated {len(deduped)} top candidate windows on complete sentence boundaries (filtered ads).")
     return deduped
 
 def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -120,9 +182,15 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
     scored = []
     
     hook_keywords = [
-        "10,000", "10000", "bodies", "target", "body count", "wheelies",
-        "daddy", "grave", "father", "crazy", "why", "secret", "never",
-        "mortgage", "money", "rich", "million", "hours", "master", "mastery"
+        # Mindset, Strength, Discipline (David Goggins & Motivational)
+        "strength", "inner strength", "discipline", "mindset", "suffer", "suffering",
+        "pain", "quit", "quitting", "failure", "fear", "warrior", "savage", "obsessed",
+        "darkness", "hard", "focus", "truth", "hate", "fight", "broke", "lost", "change",
+        "push", "pull", "run", "running", "excuses", "mental", "brain", "soul", "heart",
+        # General Podcast Hooks & Intrigue
+        "secret", "why", "how", "never", "always", "biggest", "mistake", "destroy", "rule",
+        "remember", "crazy", "shocking", "listen", "power", "money", "success", "life",
+        "daddy", "grave", "father", "mortgage", "rich", "million", "hours", "master", "bodies"
     ]
     
     for c in candidates:
@@ -136,7 +204,11 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
         first_5s_text = " ".join(w["word"].strip() for w in first_5s_words).lower()
         
         score_hook = 65.0
-        if "?" in first_5s_text or any(first_5s_text.startswith(q) for q in ["so", "why", "how", "what", "imagine"]):
+        score_emotion = 75.0
+        score_standalone = 85.0
+        score_payoff = 80.0
+
+        if "?" in first_5s_text or any(first_5s_text.startswith(q) for q in ["so", "why", "how", "what", "imagine", "listen"]):
             score_hook += 18.0
             
         for kw in hook_keywords:
@@ -145,26 +217,26 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
             elif kw in text_lower:
                 score_hook += 12.0
                 
-        # Title hook extra bonus
-        if "bodies" in text_lower and ("ten thousand" in text_lower or "10,000" in text_lower):
+        # Extra hook & emotion bonuses
+        if any(w in text_lower for w in ["inner strength", "discipline", "suffer", "pain", "warrior", "never quit"]):
+            score_hook += 15.0
+            score_emotion += 15.0
+        elif "bodies" in text_lower and ("ten thousand" in text_lower or "10,000" in text_lower):
             score_hook += 20.0
             score_emotion += 10.0
                 
         score_hook = min(100.0, score_hook)
         
         # Standalone score (clean start/end, absence of "as I said earlier")
-        score_standalone = 85.0
         if any(unres in text_lower[:50] for unres in ["as i said", "like i mentioned", "earlier", "going back"]):
             score_standalone -= 30.0
             
-        # Emotion / Humor score
-        score_emotion = 75.0
-        if any(em in text_lower for em in ["mad", "laugh", "tapped", "crazy", "mental health", "happy", "happiness", "damn", "who cares"]):
-            score_emotion += 18.0
+        # Emotion / Energy score
+        if any(em in text_lower for em in ["mad", "laugh", "tapped", "crazy", "mental health", "happy", "happiness", "damn", "who cares", "fear", "hate", "fight"]):
+            score_emotion += 15.0
         score_emotion = min(100.0, score_emotion)
         
         # Payoff score
-        score_payoff = 80.0
         if text.strip().endswith((".", "!", "?")):
             score_payoff += 15.0
         score_payoff = min(100.0, score_payoff)
@@ -175,34 +247,49 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
         # Composite score: 70% LLM + 30% local acoustic energy
         total_score = round(0.70 * llm_score + 0.30 * c["energy_score"], 2)
         
+        # Dynamic Title Generation from Hook Clause
+        first_clause = text.split('.')[0].split('?')[0].split('!')[0].split(',')[0].strip()
+        clause_words = [w for w in first_clause.split() if w.strip()]
+        if 3 <= len(clause_words) <= 7:
+            suggested_title = " ".join(clause_words).title()
+        else:
+            first_w = [w["word"].strip() for w in words[:5] if w["word"].strip()]
+            suggested_title = " ".join(first_w).title()
+        suggested_title = suggested_title.strip(" -—:,.\"'") or "Viral Highlight"
+
         # Mood & Music classification
-        if "bodies" in text_lower or "tapped" in text_lower or "mad" in text_lower or "wheelies" in text_lower:
+        if any(w in text_lower for w in ["strength", "discipline", "suffer", "pain", "quit", "warrior", "fight", "fear", "darkness", "hard", "alone", "truth", "mind", "hate"]):
+            primary_mood = "intense"
+            theme = "mental toughness & discipline"
+            energy_0_10 = 9.0
+            valence = 0.5
+            music_prompt = "heavy driving rock/drums, gritty intense motivation, relentless focus"
+            genre_hints = ["intense", "motivational", "gritty", "epic", "rock", "driving", "discipline"]
+            keywords_to_emphasize = [w.strip(" ,.!?").upper() for w in clause_words[:4] if len(w) > 3]
+        elif any(w in text_lower for w in ["laugh", "tapped", "wheelies", "joke", "funny", "hilarious", "prank"]):
             primary_mood = "playful"
             theme = "comedy"
             energy_0_10 = 7.5
             valence = 0.8
             music_prompt = "playful comedic banter, light quirky pizzicato and xylophone, lively humor"
             genre_hints = ["comedy", "playful", "quirky"]
-            suggested_title = "10,000 Bodies Goal Shock"
-            keywords_to_emphasize = ["10,000", "BODIES", "TARGET", "MAD", "SALUTE"]
-        elif "money" in text_lower or "mortgage" in text_lower or "retired" in text_lower:
+            keywords_to_emphasize = [w.strip(" ,.!?").upper() for w in clause_words[:4] if len(w) > 3]
+        elif any(w in text_lower for w in ["money", "mortgage", "retired", "wealth", "business", "rich", "million"]):
             primary_mood = "inspiring"
-            theme = "financial freedom"
+            theme = "financial freedom & success"
             energy_0_10 = 6.0
             valence = 0.7
             music_prompt = "uplifting warm acoustic and piano, inspirational growth"
             genre_hints = ["inspiring", "uplifting", "warm"]
-            suggested_title = "I Retired My Whole Family"
-            keywords_to_emphasize = ["RETIRED", "FAMILY", "MONEY", "HAPPINESS"]
-        elif "10,000 hours" in text_lower or "master" in text_lower or "practice" in text_lower:
-            primary_mood = "tech"
-            theme = "skill mastery"
-            energy_0_10 = 5.8
-            valence = 0.4
-            music_prompt = "modern steady electronic beat, insightful tech discussion"
-            genre_hints = ["tech", "modern", "steady"]
-            suggested_title = "The 10,000 Hours Rule Explained"
-            keywords_to_emphasize = ["10,000 HOURS", "MASTER", "PRACTICE"]
+            keywords_to_emphasize = ["MONEY", "SUCCESS", "RETIRED", "FREEDOM"]
+        elif any(w in text_lower for w in ["sad", "depressed", "died", "crying", "lost my", "heartbreaking"]):
+            primary_mood = "emotional"
+            theme = "emotional reflection"
+            energy_0_10 = 3.5
+            valence = -0.6
+            music_prompt = "somber emotional reflective piano and strings"
+            genre_hints = ["emotional", "reflective", "sad", "serious"]
+            keywords_to_emphasize = [w.strip(" ,.!?").upper() for w in clause_words[:3] if len(w) > 3]
         else:
             primary_mood = "casual"
             theme = "podcast conversation"
@@ -210,8 +297,7 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
             valence = 0.5
             music_prompt = "chill relaxed lo-fi background groove, subtle beat"
             genre_hints = ["chill", "lo-fi", "ambient"]
-            suggested_title = "Podcast Highlight"
-            keywords_to_emphasize = ["TARGET", "STORY"]
+            keywords_to_emphasize = [w.strip(" ,.!?").upper() for w in clause_words[:3] if len(w) > 3]
             
         first_phrase = " ".join(w["word"].strip() for w in words[:6])
         
