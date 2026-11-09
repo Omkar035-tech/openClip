@@ -4,6 +4,7 @@ import json
 import time
 import shutil
 import threading
+import concurrent.futures
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
@@ -286,36 +287,52 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         selected_track_id = payload.get("selected_track_id")
         
         total_clips = len(ranked_clips)
+        log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts (2 workers)...")
+        
+        # Prepare render tasks
+        render_jobs = []
         for idx, clip_meta in enumerate(ranked_clips, 1):
-            studio_state["current_clip"] = clip_meta["suggested_title"]
-            studio_state["stage"] = f"Rendering Short #{idx}/{total_clips}: '{clip_meta['suggested_title']}'"
-            base_p = 50 + int(45 * (idx - 1) / total_clips)
-            studio_state["progress"] = base_p
-            log_event(f"Rendering #{idx}: '{clip_meta['suggested_title']}' ({clip_meta['duration']}s)...")
-            
-            # Custom OST override if selected
             if selected_track_id and selected_track_id != "auto":
-                clip_meta_custom = dict(clip_meta)
-                clip_meta_custom["custom_track_id"] = selected_track_id
+                c_meta = dict(clip_meta)
+                c_meta["custom_track_id"] = selected_track_id
             else:
-                clip_meta_custom = clip_meta
-                
-            manifest = render_short_clip(str(v_path), clip_meta_custom, idx, out_dir, config, excluded_music)
+                c_meta = clip_meta
+            render_jobs.append((idx, c_meta))
             
-            # Register completed clip
-            clip_file = f"short_{idx:02d}.mp4"
-            studio_state["completed_clips"].append({
-                "clip_id": f"short_{idx:02d}",
-                "title": clip_meta["suggested_title"],
-                "duration": clip_meta["duration"],
-                "score": clip_meta["score_total"],
-                "time_range": f"{clip_meta['start']:.1f}s - {clip_meta['end']:.1f}s",
-                "mp4_url": f"/api/videos/{v_path.stem}/{clip_file}",
-                "srt_url": f"/api/videos/{v_path.stem}/short_{idx:02d}.srt",
-                "text": clip_meta["text"],
-                "mood": clip_meta["mood"]["primary_mood"]
-            })
-            log_event(f"Successfully finished Short #{idx} (1080x1920 @ 30fps).")
+        completed_count = 0
+        
+        def render_worker(job):
+            idx, c_meta = job
+            log_event(f"[Worker] Launching render for Short #{idx}: '{c_meta['suggested_title']}' ({c_meta['duration']}s)...")
+            manifest = render_short_clip(str(v_path), c_meta, idx, out_dir, config, excluded_music)
+            return idx, c_meta, manifest
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            future_to_job = {executor.submit(render_worker, job): job for job in render_jobs}
+            for future in concurrent.futures.as_completed(future_to_job):
+                idx, c_meta, manifest = future.result()
+                completed_count += 1
+                
+                # Register completed clip in studio state
+                clip_file = f"short_{idx:02d}.mp4"
+                studio_state["completed_clips"].append({
+                    "clip_id": f"short_{idx:02d}",
+                    "title": c_meta["suggested_title"],
+                    "duration": c_meta["duration"],
+                    "score": c_meta["score_total"],
+                    "time_range": f"{c_meta['start']:.1f}s - {c_meta['end']:.1f}s",
+                    "mp4_url": f"/api/videos/{v_path.stem}/{clip_file}",
+                    "srt_url": f"/api/videos/{v_path.stem}/short_{idx:02d}.srt",
+                    "text": c_meta["text"],
+                    "mood": c_meta["mood"]["primary_mood"]
+                })
+                # Keep clips ordered 1 -> 5 in preview UI
+                studio_state["completed_clips"].sort(key=lambda x: x["clip_id"])
+                
+                pct = 50 + int(45 * completed_count / total_clips)
+                studio_state["progress"] = pct
+                studio_state["stage"] = f"Rendered {completed_count}/{total_clips} shorts ({pct}%)"
+                log_event(f"Successfully finished Short #{idx} (1080x1920 @ 30fps) - {completed_count}/{total_clips} ready.")
             
         studio_state["stage"] = "All shorts rendered successfully!"
         studio_state["progress"] = 100
