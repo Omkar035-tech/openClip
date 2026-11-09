@@ -54,6 +54,9 @@
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="text-xs font-medium text-emerald-300">Antigravity AI Engine: Active</span>
       </div>
+      <button onclick="toggleSettingsSidebar()" class="text-xs font-semibold bg-dark-700 hover:bg-dark-600 text-gray-200 border border-dark-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+        <span>⚙️ Settings & Hardware</span>
+      </button>
       <button onclick="openCaptionPlayground()" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-gray-950 px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow">
         <span>🎨 Caption Studio & Playground</span>
       </button>
@@ -137,17 +140,71 @@
           </label>
         </div>
 
-        <!-- Optional Wayin.ai Prompt Moment Finder -->
-        <div id="wayinPromptContainer" class="hidden space-y-1.5 pt-1 border-t border-dark-700/60">
-          <div class="flex items-center justify-between">
-            <label class="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
-              <span>🎯 Custom Moment Finder ("Find Moments" Prompt)</span>
-            </label>
-            <span class="text-[10px] text-gray-400">Optional</span>
+        <!-- Wayin.ai openClip 2.0 Engine Configuration (Groq LPU -> Gemini -> 62-Tag Math) -->
+        <div id="wayinPromptContainer" class="hidden space-y-3 pt-2 border-t border-dark-700/60">
+          <!-- Primary LLM Provider & Model Selection -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="text-[11px] font-semibold text-gray-300 block mb-1 flex items-center gap-1">
+                <span>⚡ GroqCloud Model (Default)</span>
+              </label>
+              <select id="groqModelSelect" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2.5 py-1.5 text-xs text-amber-300 focus:outline-none focus:border-amber-400 font-mono">
+                <option value="llama-3.3-70b-versatile" selected>⚡ llama-3.3-70b-versatile (280 T/s)</option>
+                <option value="llama-3.1-8b-instant">🚀 llama-3.1-8b-instant (560 T/s)</option>
+                <option value="openai/gpt-oss-120b">🧠 openai/gpt-oss-120b (500 T/s)</option>
+                <option value="openai/gpt-oss-20b">⚡ openai/gpt-oss-20b (1000 T/s)</option>
+                <option value="qwen/qwen3.8-27b">🌐 qwen/qwen3.8-27b (450 T/s)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-gray-300 block mb-1">Fallback Strategy</label>
+              <div class="bg-dark-900/80 border border-dark-600 rounded-xl px-2.5 py-1.5 text-[11px] text-gray-300 flex items-center justify-between">
+                <span>1. Gemini ➜ 2. 62-Tag Math</span>
+                <span class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300">Resilient</span>
+              </div>
+            </div>
           </div>
-          <input type="text" id="wayinPrompt" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-sans"
-            placeholder="e.g. Find the most intense screaming moments, funny jokes, or business advice">
-          <p class="text-[10px] text-gray-400">Wayin.ai will guide Gemini reasoning to prioritize moments matching this exact vibe.</p>
+
+          <!-- API Keys Drawer with Show/Hide & LocalStorage Caching -->
+          <div class="bg-dark-950/70 border border-dark-700 rounded-xl p-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
+                <span>🔑 Engine API Keys</span>
+                <span class="text-[9px] text-gray-500 font-normal">(Cached in Browser)</span>
+              </span>
+              <span id="apiKeyStatus" class="text-[9px] text-amber-400 font-mono">Synced</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <div class="flex justify-between items-center mb-1 text-[10px]">
+                  <span class="text-gray-400">Groq API Key (gsk_...)</span>
+                  <button type="button" onclick="toggleKeyVisibility('groqApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+                </div>
+                <input type="password" id="groqApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="gsk_...">
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1 text-[10px]">
+                  <span class="text-gray-400">Gemini API Key (AQ...)</span>
+                  <button type="button" onclick="toggleKeyVisibility('geminiApiKey', this)" class="text-amber-400 hover:underline">Show</button>
+                </div>
+                <input type="password" id="geminiApiKey" oninput="saveApiKeysToStorage()" class="w-full bg-dark-900 border border-dark-600 rounded-lg px-2.5 py-1 text-xs text-gray-200 font-mono" placeholder="AQ.Ab8...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Optional Wayin.ai Prompt Moment Finder -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
+                <span>🎯 Custom Moment Finder ("Find Moments" Prompt)</span>
+              </label>
+              <span class="text-[10px] text-gray-400">Optional</span>
+            </div>
+            <input type="text" id="wayinPrompt" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-sans"
+              placeholder="e.g. Find the most intense screaming moments, funny jokes, or business advice">
+            <p class="text-[10px] text-gray-400">Groq LPU guides reasoning across 62 virality tags to prioritize moments matching your intent.</p>
+          </div>
         </div>
       </div>
 
@@ -1470,6 +1527,78 @@
       });
     })();
 
+    
+    // --- API Key & Sidebar State Management ---
+    function toggleSettingsSidebar() {
+      const sb = document.getElementById('settingsSidebar');
+      if (!sb) return;
+      if (sb.classList.contains('translate-x-full')) {
+        sb.classList.remove('translate-x-full');
+      } else {
+        sb.classList.add('translate-x-full');
+      }
+    }
+
+    function toggleKeyVisibility(inputId, btn) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      if (el.type === 'password') {
+        el.type = 'text';
+        btn.innerText = 'Hide';
+      } else {
+        el.type = 'password';
+        btn.innerText = 'Show';
+      }
+    }
+
+    function saveApiKeysToStorage() {
+      const groqKey = document.getElementById('groqApiKey') ? document.getElementById('groqApiKey').value : '';
+      const geminiKey = document.getElementById('geminiApiKey') ? document.getElementById('geminiApiKey').value : '';
+      const groqModel = document.getElementById('groqModelSelect') ? document.getElementById('groqModelSelect').value : 'llama-3.3-70b-versatile';
+      
+      if (groqKey) localStorage.setItem('openclip_groq_api_key', groqKey);
+      if (geminiKey) localStorage.setItem('openclip_gemini_api_key', geminiKey);
+      if (groqModel) localStorage.setItem('openclip_groq_model', groqModel);
+
+      // Sync with sidebar
+      const sideKey = document.getElementById('sidebarGroqKey');
+      if (sideKey && sideKey !== document.activeElement) sideKey.value = groqKey;
+      const sideModel = document.getElementById('sidebarGroqModel');
+      if (sideModel) sideModel.value = groqModel;
+
+      const badge = document.getElementById('apiKeyStatus');
+      if (badge) {
+        badge.innerText = 'Saved';
+        badge.className = 'text-[9px] text-emerald-400 font-mono';
+        setTimeout(() => {
+          badge.innerText = 'Synced';
+          badge.className = 'text-[9px] text-amber-400 font-mono';
+        }, 1500);
+      }
+    }
+
+    function loadApiKeysFromStorage() {
+      const savedGroq = localStorage.getItem('openclip_groq_api_key');
+      const savedGemini = localStorage.getItem('openclip_gemini_api_key');
+      const savedModel = localStorage.getItem('openclip_groq_model');
+
+      if (savedGroq) {
+        if (document.getElementById('groqApiKey')) document.getElementById('groqApiKey').value = savedGroq;
+        if (document.getElementById('sidebarGroqKey')) document.getElementById('sidebarGroqKey').value = savedGroq;
+      }
+      if (savedGemini && document.getElementById('geminiApiKey')) {
+        document.getElementById('geminiApiKey').value = savedGemini;
+      }
+      if (savedModel) {
+        if (document.getElementById('groqModelSelect')) document.getElementById('groqModelSelect').value = savedModel;
+        if (document.getElementById('sidebarGroqModel')) document.getElementById('sidebarGroqModel').value = savedModel;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadApiKeysFromStorage();
+    });
+
     async function triggerClipping() {
       const btn = document.getElementById('startBtn');
       btn.disabled = true;
@@ -1500,6 +1629,9 @@
         manual_cam_box: manualCamBoxVal,
         engine_architecture: document.querySelector('input[name="engineArchRadio"]:checked') ? document.querySelector('input[name="engineArchRadio"]:checked').value : 'openclip_standard',
         wayin_prompt: document.getElementById('wayinPrompt') ? document.getElementById('wayinPrompt').value.trim() : null,
+        groq_api_key: document.getElementById('groqApiKey') ? document.getElementById('groqApiKey').value.trim() : null,
+        groq_model: document.getElementById('groqModelSelect') ? document.getElementById('groqModelSelect').value : 'llama-3.3-70b-versatile',
+        gemini_api_key: document.getElementById('geminiApiKey') ? document.getElementById('geminiApiKey').value.trim() : null,
         whisper_hardware: document.getElementById('whisperHw').value,
         render_hardware: document.getElementById('renderHw').value,
         cpu_threads: parseInt(document.getElementById('cpuThreads').value),
@@ -2019,5 +2151,87 @@
     updateLivePreview();
     loadGalleryFolders();
   </script>
+
+  <!-- Settings & Hardware Slide-Over Sidebar -->
+  <div id="settingsSidebar" class="fixed inset-y-0 right-0 max-w-sm w-full bg-dark-800 border-l border-dark-700 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    <div class="p-5 space-y-5 overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-dark-700 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-amber-400 text-lg">⚙️</span>
+          <h2 class="text-sm font-bold text-gray-100">Studio & Hardware Settings</h2>
+        </div>
+        <button onclick="toggleSettingsSidebar()" class="text-gray-400 hover:text-gray-200 text-sm font-bold p-1">✕</button>
+      </div>
+
+      <!-- Quick AI Model Setup in Sidebar -->
+      <div class="space-y-3">
+        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">AI Virality & Reasoning</h3>
+        <div>
+          <label class="text-[11px] text-gray-400 block mb-1">Active Groq Model</label>
+          <select id="sidebarGroqModel" onchange="document.getElementById('groqModelSelect').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200">
+            <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Recommended)</option>
+            <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fastest 560 tps)</option>
+            <option value="openai/gpt-oss-120b">openai/gpt-oss-120b</option>
+            <option value="openai/gpt-oss-20b">openai/gpt-oss-20b</option>
+            <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-gray-400 block mb-1">Groq API Key</label>
+          <input type="password" id="sidebarGroqKey" oninput="document.getElementById('groqApiKey').value = this.value; saveApiKeysToStorage();" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono" placeholder="gsk_...">
+        </div>
+      </div>
+
+      <!-- Hardware & Processing Engine -->
+      <div class="space-y-3 pt-3 border-t border-dark-700">
+        <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Hardware & Performance</h3>
+        <div>
+          <label class="text-[11px] text-gray-400 block mb-1">Whisper Speech AI Engine</label>
+          <select id="sidebarWhisperHw" onchange="document.getElementById('whisperHw').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
+            <option value="auto">⚡ Auto (Fastest GPU / Metal)</option>
+            <option value="gpu">🚀 GPU (CUDA / Metal Float16)</option>
+            <option value="cpu">💻 CPU (INT8 Multi-Thread)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-[11px] text-gray-400 block mb-1">Video Render Encoder</label>
+          <select id="sidebarRenderHw" onchange="document.getElementById('renderHw').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 font-mono">
+            <option value="auto">⚡ Auto (NVENC / VideoToolbox)</option>
+            <option value="gpu">🚀 Hardware GPU (NVENC)</option>
+            <option value="cpu">💻 Software CPU (libx264)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">CPU Threads</label>
+            <select id="sidebarCpuThreads" onchange="document.getElementById('cpuThreads').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
+              <option value="2">2 Threads</option>
+              <option value="4" selected>4 Threads</option>
+              <option value="8">8 Threads</option>
+              <option value="16">16 Threads</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-gray-400 block mb-1">Render Workers</label>
+            <select id="sidebarRenderWorkers" onchange="document.getElementById('renderWorkers').value = this.value" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-2 py-1.5 text-xs text-gray-200 font-mono">
+              <option value="1">1 Worker</option>
+              <option value="2" selected>2 Workers</option>
+              <option value="3">3 Workers</option>
+              <option value="4">4 Workers</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-4 border-t border-dark-700 bg-dark-900/60 flex items-center justify-between">
+      <span class="text-[10px] text-gray-400">Settings auto-saved in browser</span>
+      <button onclick="toggleSettingsSidebar()" class="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs">Done</button>
+    </div>
+  </div>
+
 </body>
 </html>
