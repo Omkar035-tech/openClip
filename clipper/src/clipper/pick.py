@@ -7,6 +7,7 @@ import asyncio
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 from .audio_features import get_window_energy
+from .wayin_engine import WayinPipelineEngine
 
 SPONSOR_MARKERS = [
     # General Podcast Sponsor Keywords
@@ -345,23 +346,26 @@ def select_and_rank_clips(transcript: List[Dict[str, Any]], features: Dict[str, 
     if not candidates:
         raise ValueError("No valid candidate windows found")
         
-    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    ranked = None
-    
-    if gemini_key:
-        print("Scoring candidates using Google Gemini API...")
-        try:
-            from google import genai
-            client = genai.Client(api_key=gemini_key)
-            # Parallel LLM selection can be called here
-            # ...
-        except Exception as e:
-            print(f"Gemini API error ({e}). Falling back to local engine...")
-            ranked = None
-            
-    if ranked is None:
-        print("Using local acoustic + semantic scoring engine...")
-        ranked = score_with_local_engine(candidates)
+    engine_arch = config.get("engine_architecture", "openclip_standard")
+    user_prompt = config.get("wayin_prompt")
+
+    # Architecture Branching: openClip 2.0 (Wayin.ai Engine) vs Default openClip Standard
+    if engine_arch in ("wayin_2_0", "wayin"):
+        print("[Engine: openClip 2.0 (Wayin.ai Architecture)] Running Hook-First Virality & Hierarchical Analysis...")
+        wayin_engine = WayinPipelineEngine(config)
+        scored_candidates = score_with_local_engine(candidates)
+        n_target = config.get("general", {}).get("n_clips", 5)
+        final_clips = wayin_engine.run_wayin_selection(scored_candidates, n_clips=n_target, user_prompt=user_prompt)
+        
+        with open(ranked_file, "w", encoding="utf-8") as f:
+            json.dump(final_clips, f, indent=2)
+        write_selection_report(final_clips, cache_dir / "selection_report.md")
+        print(f"[openClip 2.0] Selected top {len(final_clips)} viral shorts using Wayin.ai framework.")
+        return final_clips
+
+    # Standard openClip 1.0 Architecture (Default)
+    print("[Engine: openClip Standard] Using standard acoustic + heuristic scoring...")
+    ranked = score_with_local_engine(candidates)
         
     # Filter to top N non-overlapping candidates
     n_clips = config.get("general", {}).get("n_clips", 5)
