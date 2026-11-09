@@ -54,7 +54,11 @@ def log_event(message: str):
     studio_state["logs"].append(entry)
     if len(studio_state["logs"]) > 100:
         studio_state["logs"] = studio_state["logs"][-100:]
-    print(entry)
+    try:
+        print(entry)
+    except UnicodeEncodeError:
+        safe_entry = entry.encode(sys.stdout.encoding or 'utf-8', errors='replace').decode(sys.stdout.encoding or 'utf-8')
+        print(safe_entry)
 
 def load_config() -> dict:
     cfg_path = BASE_DIR / "config.yaml"
