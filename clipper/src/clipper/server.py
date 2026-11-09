@@ -250,6 +250,10 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["effects"]["vignette"] = bool(payload.get("effects_vignette", True))
         config["camera"]["hook_zoom"] = float(payload.get("hook_zoom", 1.12))
         
+        # Architecture Selection (Default openClip vs openClip 2.0 Wayin.ai Engine)
+        config["engine_architecture"] = payload.get("engine_architecture", "openclip_standard")
+        config["wayin_prompt"] = payload.get("wayin_prompt")
+
         # Performance & Hardware Customization (GPU/CPU selection per module)
         if "performance" not in config:
             config["performance"] = {}
@@ -299,7 +303,10 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         # 4. Multimodal Selection & Viral Hook Scoring (40% - 50%)
         studio_state["stage"] = "AI Semantic & Viral Moment Detection"
         studio_state["progress"] = 45
-        log_event("Scanning dialogue for curiosity hooks, comedy banter, and punchlines...")
+        if config.get("engine_architecture") in ("wayin_2_0", "wayin"):
+            log_event("[openClip 2.0 (Beta)] Running Wayin.ai Hierarchical Funnel (Hook-First 1-3s Saliency + Gemini Reasoning)...")
+        else:
+            log_event("[openClip Standard] Scanning dialogue for curiosity hooks, comedy banter, and punchlines...")
         ranked_clips = select_and_rank_clips(transcript, features, config, cache_dir)
         studio_state["candidates"] = [
             {
