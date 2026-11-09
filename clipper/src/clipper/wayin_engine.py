@@ -167,13 +167,35 @@ CANDIDATES:
 {json.dumps(condensed, indent=1)}
 """
 
-            # Fallback models on Groq
-            models_to_try = [
+            # Query live accessible models for this account if possible, else use validated chain
+            live_active_models = []
+            try:
+                models_resp = client.models.list()
+                if hasattr(models_resp, "data"):
+                    live_active_models = [m.id for m in models_resp.data if hasattr(m, "id")]
+            except Exception:
+                pass
+
+            # Build prioritized fallback chain with only active/available models
+            ordered_preferences = [
                 self.groq_model,
                 "llama-3.3-70b-versatile",
                 "llama-3.1-8b-instant",
-                "openai/gpt-oss-120b"
+                "openai/gpt-oss-120b",
+                "openai/gpt-oss-20b",
+                "qwen/qwen3.8-27b"
             ]
+            models_to_try = []
+            for m in ordered_preferences:
+                if live_active_models:
+                    if m in live_active_models and m not in models_to_try:
+                        models_to_try.append(m)
+                else:
+                    if m not in models_to_try:
+                        models_to_try.append(m)
+
+            if not models_to_try:
+                models_to_try = live_active_models or ["llama-3.3-70b-versatile"]
             
             chat_completion = None
             for model_id in models_to_try:
