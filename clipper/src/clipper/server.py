@@ -1,3 +1,5 @@
+import subprocess
+import numpy as np
 import os
 import sys
 import json
@@ -10,7 +12,8 @@ from typing import Dict, List, Any, Optional
 
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, Form, BackgroundTasks, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse, Response
+import cv2
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import yaml
@@ -602,18 +605,69 @@ async def stream_music_track(filename: str):
 @app.get("/api/video/frame")
 async def get_video_frame(path: str, timestamp: float = 2.0):
     """Extracts a single frame from the video as JPEG for previewing and manual crop area selection."""
-    v_path = Path(path)
-    if not v_path.is_absolute():
-        v_path = (BASE_DIR / v_path).resolve()
-    if not v_path.exists():
-        raise HTTPException(status_code=404, detail="Video file not found")
+    if not path or not path.strip():
+        raise HTTPException(status_code=400, detail="Video path parameter is required")
         
+    raw_path_str = path.strip().strip('"').strip("'")
+    v_path = Path(raw_path_str)
+    
+    # Try various resolution strategies
+    if not v_path.exists():
+        # Try relative to BASE_DIR
+        candidate1 = (BASE_DIR / raw_path_str).resolve()
+        if candidate1.exists():
+            v_path = candidate1
+        else:
+            # Try searching inside uploads/
+            candidate2 = (BASE_DIR / "uploads" / Path(raw_path_str).name).resolve()
+            if candidate2.exists():
+                v_path = candidate2
+            else:
+                # Try matching without exact special characters
+                cleaned_name = "".join(c for c in Path(raw_path_str).name if c.isalnum() or c in " ._-")
+                match_found = None
+                for uf in (BASE_DIR / "uploads").glob("*.*"):
+                    uf_clean = "".join(c for c in uf.name if c.isalnum() or c in " ._-")
+                    if cleaned_name and cleaned_name in uf_clean:
+                        match_found = uf.resolve()
+                        break
+                if match_found:
+                    v_path = match_found
+                else:
+                    raise HTTPException(status_code=404, detail=f"Video file not found: {raw_path_str}")
+
     cap = cv2.VideoCapture(str(v_path))
-    fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
-    frame_idx = max(0, int(timestamp * fps))
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
-    ret, frame = cap.read()
-    cap.release()
+    ret, frame = False, None
+    if cap.isOpened():
+        fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
+        frame_idx = max(0, int(timestamp * fps))
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+        ret, frame = cap.read()
+        if not ret:
+            # Fallback to reading first available frame
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+            ret, frame = cap.read()
+        cap.release()
+
+    # If cv2 fails (e.g. Unicode path or unusual container format), fallback to ffmpeg pipe
+    if not ret or frame is None:
+        try:
+            cmd = [
+                "ffmpeg", "-y",
+                "-ss", str(max(0.0, timestamp)),
+                "-i", str(v_path),
+                "-vframes", "1",
+                "-f", "image2pipe",
+                "-vcodec", "mjpeg",
+                "-"
+            ]
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=10)
+            if proc.returncode == 0 and len(proc.stdout) > 0:
+                frame = cv2.imdecode(np.frombuffer(proc.stdout, np.uint8), cv2.IMREAD_COLOR)
+                if frame is not None:
+                    ret = True
+        except Exception as e:
+            pass
     
     if not ret or frame is None:
         raise HTTPException(status_code=500, detail="Could not extract video frame")

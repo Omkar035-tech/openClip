@@ -1235,6 +1235,12 @@
               setTimeout(() => {
                 progressContainer.classList.add('hidden');
               }, 2500);
+              // Auto-refresh crop preview frame if manual crop mode is currently open
+              const streamerMode = document.getElementById('streamerMode');
+              const streamerToggle = document.getElementById('streamerTrackToggle');
+              if (streamerToggle && streamerToggle.checked && streamerMode && streamerMode.value === 'manual') {
+                loadVideoPreviewFrame();
+              }
             }
           } catch (e) {
             statusText.innerText = 'Upload completed.';
