@@ -272,9 +272,18 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["effects"]["vignette"] = bool(payload.get("effects_vignette", True))
         config["camera"]["hook_zoom"] = float(payload.get("hook_zoom", 1.12))
         
-        # Architecture Selection (Default openClip vs openClip 2.0 Wayin.ai Engine)
+        # Architecture & Model Engine Selection (Groq Cloud -> Gemini -> Heuristic Fallback)
         config["engine_architecture"] = payload.get("engine_architecture", "openclip_standard")
         config["wayin_prompt"] = payload.get("wayin_prompt")
+        
+        if "models" not in config:
+            config["models"] = {}
+        if payload.get("groq_api_key"):
+            config["models"]["groq_api_key"] = payload.get("groq_api_key").strip()
+        if payload.get("groq_model"):
+            config["models"]["groq_model"] = payload.get("groq_model").strip()
+        if payload.get("gemini_api_key"):
+            config["models"]["gemini_api_key"] = payload.get("gemini_api_key").strip()
 
         # Performance & Hardware Customization (GPU/CPU selection per module)
         if "performance" not in config:

@@ -7,11 +7,8 @@ class FaceTracker:
     """
     Computes smooth, cinematic horizontal crop center cx for any target aspect ratio
     (9:16, 4:5, 2:3, 1:1, 16:9).
-    Tuned for high-retention social reels & podcasts:
-    - Multi-scale face detection with confidence thresholding & aspect ratio filtering.
-    - Soft edge-bias & speaker stickiness to avoid disorienting erratic camera jumping.
-    - Asymmetric dynamic deadband & momentum-aware smoothing:
-      Keeps speaker naturally centered in the sweet spot while dampening breathing/head-nod jitter.
+    Includes OpenCV-based Motion Energy & Sudden Face Reaction Spikes Metric
+    (detects sudden head turns, jumps, screams, shock reactions).
     """
     def __init__(
         self,
@@ -58,14 +55,11 @@ class FaceTracker:
         if self.haar_cascade.empty() or frame_bgr is None:
             return None
         
-        # Scale to detect_w (default 960) for high sensitivity across both closeups and wide stream layouts
         detect_w = min(self.src_w, detect_w)
         scale = detect_w / float(self.src_w)
         detect_h = int(self.src_h * scale)
         small = cv2.resize(frame_bgr, (detect_w, detect_h), interpolation=cv2.INTER_LINEAR)
         gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
-        
-        # Histogram equalization for reliable detection across shadows and dramatic lighting
         gray = cv2.equalizeHist(gray)
         
         min_dim = max(18, int(30 * scale))
@@ -79,7 +73,6 @@ class FaceTracker:
         if len(faces) == 0:
             return None
             
-        # Filter candidate faces: primary podcast speaker is typically the largest face
         valid_faces = []
         for (bx, by, bw, bh) in faces:
             aspect = bw / float(bh)
@@ -90,7 +83,6 @@ class FaceTracker:
         if not valid_faces:
             return None
             
-        # Sort by area descending (primary speaker front and center)
         valid_faces.sort(key=lambda f: f[0], reverse=True)
         _, bx, by, bw, bh = valid_faces[0]
         
@@ -100,6 +92,17 @@ class FaceTracker:
         
         return (orig_cx, orig_cy, orig_w)
 
+    def compute_motion_energy_spike(self, prev_gray: Optional[np.ndarray], curr_gray: np.ndarray) -> float:
+        """
+        Measures sudden optical flow / pixel intensity variance for streamer reaction spike detection.
+        Higher values correspond to jumpscares, rapid physical gestures, screaming or head shaking.
+        """
+        if prev_gray is None:
+            return 0.0
+        diff = cv2.absdiff(curr_gray, prev_gray)
+        motion_score = float(np.mean(diff))
+        return motion_score
+
     def compute_trajectory(
         self,
         cap: cv2.VideoCapture,
@@ -108,7 +111,7 @@ class FaceTracker:
         step: Optional[int] = None
     ) -> List[float]:
         """
-        Computes fluid, jitter-free horizontal trajectory.
+        Computes fluid, jitter-free horizontal trajectory with momentum dampening.
         """
         step = step or self.step
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
@@ -214,14 +217,12 @@ class StreamerSplitTracker:
         """
         if self.mode == "manual" and self.manual_cam_box:
             mx, my, mw, mh = self.manual_cam_box
-            # Validate bounds
             mx = max(0, min(self.src_w - 10, int(mx)))
             my = max(0, min(self.src_h - 10, int(my)))
             mw = max(10, min(self.src_w - mx, int(mw)))
             mh = max(10, min(self.src_h - my, int(mh)))
             return (mx, my, mw, mh)
 
-        # Default fallback box (top-left or top-right streamer cam)
         default_w = int(self.src_w * 0.32)
         default_h = int(default_w * 0.68)
         default_box = (0, 0, default_w, default_h)
@@ -257,12 +258,11 @@ class StreamerSplitTracker:
         fcx = bx + bw / 2.0
         fcy = by + bh / 2.0
         
-        # Expand around face: capture head, shoulders and webcam boundary box
         cam_w = int(max(bw * 3.2, self.src_w * 0.28))
-        cam_h = int(cam_w * 0.65) # standard 16:10 or 16:9 webcam framing
+        cam_h = int(cam_w * 0.65)
         
         cx1 = int(fcx - cam_w / 2.0)
-        cy1 = int(fcy - cam_h * 0.48) # head slightly above center
+        cy1 = int(fcy - cam_h * 0.48)
         
         cx1 = max(0, min(self.src_w - cam_w, cx1))
         cy1 = max(0, min(self.src_h - cam_h, cy1))
@@ -279,10 +279,10 @@ class StreamerSplitTracker:
         """
         Composites:
         1. Blurred & darkened full-frame background of frame_bgr.
-        2. Cropped webcam card (top or bottom) with sleek border.
+        2. Cropped webcam card (top or bottom) with sleek double border.
         3. Zoomed gameplay video (filling remaining vertical space).
         """
-        # 1. Background: blurred & darkened
+        # 1. Background
         bg_scale = max(target_w / float(self.src_w), target_h / float(self.src_h))
         bg_w = int(self.src_w * bg_scale)
         bg_h = int(self.src_h * bg_scale)
@@ -299,11 +299,9 @@ class StreamerSplitTracker:
         ch = max(10, min(self.src_h - cy1, ch))
         cam_crop = frame_bgr[cy1:cy1 + ch, cx1:cx1 + cw]
         
-        # Display width: 92% of target_w (card look)
         cam_disp_w = int(target_w * 0.92)
         aspect = float(ch) / float(cw) if cw > 0 else 0.65
         cam_disp_h = int(cam_disp_w * aspect)
-        # Cap cam height so it does not overpower gameplay
         max_cam_h = int(target_h * 0.38)
         if cam_disp_h > max_cam_h:
             cam_disp_h = max_cam_h
@@ -312,13 +310,10 @@ class StreamerSplitTracker:
         cam_resized = cv2.resize(cam_crop, (cam_disp_w, cam_disp_h), interpolation=cv2.INTER_LANCZOS4)
         cam_x = (target_w - cam_disp_w) // 2
 
-        # 3. Prepare zoomed gameplay section
-        # Gameplay takes full width and fills the primary action area
+        # 3. Zoomed gameplay section
         game_disp_w = target_w
-        # Leave padding for aesthetic layout
         game_disp_h = min(int(target_h * 0.52), int(target_w * (self.src_h / float(self.src_w)) * 1.35))
         
-        # Zoom crop center of frame for gameplay to showcase action
         crop_gh = int(self.src_h * 0.95)
         crop_gw = int(crop_gh * (game_disp_w / float(game_disp_h)))
         if crop_gw > self.src_w:
@@ -332,28 +327,22 @@ class StreamerSplitTracker:
 
         # 4. Position elements based on cam_placement
         if self.cam_placement == "bottom":
-            # Gameplay at top
             game_y = 60
             canvas[game_y:game_y + game_disp_h, 0:game_disp_w] = game_resized
             
-            # Cam at bottom
             cam_y = game_y + game_disp_h + 35
-            # Ensure cam fits within canvas
             if cam_y + cam_disp_h > target_h - 20:
                 cam_y = target_h - cam_disp_h - 20
                 
-            # Aesthetic double border around webcam card
             cv2.rectangle(canvas, (cam_x - 4, cam_y - 4), (cam_x + cam_disp_w + 4, cam_y + cam_disp_h + 4), (20, 20, 20), 4)
             cv2.rectangle(canvas, (cam_x - 1, cam_y - 1), (cam_x + cam_disp_w + 1, cam_y + cam_disp_h + 1), (120, 120, 120), 2)
             canvas[cam_y:cam_y + cam_disp_h, cam_x:cam_x + cam_disp_w] = cam_resized
         else:
-            # Default: Cam at top
             cam_y = 60
             cv2.rectangle(canvas, (cam_x - 4, cam_y - 4), (cam_x + cam_disp_w + 4, cam_y + cam_disp_h + 4), (20, 20, 20), 4)
             cv2.rectangle(canvas, (cam_x - 1, cam_y - 1), (cam_x + cam_disp_w + 1, cam_y + cam_disp_h + 1), (120, 120, 120), 2)
             canvas[cam_y:cam_y + cam_disp_h, cam_x:cam_x + cam_disp_w] = cam_resized
             
-            # Gameplay below cam
             game_y = cam_y + cam_disp_h + 30
             if game_y + game_disp_h > target_h:
                 game_disp_h = target_h - game_y
