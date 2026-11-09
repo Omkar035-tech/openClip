@@ -151,25 +151,133 @@
         </div>
       </div>
 
-      <!-- Format & Limits Card -->
+      <!-- Format & Aspect Ratio Card -->
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
-        <h2 class="text-sm font-semibold text-gray-200">Format & Constraints</h2>
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-gray-200">Format & Aspect Ratio</h2>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Full Frame Safe</span>
+        </div>
         
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs text-gray-400 block mb-1">Layout Mode</label>
-            <select id="layoutMode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
-              <option value="podcast_vertical" selected>🎙️ 9:16 Single Speaker (Face Centered)</option>
-              <option value="streamer_split">🎮 9:16 Streamer Split (Webcam Top + Content Bottom)</option>
-              <option value="landscape">📺 16:9 Standard Landscape</option>
-            </select>
+        <!-- Aspect Ratio Selection Buttons (16:9, 1:1, 4:5 [Default], 2:3, 9:16) -->
+        <div>
+          <label class="text-xs text-gray-400 block mb-1.5">Aspect Ratio (Prevents cropping important screen details)</label>
+          <div class="grid grid-cols-5 gap-2" id="aspectRatioGroup">
+            <button type="button" onclick="selectAspectRatio('16:9')" id="arBtn_16_9" class="ar-btn py-2 px-1 text-center rounded-xl border border-dark-600 bg-dark-900 text-gray-300 hover:border-amber-400 text-xs font-semibold flex flex-col items-center">
+              <span>16:9</span>
+              <span class="text-[9px] text-gray-500 font-normal">Landscape</span>
+            </button>
+            <button type="button" onclick="selectAspectRatio('1:1')" id="arBtn_1_1" class="ar-btn py-2 px-1 text-center rounded-xl border border-dark-600 bg-dark-900 text-gray-300 hover:border-amber-400 text-xs font-semibold flex flex-col items-center">
+              <span>1:1</span>
+              <span class="text-[9px] text-gray-500 font-normal">Square</span>
+            </button>
+            <button type="button" onclick="selectAspectRatio('4:5')" id="arBtn_4_5" class="ar-btn py-2 px-1 text-center rounded-xl border border-amber-400 bg-amber-500/20 text-amber-300 text-xs font-bold flex flex-col items-center shadow-sm">
+              <span>4:5</span>
+              <span class="text-[9px] text-amber-400 font-normal">Default (Feed)</span>
+            </button>
+            <button type="button" onclick="selectAspectRatio('2:3')" id="arBtn_2_3" class="ar-btn py-2 px-1 text-center rounded-xl border border-dark-600 bg-dark-900 text-gray-300 hover:border-amber-400 text-xs font-semibold flex flex-col items-center">
+              <span>2:3</span>
+              <span class="text-[9px] text-gray-500 font-normal">Classic</span>
+            </button>
+            <button type="button" onclick="selectAspectRatio('9:16')" id="arBtn_9_16" class="ar-btn py-2 px-1 text-center rounded-xl border border-dark-600 bg-dark-900 text-gray-300 hover:border-amber-400 text-xs font-semibold flex flex-col items-center">
+              <span>9:16</span>
+              <span class="text-[9px] text-gray-500 font-normal">Reel / Shorts</span>
+            </button>
           </div>
+          <input type="hidden" id="selectedAspectRatio" value="4:5">
+          <p class="text-[10px] text-gray-400 mt-1.5" id="arDescText">Default 4:5 aspect ratio shows more vertical canvas context without aggressive sideways face crops.</p>
+        </div>
+
+        <!-- Stream Level Webcam Tracking Card & Mode -->
+        <div class="border border-dark-700/80 bg-dark-900/60 rounded-xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" id="streamerTrackToggle" onchange="toggleStreamerOptions()" class="accent-amber-400 w-4 h-4 rounded">
+              <span class="text-xs font-bold text-gray-200 flex items-center gap-1.5">
+                <span>🎮 Stream Webcam Split Layout</span>
+                <span class="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded border border-purple-500/30">Reel Ready</span>
+              </span>
+            </label>
+            <span id="streamerStatusBadge" class="text-[10px] text-gray-500 font-mono">Disabled</span>
+          </div>
+
+          <div id="streamerControlsBox" class="space-y-3 hidden pt-2 border-t border-dark-700">
+            <!-- Placement & Mode -->
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[11px] text-gray-400 block mb-1">Webcam Placement</label>
+                <select id="camPlacement" class="w-full bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+                  <option value="top" selected>⬆️ Top (Webcam Top, Gameplay Bottom)</option>
+                  <option value="bottom">⬇️ Bottom (Gameplay Top, Webcam Bottom)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[11px] text-gray-400 block mb-1">Webcam Crop Method</label>
+                <select id="streamerMode" onchange="toggleCropMethodUI()" class="w-full bg-dark-800 border border-dark-600 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+                  <option value="auto" selected>🤖 Automated (Face Detection)</option>
+                  <option value="manual">✂️ Manual Crop Box (Window Preview)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Manual Crop Area Window Preview & Coordinate Controls -->
+            <div id="manualCropBoxUI" class="space-y-2 hidden bg-dark-950 p-3 rounded-xl border border-dark-700">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold text-amber-300 flex items-center gap-1">
+                  <span>📐 Interactive Crop Area Preview</span>
+                </span>
+                <button type="button" onclick="loadVideoPreviewFrame()" class="text-[11px] px-2.5 py-1 rounded bg-dark-800 hover:bg-dark-700 text-gray-300 border border-dark-600">
+                  📸 Load Video Frame
+                </button>
+              </div>
+
+              <!-- Interactive Video Canvas Box for Drag/Draw/Align -->
+              <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-dark-600 flex items-center justify-center" id="cropCanvasWrapper">
+                <img id="manualCropPreviewImg" class="w-full h-full object-contain pointer-events-none hidden" alt="Video Frame">
+                <div id="manualCropOverlay" class="absolute border-2 border-amber-400 bg-amber-400/20 cursor-move hidden" style="left: 10px; top: 10px; width: 140px; height: 100px;">
+                  <div class="absolute top-1 left-1 bg-black/75 px-1 py-0.5 text-[8px] font-mono text-amber-300 rounded">WEBCAM CROP</div>
+                </div>
+                <div id="cropPlaceholderText" class="text-xs text-gray-500 italic p-4 text-center">
+                  Click 'Load Video Frame' to open video preview window and position the webcam crop box.
+                </div>
+              </div>
+
+              <div class="grid grid-cols-4 gap-2 pt-1">
+                <div>
+                  <label class="text-[10px] text-gray-400 block">X (px)</label>
+                  <input type="number" id="cropBoxX" value="0" class="w-full bg-dark-800 border border-dark-600 rounded px-1.5 py-1 text-xs text-gray-200" onchange="syncManualBoxFromInputs()">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400 block">Y (px)</label>
+                  <input type="number" id="cropBoxY" value="60" class="w-full bg-dark-800 border border-dark-600 rounded px-1.5 py-1 text-xs text-gray-200" onchange="syncManualBoxFromInputs()">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400 block">Width (px)</label>
+                  <input type="number" id="cropBoxW" value="380" class="w-full bg-dark-800 border border-dark-600 rounded px-1.5 py-1 text-xs text-gray-200" onchange="syncManualBoxFromInputs()">
+                </div>
+                <div>
+                  <label class="text-[10px] text-gray-400 block">Height (px)</label>
+                  <input type="number" id="cropBoxH" value="260" class="w-full bg-dark-800 border border-dark-600 rounded px-1.5 py-1 text-xs text-gray-200" onchange="syncManualBoxFromInputs()">
+                </div>
+              </div>
+              <p class="text-[9px] text-gray-400">Position the box around streamer's face or webcam overlay. The rest of the video becomes zoomed gameplay with blurred background.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs text-gray-400 block mb-1">Clips Count (Max 5)</label>
             <select id="nClips" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
               <option value="1">1 Short</option>
               <option value="3">3 Shorts</option>
               <option value="5" selected>5 Shorts (Full Batch)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Fallback Layout Mode</label>
+            <select id="layoutMode" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+              <option value="podcast_vertical" selected>🎙️ Face Centered (Dynamic Deadband)</option>
+              <option value="landscape">📺 Landscape (No Crop)</option>
             </select>
           </div>
         </div>
@@ -1191,14 +1299,199 @@
       }
     }
 
+    
+    // --- Aspect Ratio & Streamer Split UI Handlers ---
+    function selectAspectRatio(ratio) {
+      document.getElementById('selectedAspectRatio').value = ratio;
+      const ratios = ['16:9', '1:1', '4:5', '2:3', '9:16'];
+      const descMap = {
+        '16:9': '16:9 Landscape: Full widescreen view without vertical crop, best for standard landscape displays.',
+        '1:1': '1:1 Square: Balanced square format ideal for Instagram feeds and LinkedIn posts.',
+        '4:5': 'Default 4:5 aspect ratio shows more vertical canvas context without aggressive sideways face crops.',
+        '2:3': '2:3 Classic Portrait: Traditional portrait ratio showing generous context around the subject.',
+        '9:16': '9:16 Vertical Reel: Full vertical smartphone format for Instagram Reels, TikTok, and YouTube Shorts.'
+      };
+      
+      ratios.forEach(r => {
+        const key = r.replace(':', '_');
+        const btn = document.getElementById(`arBtn_${key}`);
+        if (!btn) return;
+        if (r === ratio) {
+          btn.className = 'ar-btn py-2 px-1 text-center rounded-xl border border-amber-400 bg-amber-500/20 text-amber-300 text-xs font-bold flex flex-col items-center shadow-sm';
+          btn.querySelector('span:last-child').className = 'text-[9px] text-amber-400 font-normal';
+        } else {
+          btn.className = 'ar-btn py-2 px-1 text-center rounded-xl border border-dark-600 bg-dark-900 text-gray-300 hover:border-amber-400 text-xs font-semibold flex flex-col items-center';
+          btn.querySelector('span:last-child').className = 'text-[9px] text-gray-500 font-normal';
+        }
+      });
+      
+      const descEl = document.getElementById('arDescText');
+      if (descEl && descMap[ratio]) {
+        descEl.innerText = descMap[ratio];
+      }
+    }
+
+    function toggleStreamerOptions() {
+      const enabled = document.getElementById('streamerTrackToggle').checked;
+      const controls = document.getElementById('streamerControlsBox');
+      const badge = document.getElementById('streamerStatusBadge');
+      if (enabled) {
+        controls.classList.remove('hidden');
+        badge.innerText = 'Active (Reel Layout)';
+        badge.className = 'text-[10px] text-purple-400 font-mono font-bold';
+      } else {
+        controls.classList.add('hidden');
+        badge.innerText = 'Disabled';
+        badge.className = 'text-[10px] text-gray-500 font-mono';
+      }
+    }
+
+    function toggleCropMethodUI() {
+      const mode = document.getElementById('streamerMode').value;
+      const manualUI = document.getElementById('manualCropBoxUI');
+      if (mode === 'manual') {
+        manualUI.classList.remove('hidden');
+        loadVideoPreviewFrame();
+      } else {
+        manualUI.classList.add('hidden');
+      }
+    }
+
+    let naturalVideoW = 1920;
+    let naturalVideoH = 1080;
+
+    async function loadVideoPreviewFrame() {
+      const vPath = document.getElementById('videoPath').value;
+      if (!vPath) {
+        alert("Please enter or select a video path first.");
+        return;
+      }
+      const img = document.getElementById('manualCropPreviewImg');
+      const placeholder = document.getElementById('cropPlaceholderText');
+      const overlay = document.getElementById('manualCropOverlay');
+      
+      placeholder.innerText = 'Loading video frame preview...';
+      try {
+        const res = await fetch(`/api/video/frame?path=${encodeURIComponent(vPath)}&timestamp=2.0`);
+        if (!res.ok) throw new Error("Could not extract frame");
+        
+        naturalVideoW = parseInt(res.headers.get('X-Video-Width') || '1920');
+        naturalVideoH = parseInt(res.headers.get('X-Video-Height') || '1080');
+        const detectedBoxHeader = res.headers.get('X-Detected-Cam-Box');
+        if (detectedBoxHeader && detectedBoxHeader !== 'null') {
+          const detected = JSON.parse(detectedBoxHeader);
+          document.getElementById('cropBoxX').value = Math.round(detected[0]);
+          document.getElementById('cropBoxY').value = Math.round(detected[1]);
+          document.getElementById('cropBoxW').value = Math.round(detected[2]);
+          document.getElementById('cropBoxH').value = Math.round(detected[3]);
+        }
+        
+        const blob = await res.blob();
+        img.src = URL.createObjectURL(blob);
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+        overlay.classList.remove('hidden');
+        updateOverlayFromInputs();
+      } catch (err) {
+        placeholder.innerText = 'Failed to load video frame: ' + err.message;
+      }
+    }
+
+    function syncManualBoxFromInputs() {
+      updateOverlayFromInputs();
+    }
+
+    function updateOverlayFromInputs() {
+      const overlay = document.getElementById('manualCropOverlay');
+      const wrapper = document.getElementById('cropCanvasWrapper');
+      if (!overlay || !wrapper) return;
+      
+      const wrapW = wrapper.clientWidth;
+      const wrapH = wrapper.clientHeight;
+      
+      const x = parseFloat(document.getElementById('cropBoxX').value) || 0;
+      const y = parseFloat(document.getElementById('cropBoxY').value) || 0;
+      const w = parseFloat(document.getElementById('cropBoxW').value) || 300;
+      const h = parseFloat(document.getElementById('cropBoxH').value) || 200;
+      
+      const scaleX = wrapW / naturalVideoW;
+      const scaleY = wrapH / naturalVideoH;
+      
+      overlay.style.left = `${Math.round(x * scaleX)}px`;
+      overlay.style.top = `${Math.round(y * scaleY)}px`;
+      overlay.style.width = `${Math.round(w * scaleX)}px`;
+      overlay.style.height = `${Math.round(h * scaleY)}px`;
+    }
+
+    // Draggable crop overlay
+    (function initOverlayDrag() {
+      window.addEventListener('DOMContentLoaded', () => {
+        const overlay = document.getElementById('manualCropOverlay');
+        const wrapper = document.getElementById('cropCanvasWrapper');
+        if (!overlay || !wrapper) return;
+        
+        let isDragging = false;
+        let startX = 0, startY = 0;
+        let initLeft = 0, initTop = 0;
+        
+        overlay.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          initLeft = overlay.offsetLeft;
+          initTop = overlay.offsetTop;
+          e.preventDefault();
+        });
+        
+        window.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          const newLeft = Math.max(0, Math.min(wrapper.clientWidth - overlay.offsetWidth, initLeft + dx));
+          const newTop = Math.max(0, Math.min(wrapper.clientHeight - overlay.offsetHeight, initTop + dy));
+          overlay.style.left = `${newLeft}px`;
+          overlay.style.top = `${newTop}px`;
+          
+          const scaleX = naturalVideoW / wrapper.clientWidth;
+          const scaleY = naturalVideoH / wrapper.clientHeight;
+          document.getElementById('cropBoxX').value = Math.round(newLeft * scaleX);
+          document.getElementById('cropBoxY').value = Math.round(newTop * scaleY);
+        });
+        
+        window.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+      });
+    })();
+
     async function triggerClipping() {
       const btn = document.getElementById('startBtn');
       btn.disabled = true;
       btn.classList.add('opacity-60', 'cursor-not-allowed');
 
+      const isStreamerOn = document.getElementById('streamerTrackToggle') ? document.getElementById('streamerTrackToggle').checked : false;
+      const selectedAr = document.getElementById('selectedAspectRatio') ? document.getElementById('selectedAspectRatio').value : '4:5';
+      const streamerModeVal = document.getElementById('streamerMode') ? document.getElementById('streamerMode').value : 'auto';
+      const camPlacementVal = document.getElementById('camPlacement') ? document.getElementById('camPlacement').value : 'top';
+      
+      let manualCamBoxVal = null;
+      if (streamerModeVal === 'manual') {
+        manualCamBoxVal = [
+          parseInt(document.getElementById('cropBoxX').value || '0'),
+          parseInt(document.getElementById('cropBoxY').value || '0'),
+          parseInt(document.getElementById('cropBoxW').value || '320'),
+          parseInt(document.getElementById('cropBoxH').value || '240')
+        ];
+      }
+
       const payload = {
         video_path: document.getElementById('videoPath').value,
-        layout: document.getElementById('layoutMode').value,
+        layout: isStreamerOn ? 'streamer_split' : document.getElementById('layoutMode').value,
+        aspect_ratio: selectedAr,
+        streamer_layout_enabled: isStreamerOn,
+        cam_placement: camPlacementVal,
+        streamer_mode: streamerModeVal,
+        manual_cam_box: manualCamBoxVal,
         engine_architecture: document.querySelector('input[name="engineArchRadio"]:checked') ? document.querySelector('input[name="engineArchRadio"]:checked').value : 'openclip_standard',
         wayin_prompt: document.getElementById('wayinPrompt') ? document.getElementById('wayinPrompt').value.trim() : null,
         whisper_hardware: document.getElementById('whisperHw').value,
