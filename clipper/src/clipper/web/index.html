@@ -145,6 +145,86 @@
         </div>
       </div>
 
+      <!-- Hardware Acceleration & Performance Engine Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-400">⚡</span>
+            <h2 class="text-sm font-semibold text-gray-200">Hardware & Processing Engine</h2>
+          </div>
+          <span id="detectedHwBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Detecting...</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Whisper Speech AI</label>
+            <select id="whisperHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
+              <option value="auto" selected>⚡ Auto (Fastest GPU / Metal)</option>
+              <option value="gpu">🚀 GPU (CUDA / Metal Float16)</option>
+              <option value="cpu">💻 CPU (INT8 Multi-Thread)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Video Render Encoder</label>
+            <select id="renderHw" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
+              <option value="auto" selected>⚡ Auto (NVENC / VideoToolbox)</option>
+              <option value="gpu">🚀 Hardware GPU (NVENC / Apple)</option>
+              <option value="cpu">💻 Software CPU (libx264)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">CPU Threads (Speech/Audio)</label>
+            <select id="cpuThreads" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
+              <option value="2">2 Threads</option>
+              <option value="4" selected>4 Threads (Balanced)</option>
+              <option value="8">8 Threads (High Perf)</option>
+              <option value="16">16 Threads (Full CPU)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs text-gray-400 block mb-1">Concurrent Render Workers</label>
+            <select id="renderWorkers" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400 font-mono">
+              <option value="1">1 Clip (Sequential)</option>
+              <option value="2" selected>2 Clips Parallel</option>
+              <option value="3">3 Clips Parallel (High GPU)</option>
+              <option value="4">4 Clips Parallel (Max Throughput)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Face Tracking Tuning for Reels -->
+        <div class="border-t border-dark-700/70 pt-3 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-gray-300">Face Tracking Reel Tuning</span>
+            <span class="text-[10px] text-gray-400">Cinematic Reel Centering</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-gray-400">Smoothing Inertia</span>
+                <span id="alphaLabel" class="text-amber-400 font-mono">0.08 (Smooth)</span>
+              </div>
+              <input type="range" id="faceAlpha" min="0.03" max="0.25" value="0.08" step="0.01"
+                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+                oninput="document.getElementById('alphaLabel').innerText = this.value + (this.value < 0.08 ? ' (Cinematic)' : ' (Responsive)')">
+            </div>
+            <div>
+              <div class="flex justify-between text-[11px] mb-1">
+                <span class="text-gray-400">Deadband Zone</span>
+                <span id="deadbandLabel" class="text-amber-400 font-mono">16 px</span>
+              </div>
+              <input type="range" id="faceDeadband" min="6" max="36" value="16" step="2"
+                class="w-full accent-amber-400 bg-dark-700 h-1.5 rounded-lg cursor-pointer"
+                oninput="document.getElementById('deadbandLabel').innerText = this.value + ' px'">
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Typography & Interactive Live Preview Card -->
       <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
         <div class="flex items-center justify-between">
@@ -1052,6 +1132,12 @@
       const payload = {
         video_path: document.getElementById('videoPath').value,
         layout: document.getElementById('layoutMode').value,
+        whisper_hardware: document.getElementById('whisperHw').value,
+        render_hardware: document.getElementById('renderHw').value,
+        cpu_threads: parseInt(document.getElementById('cpuThreads').value),
+        render_workers: parseInt(document.getElementById('renderWorkers').value),
+        face_alpha: parseFloat(document.getElementById('faceAlpha').value),
+        face_deadband: parseInt(document.getElementById('faceDeadband').value),
         n_clips: parseInt(document.getElementById('nClips').value),
         max_duration: parseFloat(document.getElementById('maxDuration').value),
         font_file: document.getElementById('fontFamily').value,
@@ -1540,7 +1626,28 @@
       }
     }
 
-    // Initialize preview and dynamic folder gallery
+    // Initialize hardware specs, preview, and gallery
+    async function initHardwareInfo() {
+      try {
+        const res = await fetch('/api/hardware');
+        const data = await res.json();
+        const hw = data.hardware || {};
+        const badge = document.getElementById('detectedHwBadge');
+        if (hw.cuda_available) {
+          badge.innerText = `CUDA: ${hw.cuda_device_name || 'NVIDIA GPU'} (${hw.nvenc_available ? 'NVENC Active' : 'Active'})`;
+          badge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+        } else if (hw.apple_silicon) {
+          badge.innerText = `Metal: ${hw.apple_chip || 'Apple Silicon'}`;
+          badge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30";
+        } else {
+          badge.innerText = `CPU Mode (${hw.cpu_count || 4} cores)`;
+          badge.className = "text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30";
+        }
+      } catch (e) {
+        console.error("Hardware detection error:", e);
+      }
+    }
+    initHardwareInfo();
     updateLivePreview();
     loadGalleryFolders();
   </script>

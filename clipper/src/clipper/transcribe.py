@@ -6,6 +6,8 @@ import subprocess
 from pathlib import Path
 from typing import Dict, List, Any
 from faster_whisper import WhisperModel
+from .hardware import get_transcribe_device
+
 try:
     import av
     _orig_av_open = av.open
@@ -33,8 +35,8 @@ def extract_audio(video_path: str, output_wav: str) -> str:
 
 def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
-    Transcribes video with word-level timestamps on Apple Silicon.
-    Primary: mlx-whisper (GPU). Fallback: faster-whisper.
+    Transcribes video with word-level timestamps across Apple Silicon Metal, NVIDIA CUDA, or CPU.
+    Configurable hardware mode: 'auto', 'gpu', or 'cpu' with selectable CPU threads.
     Caches results in cache_dir / transcript.json.
     """
     transcript_file = cache_dir / "transcript.json"
@@ -47,13 +49,22 @@ def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -
     print(f"Extracting 16kHz audio from {video_path}...")
     extract_audio(video_path, str(wav_path))
     
-    backend = config.get("models", {}).get("whisper_backend", "mlx")
+    # User knobs from config
+    hw_pref = config.get("performance", {}).get("whisper_hardware", "auto")
+    cpu_threads = int(config.get("performance", {}).get("cpu_threads", 4))
+    
+    trans_dev = get_transcribe_device(hw_pref, cpu_threads=cpu_threads)
+    backend = trans_dev["backend"]
+    device = trans_dev["device"]
+    compute_type = trans_dev["compute_type"]
+    threads = trans_dev["threads"]
+    
     model_name = config.get("models", {}).get("whisper_model", "mlx-community/whisper-large-v3-turbo")
     fallback_model = config.get("models", {}).get("fallback_whisper_model", "base.en")
     
     results = None
     
-    # 1. Primary: MLX-Whisper on Apple Silicon GPU (macOS only)
+    # 1. Apple Silicon GPU (mlx-whisper on macOS)
     if backend == "mlx" and sys.platform == "darwin":
         try:
             print(f"Running mlx-whisper GPU transcription ({model_name})...")
@@ -86,15 +97,23 @@ def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -
                 })
             print(f"mlx-whisper completed in {time.time()-t0:.1f}s ({len(results)} segments)")
         except Exception as e:
-            print(f"mlx-whisper failed or unavailable ({e}). Falling back to faster-whisper...")
+            print(f"mlx-whisper unavailable ({e}). Falling back to faster-whisper...")
             results = None
             
-    # 2. Fallback: faster-whisper (CTranslate2 INT8)
+    # 2. Faster-Whisper (CUDA on NVIDIA or CPU multi-threading)
     if results is None:
-        print(f"Running faster-whisper fallback ({fallback_model})...")
+        target_model = fallback_model
+        print(f"Running faster-whisper [{device.upper()} / {compute_type}, threads: {threads}] ({target_model})...")
         t0 = time.time()
-        # Faster-whisper with CTranslate2 INT8 quantization & optimized greedy decoding
-        model = WhisperModel(fallback_model, device="cpu", compute_type="int8", cpu_threads=4)
+        
+        try:
+            model = WhisperModel(target_model, device=device, compute_type=compute_type, cpu_threads=threads)
+        except Exception as e:
+            print(f"Notice: Failed to initialize on {device} ({e}). Falling back to CPU INT8...")
+            device = "cpu"
+            compute_type = "int8"
+            model = WhisperModel(target_model, device="cpu", compute_type="int8", cpu_threads=threads)
+
         segments_gen, _ = model.transcribe(
             str(wav_path),
             word_timestamps=True,
@@ -122,8 +141,9 @@ def transcribe_video(video_path: str, cache_dir: Path, config: Dict[str, Any]) -
                 "words": words,
                 "speaker": "Speaker"
             })
-        print(f"faster-whisper completed in {time.time()-t0:.1f}s ({len(results)} segments)")
+        print(f"faster-whisper completed in {time.time()-t0:.1f}s ({len(results)} segments on {device})")
         
+    # Cache transcript
     with open(transcript_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
         
