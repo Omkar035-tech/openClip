@@ -12,12 +12,15 @@ class VideoMetadata(BaseModel):
     bitrate: Optional[int] = None
 
 class AnalysisConfig(BaseModel):
+    engine_mode: str = Field("auto_editor", description="'auto_editor' (record 20-second speed) or 'hybrid_ai' (deep multi-modal)")
+    threshold_percent: float = Field(4.0, ge=0.5, le=50.0, description="Auto-Editor audio loudness threshold %")
+    margin_sec: float = Field(0.2, ge=0.0, le=2.0, description="Auto-Editor audio lead-in / lead-out margin in seconds")
     safety_padding_sec: float = Field(0.40, ge=0.1, le=1.5, description="Padding added around speech edges")
     silence_threshold_db: float = Field(-35.0, description="Volume threshold for silence detection")
     min_silence_duration: float = Field(1.5, ge=0.5, description="Minimum silence duration to mark for cut")
-    enable_scene_detection: bool = Field(True, description="Detect visual scene cuts via PySceneDetect")
-    enable_motion_analysis: bool = Field(True, description="Analyze optical motion between frames")
-    enable_llm_editorial: bool = Field(True, description="Use LLM to review borderline intervals")
+    enable_scene_detection: bool = Field(False, description="Detect visual scene cuts via PySceneDetect")
+    enable_motion_analysis: bool = Field(False, description="Analyze optical motion between frames")
+    enable_llm_editorial: bool = Field(False, description="Use LLM to review borderline intervals")
     llm_provider: str = Field("groq", description="Primary editorial intelligence provider ('groq' or 'gemini')")
     llm_model: str = Field("llama-3.3-70b-versatile", description="Model ID")
     content_type: str = Field("general", description="Content profile ('gaming', 'podcast', 'tutorial', 'vlog', 'general')")

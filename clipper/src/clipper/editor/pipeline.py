@@ -14,6 +14,7 @@ from clipper.editor.intelligence.context_builder import build_editorial_context_
 from clipper.editor.intelligence.editorial_agent import EditorialAgent
 from clipper.editor.timeline.edl import build_contiguous_edl
 from clipper.editor.render.ffmpeg_builder import render_edl_video
+from clipper.editor.auto_editor_engine import run_auto_editor_analysis, export_auto_editor_nle
 
 # In-memory real-time pipeline event logs
 project_logs: Dict[str, List[Dict[str, str]]] = {}
@@ -46,6 +47,42 @@ def run_project_analysis_async(project_id: str, config: AnalysisConfig):
                 return
                 
             append_project_log(project_id, f"Initializing analysis for '{proj.title}' (Duration: {proj.metadata.duration:.1f}s)")
+            
+            # --- AUTO-EDITOR HIGH SPEED ENGINE (DEFAULT) ---
+            if getattr(config, "engine_mode", "auto_editor") == "auto_editor":
+                append_project_log(project_id, f"⚡ Triggering Auto-Editor engine (Threshold: {config.threshold_percent}%, Margin: {config.margin_sec}s)...")
+                update_project_status(project_id, "analyzing", 20.0, "Auto-Editor analyzing audio waveform...")
+                
+                raw_segments = run_auto_editor_analysis(
+                    video_path=proj.source_video_path,
+                    threshold_percent=config.threshold_percent,
+                    margin_sec=config.margin_sec,
+                    log_callback=lambda msg: append_project_log(project_id, msg)
+                )
+                
+                update_project_status(project_id, "analyzing", 85.0, "Parsing contiguous Edit Decision List...")
+                segment_models = [SegmentModel(**s) for s in raw_segments]
+                save_segments(project_id, segment_models)
+                
+                kept_count = sum(1 for s in segment_models if s.action == "KEEP")
+                cut_count = sum(1 for s in segment_models if s.action == "CUT")
+                kept_dur = sum(s.duration for s in segment_models if s.action == "KEEP")
+                
+                edl_data = {
+                    "project_id": project_id,
+                    "source_media_path": proj.source_video_path,
+                    "original_duration": proj.metadata.duration,
+                    "estimated_edited_duration": round(kept_dur, 2),
+                    "cut_count": cut_count,
+                    "kept_count": kept_count,
+                    "segments": [s.model_dump() for s in segment_models]
+                }
+                push_history_state(project_id, "Auto-Editor Initial Analysis", edl_data)
+                append_project_log(project_id, f"Analysis complete in record time! Kept: {kept_dur:.1f}s ({kept_count} clips), Cut: {proj.metadata.duration - kept_dur:.1f}s ({cut_count} cuts)", level="success")
+                update_project_status(project_id, "review_ready", 100.0, "Analysis complete. Ready for Review & Playback.")
+                return
+
+            # --- HYBRID AI MULTI-MODAL PIPELINE (ALTERNATIVE) ---
             update_project_status(project_id, "analyzing", 5.0, "Extracting 16kHz audio stream...")
             
             cache_dir = Path("clipper/cache/long_form") / project_id
