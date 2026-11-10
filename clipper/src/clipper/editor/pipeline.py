@@ -55,6 +55,7 @@ def run_project_analysis_async(project_id: str, config: AnalysisConfig):
                 
                 raw_segments = run_auto_editor_analysis(
                     video_path=proj.source_video_path,
+                    project_id=project_id,
                     threshold_percent=config.threshold_percent,
                     margin_sec=config.margin_sec,
                     log_callback=lambda msg: append_project_log(project_id, msg)
