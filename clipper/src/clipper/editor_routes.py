@@ -10,7 +10,9 @@ from clipper.editor.storage import (
     delete_project, push_history_state
 )
 from clipper.editor.ingestion import create_long_form_project, probe_video
-from clipper.editor.pipeline import run_project_analysis_async, run_project_render_async
+from clipper.editor.pipeline import (
+    run_project_analysis_async, run_project_render_async, get_project_logs
+)
 from clipper.editor.timeline.otio_export import export_edl_to_otio
 from clipper.editor.timeline.edl import recalculate_output_timestamps, EDLModel
 
@@ -72,6 +74,13 @@ async def api_get_project_status(project_id: str):
         "current_stage": proj.current_stage,
         "error_message": proj.error_message,
         "updated_at": proj.updated_at
+    }
+
+@router.get("/projects/{project_id}/logs")
+async def api_get_project_logs(project_id: str):
+    return {
+        "project_id": project_id,
+        "logs": get_project_logs(project_id)
     }
 
 @router.get("/projects/{project_id}/timeline")

@@ -8,8 +8,22 @@ def transcribe_long_form_audio(video_or_audio_path: str, cache_dir: Optional[str
     with word-level timestamps.
     """
     path = Path(video_or_audio_path)
-    # Reuses proven faster-whisper engine from clipper.transcribe
-    words = transcribe_video(path)
+    
+    if cache_dir:
+        c_dir = Path(cache_dir)
+    else:
+        c_dir = path.parent / ".transcribe_cache"
+    c_dir.mkdir(parents=True, exist_ok=True)
+    
+    config = {
+        "models": {
+            "whisper_hardware": "auto",
+            "cpu_threads": 4
+        }
+    }
+    
+    # Calls transcribe_video(video_path, cache_dir, config)
+    words = transcribe_video(str(path.resolve()), c_dir, config)
     
     # Structure into dialogue phrases/sentences
     phrases = []

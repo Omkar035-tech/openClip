@@ -636,6 +636,20 @@
           </div>
         </div>
 
+        <!-- Live Analysis & Pipeline Event Logs Window -->
+        <div id="lfLogsCard" class="hidden bg-dark-900/90 border border-dark-700 rounded-xl p-3.5 space-y-2">
+          <div class="flex items-center justify-between border-b border-dark-800 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-bold text-gray-200">Live Pipeline Processing Logs</span>
+            </div>
+            <button onclick="clearLongFormLogs()" class="text-[10px] text-gray-400 hover:text-gray-200">Clear</button>
+          </div>
+          <div id="lfLiveLogsContent" class="h-32 overflow-y-auto font-mono text-[11px] space-y-1 custom-scrollbar text-gray-300 pr-1">
+            <div class="text-gray-500 italic">Waiting for analysis events...</div>
+          </div>
+        </div>
+
         <!-- DUAL-COLOR INTERACTIVE EDIT DECISION LIST (EDL) TIMELINE -->
         <div id="lfTimelineSection" class="space-y-3 pt-2">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -2022,15 +2036,26 @@
           const badge = document.getElementById('lfStatusBadge');
 
           badge.innerText = s.status.toUpperCase();
+          const logsCard = document.getElementById('lfLogsCard');
+          
           if (s.status === 'analyzing' || s.status === 'rendering') {
             pBox.classList.remove('hidden');
+            if (logsCard) logsCard.classList.remove('hidden');
             pBar.style.width = `${s.progress_pct}%`;
             pText.innerText = `${Math.round(s.progress_pct)}%`;
             sText.innerText = s.current_stage || 'Processing in background...';
+            fetchLongFormLogs();
           } else if (s.status === 'review_ready' || s.status === 'completed') {
             pBox.classList.add('hidden');
+            fetchLongFormLogs();
             clearInterval(lfStatusPollInterval);
             loadActiveTimeline();
+          } else if (s.status === 'failed') {
+            badge.innerText = 'FAILED';
+            badge.className = 'text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/30';
+            if (logsCard) logsCard.classList.remove('hidden');
+            fetchLongFormLogs();
+            clearInterval(lfStatusPollInterval);
           }
         } catch (e) {}
       }, 1500);
@@ -2145,6 +2170,39 @@
       } catch (e) {
         alert('Render error: ' + e.message);
       }
+    }
+
+    async function fetchLongFormLogs() {
+      if (!currentLfProjectId) return;
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/logs`);
+        const data = await res.json();
+        const container = document.getElementById('lfLiveLogsContent');
+        if (!container || !data.logs) return;
+
+        if (data.logs.length === 0) {
+          container.innerHTML = '<div class="text-gray-500 italic">No logs recorded yet.</div>';
+          return;
+        }
+
+        container.innerHTML = '';
+        data.logs.forEach(l => {
+          const div = document.createElement('div');
+          let color = 'text-gray-300';
+          if (l.level === 'error') color = 'text-red-400 font-semibold';
+          else if (l.level === 'success') color = 'text-emerald-400 font-semibold';
+          else if (l.level === 'warn') color = 'text-amber-400';
+          div.className = `${color} flex items-start gap-2`;
+          div.innerHTML = `<span class="text-gray-500">[${l.time}]</span><span>${l.message}</span>`;
+          container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+      } catch (err) {}
+    }
+
+    function clearLongFormLogs() {
+      const c = document.getElementById('lfLiveLogsContent');
+      if (c) c.innerHTML = '<div class="text-gray-500 italic">Logs cleared.</div>';
     }
 
     function downloadOtioExport() {
