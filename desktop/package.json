@@ -1,0 +1,14 @@
+{
+  "name": "openclip-studio",
+  "version": "1.0.0",
+  "description": "openClip Studio - AI Video Editor Desktop",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.0.0",
+    "electron": "^45.2.3"
+  }
+}

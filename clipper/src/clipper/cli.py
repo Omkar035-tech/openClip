@@ -215,6 +215,12 @@ def ui(port: int = typer.Option(8080, "--port", "-p", help="Port to run the stud
     from .server import start_server
     start_server(port)
 
+@app.command()
+def app_window():
+    """Launches openClip Studio as a native Windows desktop software application."""
+    from .desktop import launch_desktop_app
+    launch_desktop_app()
+
 def main():
     app()
 
