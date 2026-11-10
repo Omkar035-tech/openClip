@@ -2,7 +2,7 @@ import subprocess
 import tempfile
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Callable
 from clipper.editor.models import SegmentModel, RenderConfig
 from clipper.hardware import detect_hardware
 
@@ -10,14 +10,17 @@ def render_edl_video(
     source_video_path: str,
     segments: List[SegmentModel],
     output_mp4_path: str,
-    config: RenderConfig
+    config: Optional[RenderConfig] = None,
+    progress_callback: Optional[Callable[[float, str], None]] = None
 ) -> str:
     """
     Renders approved KEEP segments into a polished master MP4/MKV.
     For small cuts (<= 80 segments), executes in a single filtergraph pass.
     For large long-form videos (> 80 segments), processes safely in batches
     and concatenates seamlessly to prevent Windows command line length overflow (WinError 206).
+    Periodically notifies progress_callback(progress_percentage, stage_name).
     """
+    cfg = config or RenderConfig()
     out_p = Path(output_mp4_path)
     out_p.parent.mkdir(parents=True, exist_ok=True)
     
@@ -29,12 +32,15 @@ def render_edl_video(
     vcodec = "h264_nvenc" if hw.get("cuda") else "libx264"
     preset_arg = ["-preset", "p4", "-tune", "hq"] if vcodec == "h264_nvenc" else ["-preset", "fast", "-crf", "20"]
     
-    fade_in = config.audio_fade_in_sec
-    fade_out = config.audio_fade_out_sec
+    fade_in = cfg.audio_fade_in_sec
+    fade_out = cfg.audio_fade_out_sec
     total_duration = sum(s.duration for s in kept_segments)
 
     BATCH_SIZE = 80
     if len(kept_segments) <= BATCH_SIZE:
+        if progress_callback:
+            progress_callback(20.0, "Constructing single-pass FFmpeg filtergraph...")
+            
         filter_lines = []
         concat_inputs = []
         for idx, seg in enumerate(kept_segments):
@@ -69,6 +75,9 @@ def render_edl_video(
             str(out_p.resolve())
         ]
         
+        if progress_callback:
+            progress_callback(50.0, f"Encoding {len(kept_segments)} clips with {vcodec}...")
+            
         process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if process.returncode != 0:
             if vcodec == "h264_nvenc":
@@ -80,6 +89,8 @@ def render_edl_video(
                 process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
             else:
                 raise RuntimeError(f"FFmpeg render failed:\n{process.stderr[-800:]}")
+        if progress_callback:
+            progress_callback(100.0, "Render completed!")
         return str(out_p.resolve())
 
     # Large segment lists (> 80 cuts) - Render in batches and stitch cleanly
@@ -90,7 +101,13 @@ def render_edl_video(
     
     try:
         batches = [kept_segments[i:i + BATCH_SIZE] for i in range(0, len(kept_segments), BATCH_SIZE)]
+        total_batches = len(batches)
+        
         for b_idx, batch in enumerate(batches):
+            pct = 10.0 + ((b_idx / total_batches) * 80.0)
+            if progress_callback:
+                progress_callback(pct, f"Rendering batch {b_idx + 1} of {total_batches} ({len(batch)} cuts)...")
+                
             f_lines = []
             c_inputs = []
             for idx, seg in enumerate(batch):
@@ -125,6 +142,9 @@ def render_edl_video(
                     raise RuntimeError(f"FFmpeg batch {b_idx} render failed:\n{p_b.stderr[-800:]}")
             temp_parts.append(part_path)
             
+        if progress_callback:
+            progress_callback(93.0, "Concatenating rendered batches into final master...")
+            
         # Concat demuxer script
         concat_script_file = temp_dir / "concat_list.txt"
         with open(concat_script_file, "w", encoding="utf-8") as f:
@@ -143,6 +163,9 @@ def render_edl_video(
         p_final = subprocess.run(cmd_final, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if p_final.returncode != 0:
             raise RuntimeError(f"Final concat stitch failed:\n{p_final.stderr[-800:]}")
+            
+        if progress_callback:
+            progress_callback(100.0, "Master video rendered successfully!")
             
         return str(out_p.resolve())
     finally:
