@@ -12,6 +12,7 @@ from clipper.editor.ingestion import create_long_form_project
 from clipper.editor.pipeline import (
     run_project_analysis_async, run_project_render_async, get_project_logs
 )
+from clipper.editor.auto_editor_engine import export_auto_editor_nle
 from clipper.editor.timeline.otio_export import export_edl_to_otio
 from clipper.editor.timeline.edl import recalculate_output_timestamps, EDLModel
 
@@ -252,3 +253,28 @@ async def api_export_otio(project_id: str):
     out_otio = Path("clipper/out/long_form") / f"{project_id}_timeline.otio"
     file_path = export_edl_to_otio(edl, str(out_otio.resolve()))
     return FileResponse(file_path, media_type="application/octet-stream", filename=Path(file_path).name)
+
+@router.get("/projects/{project_id}/export/nle/{format_type}")
+async def api_export_auto_editor_nle(project_id: str, format_type: str, threshold: float = 4.0, margin: float = 0.2):
+    """
+    Direct high-speed timeline exporter to Premiere (.xml), DaVinci Resolve (.fcpxml),
+    Final Cut Pro (.fcpxml), or Shotcut (.mlt).
+    """
+    proj = get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    valid_formats = ["premiere", "resolve", "final-cut-pro", "shotcut"]
+    if format_type not in valid_formats:
+        raise HTTPException(status_code=400, detail=f"Invalid format. Choose from {valid_formats}")
+        
+    try:
+        exported_file = export_auto_editor_nle(
+            video_path=proj.source_video_path,
+            export_format=format_type,
+            threshold_percent=threshold,
+            margin_sec=margin
+        )
+        return FileResponse(exported_file, media_type="application/octet-stream", filename=Path(exported_file).name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"NLE Export failed: {str(e)}")
