@@ -3,7 +3,7 @@ import threading
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
-from clipper.editor.models import AnalysisConfig, ProjectModel, RenderConfig
+from clipper.editor.models import AnalysisConfig, ProjectModel, RenderConfig, SegmentModel
 from clipper.editor.storage import get_project, update_project_status, save_segments, push_history_state
 from clipper.editor.ingestion import extract_analysis_audio
 from clipper.editor.audio.vad import detect_speech_intervals
