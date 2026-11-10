@@ -739,14 +739,25 @@
               </button>
             </div>
 
-            <!-- Export Actions -->
+            <!-- Export Actions & Format Options -->
             <div class="pt-3 border-t border-dark-700 space-y-2">
-              <button onclick="triggerMasterRender()" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
-                <span>🚀 Render Final Master MP4</span>
-              </button>
-              <button onclick="downloadOtioExport()" class="w-full py-2 px-3 rounded-xl bg-dark-700 hover:bg-dark-600 text-cyan-400 font-bold text-xs flex items-center justify-center gap-1.5 border border-cyan-500/30 transition">
-                <span>📁 Export to DaVinci / Premiere (.otio)</span>
-              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="triggerMasterRender('mp4')" class="py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center justify-center gap-1 shadow transition">
+                  <span>🚀 Render MP4</span>
+                </button>
+                <button onclick="triggerMasterRender('mkv')" class="py-2.5 px-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-amber-300 font-bold text-xs flex items-center justify-center gap-1 border border-dark-600 transition">
+                  <span>🎬 Render MKV</span>
+                </button>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <button id="lfDownloadMasterBtn" onclick="downloadRenderedMaster()" class="py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow">
+                  <span>⬇ Download Master</span>
+                </button>
+                <button onclick="downloadOtioExport()" class="py-2 px-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-cyan-400 font-bold text-xs flex items-center justify-center gap-1 border border-cyan-500/30 transition">
+                  <span>📁 .OTIO Export</span>
+                </button>
+              </div>
+              <p class="text-[10px] text-gray-400 text-center">Export master video with speech padding & transitions, or export timeline to DaVinci / Premiere.</p>
             </div>
           </div>
 
@@ -1980,11 +1991,12 @@
         document.getElementById('lfActiveMeta').innerText = `Duration: ${(p.metadata.duration / 60).toFixed(1)} mins (${p.metadata.duration}s) | ${p.metadata.width}x${p.metadata.height} @ ${p.metadata.fps}fps`;
         document.getElementById('lfStatusBadge').innerText = p.status.toUpperCase();
 
-        // Load video file in player
+        // Load video file directly through dedicated long-form video streaming endpoint
         const player = document.getElementById('lfPlayer');
-        // Serve through video endpoint
-        const encodedFolder = encodeURIComponent(p.source_video_path.split('\\').pop().split('/').pop());
-        player.src = `/api/videos/_raw_source/${encodedFolder}`; // or direct fallback
+        if (player) {
+          player.src = `/api/long-form/projects/${projectId}/video`;
+          player.load();
+        }
         
         loadActiveTimeline();
         startStatusPolling();
@@ -2082,28 +2094,78 @@
 
     function renderTimelineStrip(totalDuration, segments) {
       const strip = document.getElementById('lfTimelineStrip');
+      if (!strip) return;
       strip.innerHTML = '';
+      
       if (!segments || segments.length === 0) {
         strip.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Timeline not analyzed yet</div>';
         return;
       }
 
+      // High-performance canvas rendering to effortlessly handle 1,000+ segments
+      const canvas = document.createElement('canvas');
+      canvas.className = 'w-full h-full cursor-crosshair rounded-lg block';
+      canvas.width = strip.clientWidth || 1000;
+      canvas.height = strip.clientHeight || 40;
+      strip.appendChild(canvas);
+
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Draw background
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, w, h);
+
       segments.forEach(seg => {
-        const widthPct = Math.max(0.5, (seg.duration / totalDuration) * 100);
-        const block = document.createElement('div');
-        block.className = `h-full cursor-pointer transition-all hover:opacity-80 border-r border-dark-900 ${
-          seg.action === 'KEEP' ? 'bg-emerald-500' : 'bg-red-500/80'
-        }`;
-        block.style.width = `${widthPct}%`;
-        block.title = `${seg.action} (${seg.source_start}s - ${seg.source_end}s): ${seg.reason}`;
-        block.onclick = () => selectSegmentForInspector(seg);
-        strip.appendChild(block);
+        const x = (seg.source_start / totalDuration) * w;
+        const segW = Math.max(1.5, ((seg.source_end - seg.source_start) / totalDuration) * w);
+        ctx.fillStyle = seg.action === 'KEEP' ? '#10b981' : '#ef4444';
+        ctx.fillRect(x, 0, segW, h);
       });
+
+      // Highlight selected segment if any
+      if (lfSelectedSegmentId) {
+        const sel = segments.find(s => s.id === lfSelectedSegmentId);
+        if (sel) {
+          const sx = (sel.source_start / totalDuration) * w;
+          const sw = Math.max(3, ((sel.source_end - sel.source_start) / totalDuration) * w);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.lineWidth = 3;
+          ctx.strokeRect(sx, 0, sw, h);
+        }
+      }
+
+      // Click handler on canvas to find clicked segment
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickRatio = clickX / rect.width;
+        const targetSec = clickRatio * totalDuration;
+
+        const found = segments.find(s => targetSec >= s.source_start && targetSec <= s.source_end);
+        if (found) {
+          selectSegmentForInspector(found);
+        } else {
+          // Find closest segment
+          let closest = segments[0];
+          let minDist = 999999;
+          segments.forEach(s => {
+            const dist = Math.abs(s.source_start - targetSec);
+            if (dist < minDist) {
+              minDist = dist;
+              closest = s;
+            }
+          });
+          if (closest) selectSegmentForInspector(closest);
+        }
+      };
     }
 
     function selectSegmentForInspector(seg) {
       lfSelectedSegmentId = seg.id;
-      document.getElementById('lfInspectorStatus').innerText = `${seg.action} (${seg.confidence * 100}%)`;
+      const confPct = Math.round((seg.confidence || 0.95) * 100);
+      document.getElementById('lfInspectorStatus').innerText = `${seg.action} (${confPct}%)`;
       document.getElementById('lfInspectorStatus').className = `text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
         seg.action === 'KEEP' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
       }`;
@@ -2111,16 +2173,41 @@
       document.getElementById('lfInspectorDuration').innerText = `${seg.duration}s`;
       document.getElementById('lfInspectorReason').innerText = seg.reason || 'No description';
 
+      // Update button visual states
+      const btnKeep = document.getElementById('lfBtnRestore');
+      const btnCut = document.getElementById('lfBtnCut');
+      if (seg.action === 'KEEP') {
+        btnKeep.className = 'py-2 px-3 rounded-lg bg-emerald-600 ring-2 ring-emerald-300 text-white font-bold text-xs flex items-center justify-center gap-1 transition';
+        btnCut.className = 'py-2 px-3 rounded-lg bg-dark-700 hover:bg-red-600 text-gray-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1 transition';
+      } else {
+        btnCut.className = 'py-2 px-3 rounded-lg bg-red-600 ring-2 ring-red-300 text-white font-bold text-xs flex items-center justify-center gap-1 transition';
+        btnKeep.className = 'py-2 px-3 rounded-lg bg-dark-700 hover:bg-emerald-600 text-gray-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1 transition';
+      }
+
       const player = document.getElementById('lfPlayer');
       if (player) {
         player.currentTime = seg.source_start;
       }
+
+      // Re-render strip to show gold selection highlight
+      const durationMeta = document.getElementById('lfActiveMeta').innerText;
+      const durMatch = durationMeta.match(/\(([0-9.]+)\s*s\)/);
+      const totalDur = durMatch ? parseFloat(durMatch[1]) : 4369.9;
+      renderTimelineStrip(totalDur, lfActiveSegments);
     }
 
     async function overrideSelectedSegment(newAction) {
       if (!currentLfProjectId || !lfSelectedSegmentId) {
-        alert('Please click on a timeline block first.');
+        alert('Please click on a timeline block or interval first.');
         return;
+      }
+
+      // Optimistically update locally
+      const seg = lfActiveSegments.find(s => s.id === lfSelectedSegmentId);
+      if (seg) {
+        seg.action = newAction;
+        seg.reason = 'User manual override';
+        selectSegmentForInspector(seg);
       }
 
       try {
@@ -2131,7 +2218,7 @@
         });
         const data = await res.json();
         if (data.success) {
-          loadActiveTimeline();
+          await loadActiveTimeline();
         }
       } catch (e) {
         alert('Failed to override segment: ' + e.message);
@@ -2151,25 +2238,32 @@
       }
     }
 
-    async function triggerMasterRender() {
+    async function triggerMasterRender(format = 'mp4') {
       if (!currentLfProjectId) return;
-      if (!confirm('Render finalized master MP4 with hardware acceleration?')) return;
+      if (!confirm(`Render finalized master ${format.toUpperCase()} with hardware acceleration?`)) return;
 
       try {
+        const ext = format === 'mkv' ? '.mkv' : '.mp4';
         const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/render`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             preset: '1080p_nvenc',
-            include_transitions: true
+            include_transitions: true,
+            output_filename: `master_edit_${currentLfProjectId}${ext}`
           })
         });
         const data = await res.json();
-        alert('Rendering dispatched! Progress will appear on the status bar.');
+        alert(`Rendering dispatched! Assembling master ${format.toUpperCase()} in background.`);
         startStatusPolling();
       } catch (e) {
         alert('Render error: ' + e.message);
       }
+    }
+
+    function downloadRenderedMaster() {
+      if (!currentLfProjectId) return;
+      window.open(`/api/long-form/projects/${currentLfProjectId}/download`, '_blank');
     }
 
     async function fetchLongFormLogs() {

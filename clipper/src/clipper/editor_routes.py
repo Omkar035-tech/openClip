@@ -43,6 +43,16 @@ async def api_get_project(project_id: str):
         raise HTTPException(status_code=404, detail="Project not found")
     return {"project": proj.model_dump()}
 
+@router.get("/projects/{project_id}/video")
+async def api_stream_project_video(project_id: str):
+    proj = get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    path = Path(proj.source_video_path)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Video file missing on disk")
+    return FileResponse(str(path.resolve()), media_type="video/mp4")
+
 @router.delete("/projects/{project_id}")
 async def api_delete_project(project_id: str):
     success = delete_project(project_id)
@@ -142,15 +152,36 @@ async def api_render_master(project_id: str, config: Optional[RenderConfig] = No
     out_dir = Path("clipper/out/long_form")
     out_dir.mkdir(parents=True, exist_ok=True)
     
-    filename = cfg.output_filename or f"{Path(proj.source_video_path).stem}_edited_master.mp4"
+    clean_stem = Path(proj.source_video_path).stem.replace(" ", "_")
+    filename = cfg.output_filename or f"{clean_stem}_edited_master.mp4"
     dest_mp4 = out_dir / filename
     
     run_project_render_async(project_id, cfg, str(dest_mp4.resolve()))
     return {
         "status": "rendering",
         "output_path": str(dest_mp4.resolve()),
+        "download_url": f"/api/long-form/projects/{project_id}/download",
         "message": "Master video render dispatched with hardware acceleration."
     }
+
+@router.get("/projects/{project_id}/download")
+async def api_download_master(project_id: str):
+    proj = get_project(project_id)
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found")
+    out_dir = Path("clipper/out/long_form")
+    clean_stem = Path(proj.source_video_path).stem.replace(" ", "_")
+    
+    # Look for exported mp4 or mkv
+    candidates = list(out_dir.glob(f"{clean_stem}*.*"))
+    if not candidates:
+        # Search all in long_form folder
+        candidates = sorted(out_dir.glob("*.mp4"), key=lambda f: f.stat().st_mtime, reverse=True)
+    if not candidates:
+        raise HTTPException(status_code=404, detail="Rendered master video not found yet. Has rendering finished?")
+    
+    target = candidates[0]
+    return FileResponse(str(target.resolve()), media_type="video/mp4", filename=target.name)
 
 @router.get("/projects/{project_id}/export/otio")
 async def api_export_otio(project_id: str):
