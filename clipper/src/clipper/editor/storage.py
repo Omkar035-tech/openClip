@@ -43,7 +43,7 @@ def init_db():
     # Timeline Segments table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS lf_segments (
-        id TEXT PRIMARY KEY,
+        id TEXT NOT NULL,
         project_id TEXT NOT NULL,
         segment_index INTEGER NOT NULL,
         source_start REAL NOT NULL,
@@ -58,6 +58,7 @@ def init_db():
         transition_in TEXT DEFAULT 'cut',
         transition_out TEXT DEFAULT 'none',
         user_overridden INTEGER DEFAULT 0,
+        PRIMARY KEY (project_id, id),
         FOREIGN KEY(project_id) REFERENCES lf_projects(id) ON DELETE CASCADE
     );
     """)

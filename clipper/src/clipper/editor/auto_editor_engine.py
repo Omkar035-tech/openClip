@@ -21,6 +21,7 @@ def _get_auto_editor_cmd() -> str:
 
 def run_auto_editor_analysis(
     video_path: str,
+    project_id: str = "proj",
     threshold_percent: float = 4.0,
     margin_sec: float = 0.2,
     log_callback: Optional[Any] = None
@@ -95,7 +96,7 @@ def run_auto_editor_analysis(
             if cin > curr + 0.02:
                 # Silence / dead air gap
                 segments.append({
-                    "id": f"seg_{seg_idx}",
+                    "id": f"{project_id}_seg_{seg_idx}",
                     "index": seg_idx,
                     "source_start": round(curr, 3),
                     "source_end": round(cin, 3),
@@ -108,7 +109,7 @@ def run_auto_editor_analysis(
                 
             # Kept vocal / content slice
             segments.append({
-                "id": f"seg_{seg_idx}",
+                "id": f"{project_id}_seg_{seg_idx}",
                 "index": seg_idx,
                 "source_start": round(cin, 3),
                 "source_end": round(cout, 3),
@@ -122,7 +123,7 @@ def run_auto_editor_analysis(
             
         if curr < total_dur - 0.05:
             segments.append({
-                "id": f"seg_{seg_idx}",
+                "id": f"{project_id}_seg_{seg_idx}",
                 "index": seg_idx,
                 "source_start": round(curr, 3),
                 "source_end": round(total_dur, 3),
