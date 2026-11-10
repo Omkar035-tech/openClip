@@ -652,10 +652,41 @@
 
         <!-- DUAL-COLOR INTERACTIVE EDIT DECISION LIST (EDL) TIMELINE -->
         <div id="lfTimelineSection" class="space-y-3 pt-2">
+          
+          <!-- Bulk Editorial Action Toolbar & Zoom Controls -->
+          <div class="bg-dark-900/90 border border-dark-600 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+            <div class="flex items-center flex-wrap gap-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 mr-1">Bulk Operations:</span>
+              <button onclick="executeBulkAction('all_silence', 'CUT')" class="px-2.5 py-1 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition">
+                <span>⚡ Cut All Dead Air (>1.5s)</span>
+              </button>
+              <button onclick="executeBulkAction('all_high_confidence', 'CUT')" class="px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-200 text-xs font-medium border border-dark-600 transition">
+                <span>✓ Apply High-Confidence Cuts (90%+)</span>
+              </button>
+              <button onclick="executeBulkAction('invert_all')" class="px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-amber-300 text-xs font-medium border border-dark-600 transition">
+                <span>🔄 Invert Cuts</span>
+              </button>
+              <button onclick="executeBulkAction('all_silence', 'KEEP')" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition">
+                <span>↺ Restore All Pauses</span>
+              </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <!-- Timeline Zoom Controller -->
+              <div class="flex items-center gap-1.5 bg-dark-800 border border-dark-700 rounded-lg px-2 py-1">
+                <span class="text-[10px] text-gray-400 font-mono">Zoom:</span>
+                <button onclick="setTimelineZoom(1)" id="zoom1x" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-gray-950">1x (All)</button>
+                <button onclick="setTimelineZoom(2)" id="zoom2x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">2x</button>
+                <button onclick="setTimelineZoom(5)" id="zoom5x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">5x</button>
+                <button onclick="setTimelineZoom(10)" id="zoom10x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">10x</button>
+              </div>
+            </div>
+          </div>
+
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-3">
               <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Non-Destructive Review Canvas</span>
-              <span class="text-[10px] text-gray-400">Click any block to toggle KEEP / CUT</span>
+              <span class="text-[10px] text-gray-400">Click any block to inspect, or use bulk tools above</span>
             </div>
             <div class="flex items-center gap-4 text-xs font-mono">
               <span class="text-emerald-400 flex items-center gap-1">
@@ -1855,6 +1886,8 @@
     let currentLfProjectId = null;
     let lfActiveSegments = [];
     let lfSelectedSegmentId = null;
+    let lfTimelineZoom = 1;
+    let lfZoomScrollOffset = 0;
     let lfStatusPollInterval = null;
 
     function switchStudioTab(tab) {
@@ -2089,6 +2122,60 @@
         renderTimelineStrip(data.original_duration, lfActiveSegments);
       } catch (err) {
         console.error('Error loading timeline:', err);
+      }
+    }
+
+    function setTimelineZoom(zoomLevel) {
+      lfTimelineZoom = zoomLevel;
+      [1, 2, 5, 10].forEach(z => {
+        const btn = document.getElementById(`zoom${z}x`);
+        if (btn) {
+          if (z === zoomLevel) {
+            btn.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-gray-950';
+          } else {
+            btn.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white';
+          }
+        }
+      });
+      const totalDur = getTotalProjectDuration();
+      renderTimelineStrip(totalDur, lfActiveSegments);
+    }
+
+    function getTotalProjectDuration() {
+      const durationMeta = document.getElementById('lfActiveMeta') ? document.getElementById('lfActiveMeta').innerText : '';
+      const durMatch = durationMeta.match(/\(([0-9.]+)\s*s\)/);
+      return durMatch ? parseFloat(durMatch[1]) : 4369.95;
+    }
+
+    async function executeBulkAction(rule, action = 'CUT') {
+      if (!currentLfProjectId) {
+        alert('Please open or select a project first.');
+        return;
+      }
+      
+      const confirmMsg = rule === 'invert_all' 
+        ? 'Invert all kept and cut segments across the entire timeline?' 
+        : `Apply bulk '${action}' operation (Rule: ${rule})?`;
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/segments/bulk-override`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rule: rule,
+            action: action,
+            min_duration: 1.5
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          await loadActiveTimeline();
+        } else {
+          alert('Bulk update error: ' + JSON.stringify(data));
+        }
+      } catch (err) {
+        alert('Bulk update failed: ' + err.message);
       }
     }
 

@@ -1,7 +1,6 @@
-import os
+from typing import Dict, Any, List, Optional
 from pathlib import Path
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Response
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from clipper.editor.models import AnalysisConfig, RenderConfig
@@ -9,7 +8,7 @@ from clipper.editor.storage import (
     list_projects, get_project, get_segments, save_segments,
     delete_project, push_history_state
 )
-from clipper.editor.ingestion import create_long_form_project, probe_video
+from clipper.editor.ingestion import create_long_form_project
 from clipper.editor.pipeline import (
     run_project_analysis_async, run_project_render_async, get_project_logs
 )
@@ -142,6 +141,53 @@ async def api_override_segment(project_id: str, segment_id: str, payload: Dict[s
         "message": f"Segment updated to {action}. Output timeline recalculated."
     }
 
+@router.post("/projects/{project_id}/segments/bulk-override")
+async def api_bulk_override_segments(project_id: str, payload: Dict[str, Any]):
+    """
+    Bulk overrides multiple segments or applies rule-based bulk operations:
+    - segment_ids: list of specific segment IDs to update
+    - action: 'KEEP' or 'CUT'
+    - rule: Optional rule (e.g. 'all_silence_gt_2s', 'invert_all', 'all_high_confidence')
+    """
+    action = payload.get("action", "CUT").upper()
+    rule = payload.get("rule")
+    target_ids = set(payload.get("segment_ids", []))
+    min_duration = float(payload.get("min_duration", 0.0))
+    
+    segments = get_segments(project_id)
+    updated_count = 0
+    
+    for s in segments:
+        apply_update = False
+        if rule == "all_silence":
+            if "dead_air" in s.tags or s.action == "CUT" or s.duration >= min_duration:
+                apply_update = True
+        elif rule == "invert_all":
+            s.action = "CUT" if s.action == "KEEP" else "KEEP"
+            s.user_overridden = True
+            updated_count += 1
+            continue
+        elif rule == "all_high_confidence":
+            if s.confidence >= 0.90:
+                apply_update = True
+        elif s.id in target_ids:
+            apply_update = True
+            
+        if apply_update:
+            s.action = action
+            s.user_overridden = True
+            updated_count += 1
+            
+    recalculate_output_timestamps(segments)
+    save_segments(project_id, segments)
+    push_history_state(project_id, f"Bulk update {updated_count} segments to {action}", [s.model_dump() for s in segments])
+    
+    return {
+        "success": True,
+        "updated_count": updated_count,
+        "message": f"Bulk updated {updated_count} segments to {action}."
+    }
+
 @router.post("/projects/{project_id}/render")
 async def api_render_master(project_id: str, config: Optional[RenderConfig] = None):
     proj = get_project(project_id)
@@ -176,7 +222,7 @@ async def api_download_master(project_id: str):
     candidates = list(out_dir.glob(f"{clean_stem}*.*"))
     if not candidates:
         # Search all in long_form folder
-        candidates = sorted(out_dir.glob("*.mp4"), key=lambda f: f.stat().st_mtime, reverse=True)
+        candidates = sorted(out_dir.glob("*.*"), key=lambda f: f.stat().st_mtime, reverse=True)
     if not candidates:
         raise HTTPException(status_code=404, detail="Rendered master video not found yet. Has rendering finished?")
     
