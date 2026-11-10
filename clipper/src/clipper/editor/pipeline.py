@@ -176,7 +176,7 @@ def run_project_analysis_async(project_id: str, config: AnalysisConfig):
     thread.start()
 
 def run_project_render_async(project_id: str, config: RenderConfig, output_mp4_path: str):
-    """Executes FFmpeg rendering of all approved KEEP segments in background."""
+    """Executes FFmpeg rendering of all approved KEEP segments in background with live progress tracking."""
     def _worker():
         try:
             from clipper.editor.storage import get_segments
@@ -185,18 +185,22 @@ def run_project_render_async(project_id: str, config: RenderConfig, output_mp4_p
                 return
                 
             append_project_log(project_id, "Starting master video render pipeline...")
-            update_project_status(project_id, "rendering", 15.0, "Constructing FFmpeg filtergraph...")
+            update_project_status(project_id, "rendering", 5.0, "Analyzing approved KEEP segments...")
             segments = get_segments(project_id)
             
             kept_count = sum(1 for s in segments if s.action == "KEEP")
             append_project_log(project_id, f"Assembling filtergraph for {kept_count} kept clips with audio crossfades...")
             
-            update_project_status(project_id, "rendering", 40.0, "Encoding master MP4 with hardware acceleration...")
+            def on_render_progress(pct: float, stage_msg: str):
+                update_project_status(project_id, "rendering", pct, stage_msg)
+                append_project_log(project_id, f"[{int(pct)}%] {stage_msg}")
+
             final_file = render_edl_video(
                 source_video_path=proj.source_video_path,
                 segments=segments,
                 output_mp4_path=output_mp4_path,
-                config=config
+                config=config,
+                progress_callback=on_render_progress
             )
             append_project_log(project_id, f"Render completed: {Path(final_file).name}", level="success")
             update_project_status(project_id, "completed", 100.0, f"Render finished: {Path(final_file).name}")

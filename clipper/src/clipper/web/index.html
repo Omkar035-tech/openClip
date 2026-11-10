@@ -607,207 +607,407 @@
       </div>
     </div>
 
-    <!-- ACTIVE PROJECT REVIEW & TIMELINE WORKSPACE -->
-    <div id="lfActiveProjectContainer" class="hidden space-y-6">
+    <!-- ACTIVE PROJECT REVIEW & TIMELINE WORKSPACE (AUTO-EDITOR STUDIO SUITE) -->
+    <div id="lfActiveProjectContainer" class="hidden space-y-4">
       
-      <!-- Project Metadata & Progress Card -->
-      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-dark-700 gap-2">
-          <div>
-            <h2 id="lfActiveTitle" class="text-base font-bold text-gray-100">Project Title</h2>
-            <p id="lfActiveMeta" class="text-xs text-gray-400 font-mono mt-0.5">Duration: -- | 1920x1080 @ 60fps</p>
+      <!-- Top Title Bar / Project Info -->
+      <div class="bg-[#121721] border border-[#232d3f] rounded-xl px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-sm">
+            AE
           </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="lfActiveTitle" class="text-sm font-bold text-gray-100 tracking-wide">Project Title</h2>
+              <span id="lfStatusBadge" class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Ready</span>
+            </div>
+            <p id="lfActiveMeta" class="text-[11px] text-gray-400 font-mono mt-0.5">Duration: -- | 1920x1080 @ 60fps</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="lfAnalyzeBtn" onclick="triggerAutoEditorAnalysis()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-gray-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition">
+            <span>⚡ Quick Re-Cut</span>
+          </button>
+          <button onclick="document.getElementById('lfLogsCard').classList.toggle('hidden')" class="px-2.5 py-1.5 rounded-lg bg-[#1b2332] hover:bg-[#253043] text-gray-300 text-xs border border-[#2e3b52] transition">
+            📋 Logs
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Pipeline Processing Logs Drawer (Collapsible) -->
+      <div id="lfLogsCard" class="hidden bg-[#0d1117] border border-[#232d3f] rounded-xl p-3.5 space-y-2 shadow-inner">
+        <div class="flex items-center justify-between border-b border-[#1b2332] pb-2">
           <div class="flex items-center gap-2">
-            <span id="lfStatusBadge" class="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">Ready for Analysis</span>
-            <button id="lfAnalyzeBtn" onclick="triggerActiveProjectAnalysis()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow transition">
-              <span>⚡ Start AI Analysis</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-bold text-gray-200">Processing & FFmpeg Logs</span>
+          </div>
+          <button onclick="clearLongFormLogs()" class="text-[10px] text-gray-400 hover:text-gray-200">Clear</button>
+        </div>
+        <div id="lfLiveLogsContent" class="h-28 overflow-y-auto font-mono text-[11px] space-y-1 custom-scrollbar text-gray-300 pr-1">
+          <div class="text-gray-500 italic">Waiting for pipeline events...</div>
+        </div>
+      </div>
+
+      <!-- MAIN WORKSPACE: 2-COLUMN VIEW (Player + Multi-Tab Inspector) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        
+        <!-- Left 7 cols: 16:9 Player Preview Screen & Controls -->
+        <div class="lg:col-span-7 bg-[#141a24] border border-[#232d3f] rounded-2xl p-4 space-y-3 shadow-lg">
+          <!-- Clip Title Bar -->
+          <div class="flex items-center justify-between text-xs text-gray-400 pb-1 border-b border-[#1f2839]">
+            <span id="lfPlayerClipLabel" class="font-mono text-gray-300 truncate max-w-[280px]">Preview Screen</span>
+            <div class="flex items-center gap-3">
+              <span class="text-[11px] text-gray-500">Auto-Editor Engine v29.3.1</span>
+            </div>
+          </div>
+
+          <!-- Video Monitor Screen -->
+          <div class="aspect-video bg-[#090c10] rounded-xl overflow-hidden border border-[#232d3f] shadow-2xl relative flex items-center justify-center group">
+            <video id="lfPlayer" class="w-full h-full object-contain"></video>
+            
+            <!-- Big Centered Play/Pause Overlay on Hover/Paused -->
+            <button id="lfCenterPlayBtn" onclick="togglePlayPause()" class="absolute w-14 h-14 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur border border-white/20 text-white flex items-center justify-center text-xl transition transform active:scale-95 shadow-xl">
+              <span id="lfCenterPlayIcon">▶</span>
             </button>
           </div>
-        </div>
 
-        <!-- Auto-Editor Engine Controls Panel (app.auto-editor.com layout) -->
-        <div class="bg-dark-900/90 border border-dark-600 rounded-2xl p-4 space-y-3.5 shadow-inner">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-dark-700/80 pb-3">
-            <div class="flex items-center gap-2.5">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-gray-950 uppercase tracking-wider">Auto-Editor Mode</span>
-              <span class="text-xs font-semibold text-gray-200">High-Speed Waveform Silence Detection (~15-20s)</span>
+          <!-- Player Transport Controls Bar (Matching app.auto-editor.com) -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs">
+            <!-- Left: Current Time & Toggles -->
+            <div class="flex items-center gap-4">
+              <span id="lfCurrentTimeDisplay" class="font-mono text-gray-200 font-bold text-sm tracking-wider">00:00:00</span>
+              
+              <!-- Preview switch -->
+              <label class="flex items-center gap-1.5 cursor-pointer text-gray-400 select-none hover:text-gray-200">
+                <span class="text-[11px]">Preview</span>
+                <input type="checkbox" id="aePreviewToggle" checked class="w-3.5 h-3.5 rounded bg-dark-900 accent-amber-500">
+              </label>
+
+              <!-- Collapse switch -->
+              <label class="flex items-center gap-1.5 cursor-pointer text-gray-400 select-none hover:text-gray-200">
+                <span class="text-[11px]">Collapse</span>
+                <input type="checkbox" id="aeCollapseToggle" onchange="toggleCollapseMode(this.checked)" class="w-3.5 h-3.5 rounded bg-dark-900 accent-amber-500">
+              </label>
             </div>
+
+            <!-- Center: Jump & Play/Pause buttons -->
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-gray-400 font-mono">Engine: <strong class="text-amber-400">auto-editor 29.3.1 (Native AVX)</strong></span>
+              <button onclick="seekLfPlayer(-5)" title="Rewind 5s" class="p-1.5 rounded-lg bg-[#1b2332] hover:bg-[#253043] text-gray-300 transition text-xs font-mono">-5s</button>
+              <button onclick="togglePlayPause()" id="lfTransportPlayBtn" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center gap-1 shadow transition">
+                <span id="lfTransportPlayIcon">▶ Play</span>
+              </button>
+              <button onclick="seekLfPlayer(5)" title="Forward 5s" class="p-1.5 rounded-lg bg-[#1b2332] hover:bg-[#253043] text-gray-300 transition text-xs font-mono">+5s</button>
+            </div>
+
+            <!-- Right: Remaining Time & Playback Speed -->
+            <div class="flex items-center gap-3">
+              <span id="lfRemainingTimeDisplay" class="font-mono text-gray-400 text-xs">-00:00:00</span>
+              <div class="flex items-center gap-1 bg-[#1b2332] border border-[#28354c] rounded-lg px-2 py-0.5">
+                <select id="aeSpeedSelect" onchange="setPlaybackSpeed(this.value)" class="bg-transparent text-gray-200 text-xs font-mono focus:outline-none cursor-pointer">
+                  <option value="0.25">1/4</option>
+                  <option value="0.5">1/2</option>
+                  <option value="1.0" selected>1x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2.0">2x</option>
+                </select>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Parameter Sliders (Exact matching of app.auto-editor.com) -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Right 5 cols: Multi-Tab Auto-Editor Inspector Panel (Controls, Export, Render Queue, Timeline) -->
+        <div class="lg:col-span-5 bg-[#141a24] border border-[#232d3f] rounded-2xl overflow-hidden shadow-lg flex flex-col min-h-[460px]">
+          
+          <!-- Inspector Tabs Header (Exact tabs from Auto-Editor GUI) -->
+          <div class="flex items-center border-b border-[#232d3f] bg-[#0f141d] px-2 pt-2 gap-1 select-none">
+            <div class="px-2 py-1.5 text-gray-500 flex items-center">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+            </div>
+            <button id="aeTabBtnControls" onclick="switchInspectorTab('controls')" class="ae-tab-btn active px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-amber-400 text-amber-300 bg-[#141a24]">
+              Controls
+            </button>
+            <button id="aeTabBtnExport" onclick="switchInspectorTab('export')" class="ae-tab-btn px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#18202d]">
+              Export
+            </button>
+            <button id="aeTabBtnTimeline" onclick="switchInspectorTab('timeline')" class="ae-tab-btn px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#18202d]">
+              Timeline
+            </button>
+            <button id="aeTabBtnQueue" onclick="switchInspectorTab('queue')" class="ae-tab-btn px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#18202d]">
+              Render Queue
+            </button>
+          </div>
+
+          <!-- TAB 1: CONTROLS (Exact matching of Image 2) -->
+          <div id="aeTabContentControls" class="ae-tab-content p-4 space-y-4 overflow-y-auto flex-1 text-xs">
             
-            <!-- Loudness Threshold -->
-            <div class="bg-dark-800 p-3 rounded-xl border border-dark-700 space-y-1.5">
-              <div class="flex justify-between items-center text-xs">
-                <span class="font-semibold text-gray-300">Volume Threshold</span>
-                <span id="aeThresholdVal" class="font-mono font-bold text-amber-400">4.0%</span>
+            <!-- Timing Section -->
+            <div class="space-y-3">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 font-mono">—</span>
+                <span class="font-bold text-gray-200 text-xs tracking-wide">Timing</span>
+                <div class="flex-1 h-px bg-[#232d3f]"></div>
               </div>
-              <input type="range" id="aeThresholdSlider" min="1" max="25" step="0.5" value="4.0" 
-                oninput="document.getElementById('aeThresholdVal').innerText = this.value + '%'"
-                class="w-full accent-amber-500 bg-dark-900 h-1.5 rounded-lg cursor-pointer">
-              <p class="text-[10px] text-gray-500">Audio below this level is marked as silence.</p>
+
+              <!-- Margin (Start Margin, Lock Icon, End Margin) -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-gray-300">
+                  <span class="text-gray-400 font-medium">Margin</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flex-1 bg-[#1a2230] border border-[#2a384e] rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                    <span id="aeMarginStartDisplay" class="font-mono text-gray-200 font-semibold">0.20s</span>
+                    <input type="range" id="aeMarginSlider" min="0.0" max="1.5" step="0.05" value="0.20" 
+                      oninput="onMarginChange(this.value)" class="w-16 accent-amber-500 h-1 cursor-pointer">
+                  </div>
+                  <button id="aeMarginLockBtn" onclick="toggleMarginLock()" title="Lock Start & End Margins" class="p-2 rounded-lg bg-[#1a2230] hover:bg-[#253043] border border-[#2a384e] text-amber-400 transition">
+                    🔒
+                  </button>
+                  <div class="flex-1 bg-[#1a2230] border border-[#2a384e] rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                    <span id="aeMarginEndDisplay" class="font-mono text-gray-200 font-semibold">0.20s</span>
+                    <input type="range" id="aeMarginEndSlider" min="0.0" max="1.5" step="0.05" value="0.20" 
+                      oninput="onMarginEndChange(this.value)" class="w-16 accent-amber-500 h-1 cursor-pointer">
+                  </div>
+                </div>
+                <p class="text-[10px] text-gray-500">Margin expands the borders around loud audio so words aren't cut off.</p>
+              </div>
+
+              <!-- Mincut Slider -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-gray-400">
+                  <span>Mincut</span>
+                  <span id="aeMincutDisplay" class="font-mono text-gray-200 font-semibold">0.20s</span>
+                </div>
+                <div class="bg-[#1a2230] border border-[#2a384e] rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                  <input type="range" id="aeMincutSlider" min="0.0" max="2.0" step="0.05" value="0.20" 
+                    oninput="document.getElementById('aeMincutDisplay').innerText = parseFloat(this.value).toFixed(2) + 's'"
+                    class="w-full accent-amber-500 h-1 cursor-pointer">
+                </div>
+                <p class="text-[10px] text-gray-500">Minimum length of silence required before making a cut.</p>
+              </div>
+
+              <!-- Minclip Slider -->
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center text-gray-400">
+                  <span>Minclip</span>
+                  <span id="aeMinclipDisplay" class="font-mono text-gray-200 font-semibold">0.10s</span>
+                </div>
+                <div class="bg-[#1a2230] border border-[#2a384e] rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                  <input type="range" id="aeMinclipSlider" min="0.0" max="2.0" step="0.05" value="0.10" 
+                    oninput="document.getElementById('aeMinclipDisplay').innerText = parseFloat(this.value).toFixed(2) + 's'"
+                    class="w-full accent-amber-500 h-1 cursor-pointer">
+                </div>
+                <p class="text-[10px] text-gray-500">Minimum length of sound required to be kept as a clip.</p>
+              </div>
             </div>
 
-            <!-- Margin (Padding) -->
-            <div class="bg-dark-800 p-3 rounded-xl border border-dark-700 space-y-1.5">
-              <div class="flex justify-between items-center text-xs">
-                <span class="font-semibold text-gray-300">Margin (Lead-in/out)</span>
-                <span id="aeMarginVal" class="font-mono font-bold text-cyan-400">0.20s</span>
+            <!-- Detection Section -->
+            <div class="space-y-3 pt-2">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-500 font-mono">—</span>
+                <span class="font-bold text-gray-200 text-xs tracking-wide">Detection</span>
+                <div class="flex-1 h-px bg-[#232d3f]"></div>
               </div>
-              <input type="range" id="aeMarginSlider" min="0.0" max="1.0" step="0.05" value="0.20" 
-                oninput="document.getElementById('aeMarginVal').innerText = parseFloat(this.value).toFixed(2) + 's'"
-                class="w-full accent-cyan-400 bg-dark-900 h-1.5 rounded-lg cursor-pointer">
-              <p class="text-[10px] text-gray-500">Buffer time around loud sounds to avoid clipping words.</p>
+
+              <!-- When Inactive -->
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 text-gray-300">
+                  <span class="w-3 h-3 rounded-full bg-[#f43f5e] inline-block shadow-sm"></span>
+                  <span class="font-medium">When Inactive</span>
+                </div>
+                <select id="aeInactiveAction" class="bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 font-mono text-xs focus:outline-none">
+                  <option value="cut" selected>Cut</option>
+                  <option value="speed">Speed Up (2x)</option>
+                  <option value="leave">Leave as is</option>
+                </select>
+              </div>
+
+              <!-- When Active (1) Rule Card -->
+              <div class="bg-[#10151f] border border-[#232d3f] rounded-xl p-3 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 text-gray-300">
+                    <span class="w-3 h-3 rounded-full bg-[#38bdf8] inline-block shadow-sm"></span>
+                    <span class="font-medium">When Active (1)</span>
+                  </div>
+                  <select id="aeActiveAction" class="bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-2.5 py-1 font-mono text-xs focus:outline-none">
+                    <option value="leave" selected>Leave as is</option>
+                    <option value="cut">Cut</option>
+                  </select>
+                </div>
+
+                <!-- Rule Selector Box: not | Audio loudness | Threshold -->
+                <div class="bg-[#161d29] border border-[#263449] rounded-lg p-2.5 space-y-2">
+                  <div class="flex items-center gap-2">
+                    <label class="flex items-center gap-1.5 cursor-pointer text-gray-400 text-[11px] select-none">
+                      <input type="checkbox" id="aeRuleNot" class="w-3.5 h-3.5 rounded bg-dark-900 accent-amber-500">
+                      <span>not</span>
+                    </label>
+                    <div class="flex-1 bg-[#1f2839] border border-[#2f3e57] text-gray-200 rounded px-2 py-1 text-xs font-medium flex items-center justify-between">
+                      <span>Audio loudness</span>
+                      <span class="text-gray-400 text-[10px]">▼</span>
+                    </div>
+                    <button class="p-1 rounded bg-[#1f2839] hover:bg-[#2a384e] text-gray-300 text-xs">⚙</button>
+                    <button class="p-1 rounded bg-[#1f2839] hover:bg-[#2a384e] text-gray-400 hover:text-white text-xs">✕</button>
+                  </div>
+
+                  <!-- Threshold Slider -->
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[11px] text-gray-400">
+                      <span>Threshold</span>
+                      <span id="aeThresholdDbDisplay" class="font-mono text-amber-400 font-bold">-28.00 dB (4.0%)</span>
+                    </div>
+                    <div class="bg-[#1a2230] border border-[#2a384e] rounded-lg px-2.5 py-1.5 flex items-center justify-between">
+                      <input type="range" id="aeThresholdSlider" min="1" max="25" step="0.5" value="4.0" 
+                        oninput="onThresholdChange(this.value)"
+                        class="w-full accent-amber-500 h-1 cursor-pointer">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 pt-1">
+                  <button class="px-2.5 py-1 rounded-lg bg-[#1a2230] hover:bg-[#242f42] text-gray-300 border border-[#2a384e] text-xs font-bold transition">
+                    +
+                  </button>
+                  <button class="px-3 py-1 rounded-lg bg-[#1a2230] hover:bg-[#242f42] text-gray-300 border border-[#2a384e] text-xs font-semibold flex items-center gap-1 transition">
+                    <span>+ Add label</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Re-Cut Action Button -->
+              <button onclick="triggerAutoEditorAnalysis()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-gray-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition">
+                <span>⚡ Apply Settings & Re-Cut Timeline</span>
+              </button>
             </div>
 
-            <!-- Timeline Export Target Selector -->
-            <div class="bg-dark-800 p-3 rounded-xl border border-dark-700 space-y-1.5">
-              <span class="font-semibold text-gray-300 text-xs block">Direct NLE Export</span>
-              <div class="flex gap-1.5 pt-0.5">
-                <button onclick="exportToNle('premiere')" class="flex-1 py-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 text-indigo-300 border border-indigo-500/30 text-[11px] font-bold transition">
-                  Premiere
+          </div>
+
+          <!-- TAB 2: EXPORT (Exact matching of Image 1 & Image 3) -->
+          <div id="aeTabContentExport" class="ae-tab-content hidden p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
+            
+            <!-- Output Name -->
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-gray-400 w-28 font-medium">Output Name</span>
+              <input type="text" id="aeExportOutputName" value="video_ALTERED.mp4" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 font-mono text-xs focus:outline-none focus:border-amber-400">
+            </div>
+
+            <!-- Export as -->
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-gray-400 w-28 font-medium">Export as</span>
+              <select id="aeExportAsSelect" onchange="onExportAsChanged(this.value)" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+                <option value="media" selected>Media File</option>
+                <option value="premiere">Timeline Sequence (Adobe Premiere XML)</option>
+                <option value="resolve">Timeline Sequence (DaVinci Resolve FCPXML)</option>
+                <option value="final-cut-pro">Timeline Sequence (Final Cut Pro XML)</option>
+                <option value="shotcut">Timeline Sequence (Shotcut MLT)</option>
+                <option value="otio">OpenTimelineIO (.otio)</option>
+              </select>
+            </div>
+
+            <div class="h-px bg-[#232d3f] my-1"></div>
+
+            <!-- Format Dropdown with Advanced Settings Button -->
+            <div id="aeMediaOptionsContainer" class="space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 w-28 font-medium">Format</span>
+                <select id="aeExportFormatSelect" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 font-mono text-xs focus:outline-none">
+                  <option value="mp4" selected>mp4</option>
+                  <option value="mkv">mkv</option>
+                  <option value="mov">mov</option>
+                  <option value="webm">webm</option>
+                  <option value="avi">avi</option>
+                  <option value="flv">flv</option>
+                  <option value="gif">gif</option>
+                  <option value="ogv">ogv</option>
+                </select>
+                <button onclick="toggleAdvancedSettings()" class="px-2.5 py-1.5 rounded-lg bg-[#242f42] hover:bg-[#2c3950] text-gray-300 border border-[#34435d] text-[11px] font-semibold transition">
+                  Advanced Settings
                 </button>
-                <button onclick="exportToNle('resolve')" class="flex-1 py-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 text-amber-300 border border-amber-500/30 text-[11px] font-bold transition">
-                  DaVinci
-                </button>
-                <button onclick="exportToNle('final-cut-pro')" class="flex-1 py-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 text-cyan-300 border border-cyan-500/30 text-[11px] font-bold transition">
-                  FCPXML
+              </div>
+
+              <!-- Video Encoder -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 w-28 font-medium">Video Encoder</span>
+                <select id="aeExportVideoEncoder" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 font-mono text-xs focus:outline-none">
+                  <option value="h264 [libx264]" selected>h264 [libx264]</option>
+                  <option value="h264_nvenc">h264_nvenc (NVIDIA GPU)</option>
+                  <option value="hevc_nvenc">hevc_nvenc (NVIDIA H.265)</option>
+                  <option value="libx265">libx265 (HEVC)</option>
+                </select>
+                <button onclick="toggleAdvancedSettings()" class="px-2.5 py-1.5 rounded-lg bg-[#242f42] hover:bg-[#2c3950] text-gray-300 border border-[#34435d] text-[11px] font-semibold transition">
+                  Advanced Settings
                 </button>
               </div>
-              <p class="text-[10px] text-gray-500">Export sequence straight into your editing app.</p>
+
+              <!-- Audio Encoder -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 w-28 font-medium">Audio Encoder</span>
+                <select id="aeExportAudioEncoder" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 font-mono text-xs focus:outline-none">
+                  <option value="aac" selected>aac</option>
+                  <option value="mp3">mp3</option>
+                  <option value="flac">flac</option>
+                  <option value="copy">copy (Passthrough)</option>
+                </select>
+                <button onclick="toggleAdvancedSettings()" class="px-2.5 py-1.5 rounded-lg bg-[#242f42] hover:bg-[#2c3950] text-gray-300 border border-[#34435d] text-[11px] font-semibold transition">
+                  Advanced Settings
+                </button>
+              </div>
+
+              <!-- Audio Normalize -->
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-gray-400 w-28 font-medium">Audio Normalize</span>
+                <select id="aeExportNormalize" class="flex-1 bg-[#1a2230] border border-[#2a384e] text-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+                  <option value="none" selected>No normalisation</option>
+                  <option value="ebu">ebu (Loudness EBU R128)</option>
+                  <option value="peak">peak (Peak level normalization)</option>
+                </select>
+              </div>
+
+              <!-- Open Export When Done Checkbox -->
+              <label class="flex items-center gap-2 cursor-pointer text-gray-400 select-none hover:text-gray-200 pt-1">
+                <input type="checkbox" id="aeOpenExportWhenDone" checked class="w-4 h-4 rounded bg-dark-900 accent-amber-500">
+                <span class="text-xs">Open Export when Done</span>
+              </label>
             </div>
 
-            <!-- Run Auto-Editor Quick Action -->
-            <div class="bg-dark-800 p-3 rounded-xl border border-dark-700 flex flex-col justify-between">
+            <!-- Live Export Progress Bar Card -->
+            <div id="aeExportProgressCard" class="hidden bg-[#10151f] border border-amber-500/30 rounded-xl p-3.5 space-y-2">
               <div class="flex justify-between items-center text-xs">
-                <span class="font-semibold text-gray-300">Quick Process</span>
-                <span class="text-[10px] font-mono text-emerald-400">~20s</span>
+                <span id="aeExportStageText" class="font-bold text-amber-400">Rendering Master Video...</span>
+                <span id="aeExportPercentText" class="font-mono text-gray-200 font-bold">0%</span>
               </div>
-              <button onclick="triggerAutoEditorAnalysis()" class="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg transition">
-                <span>⚡ Run Auto-Editor Cut</span>
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Live Stage Progress Bar -->
-        <div id="lfProgressBox" class="hidden space-y-1.5">
-          <div class="flex justify-between text-xs font-mono">
-            <span id="lfStageText" class="text-amber-400 font-medium">Extracting 16kHz audio stream...</span>
-            <span id="lfPercentText" class="text-gray-300 font-bold">0%</span>
-          </div>
-          <div class="w-full bg-dark-900 rounded-full h-2 overflow-hidden border border-dark-600">
-            <div id="lfProgressBar" class="bg-gradient-to-r from-amber-500 via-emerald-400 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <!-- Live Analysis & Pipeline Event Logs Window -->
-        <div id="lfLogsCard" class="hidden bg-dark-900/90 border border-dark-700 rounded-xl p-3.5 space-y-2">
-          <div class="flex items-center justify-between border-b border-dark-800 pb-2">
-            <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span class="text-xs font-bold text-gray-200">Live Pipeline Processing Logs</span>
-            </div>
-            <button onclick="clearLongFormLogs()" class="text-[10px] text-gray-400 hover:text-gray-200">Clear</button>
-          </div>
-          <div id="lfLiveLogsContent" class="h-32 overflow-y-auto font-mono text-[11px] space-y-1 custom-scrollbar text-gray-300 pr-1">
-            <div class="text-gray-500 italic">Waiting for analysis events...</div>
-          </div>
-        </div>
-
-        <!-- DUAL-COLOR INTERACTIVE EDIT DECISION LIST (EDL) TIMELINE -->
-        <div id="lfTimelineSection" class="space-y-3 pt-2">
-          
-          <!-- Bulk Editorial Action Toolbar & Zoom Controls -->
-          <div class="bg-dark-900/90 border border-dark-600 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-inner">
-            <div class="flex items-center flex-wrap gap-2">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 mr-1">Bulk Operations:</span>
-              <button onclick="executeBulkAction('all_silence', 'CUT')" class="px-2.5 py-1 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 text-xs font-semibold flex items-center gap-1 transition">
-                <span>⚡ Cut All Dead Air (>1.5s)</span>
-              </button>
-              <button onclick="executeBulkAction('all_high_confidence', 'CUT')" class="px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-200 text-xs font-medium border border-dark-600 transition">
-                <span>✓ Apply High-Confidence Cuts (90%+)</span>
-              </button>
-              <button onclick="executeBulkAction('invert_all')" class="px-2.5 py-1 rounded-lg bg-dark-700 hover:bg-dark-600 text-amber-300 text-xs font-medium border border-dark-600 transition">
-                <span>🔄 Invert Cuts</span>
-              </button>
-              <button onclick="executeBulkAction('all_silence', 'KEEP')" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition">
-                <span>↺ Restore All Pauses</span>
-              </button>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <!-- Timeline Zoom Controller -->
-              <div class="flex items-center gap-1.5 bg-dark-800 border border-dark-700 rounded-lg px-2 py-1">
-                <span class="text-[10px] text-gray-400 font-mono">Zoom:</span>
-                <button onclick="setTimelineZoom(1)" id="zoom1x" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-gray-950">1x (All)</button>
-                <button onclick="setTimelineZoom(2)" id="zoom2x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">2x</button>
-                <button onclick="setTimelineZoom(5)" id="zoom5x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">5x</button>
-                <button onclick="setTimelineZoom(10)" id="zoom10x" class="px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white">10x</button>
+              <div class="w-full bg-[#1b2332] rounded-full h-2 overflow-hidden border border-[#2b394f]">
+                <div id="aeExportProgressBar" class="bg-gradient-to-r from-amber-500 via-emerald-400 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+              <div class="flex justify-between items-center text-[10px] text-gray-400 font-mono">
+                <span id="aeExportElapsed">Elapsed: 00:00</span>
+                <span id="aeExportEta">Est. Remaining: Calculating...</span>
               </div>
             </div>
-          </div>
 
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div class="flex items-center gap-3">
-              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Non-Destructive Review Canvas</span>
-              <span class="text-[10px] text-gray-400">Click any block to inspect, or use bulk tools above</span>
-            </div>
-            <div class="flex items-center gap-4 text-xs font-mono">
-              <span class="text-emerald-400 flex items-center gap-1">
-                <span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>
-                <span>Kept: <strong id="lfKeptTime">0s</strong></span>
-              </span>
-              <span class="text-red-400 flex items-center gap-1">
-                <span class="w-2.5 h-2.5 rounded bg-red-500 inline-block"></span>
-                <span>Cut: <strong id="lfCutTime">0s</strong></span>
-              </span>
-              <span class="text-cyan-300">
-                <span>Total Cuts: <strong id="lfCutCount">0</strong></span>
-              </span>
-            </div>
-          </div>
-
-          <!-- The Visual Multi-Segment Strip -->
-          <div class="p-3 bg-dark-900 rounded-xl border border-dark-600 space-y-2">
-            <div id="lfTimelineStrip" class="w-full h-10 rounded-lg flex overflow-hidden border border-dark-700 relative">
-              <!-- Dynamically populated segment pills -->
-              <div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Timeline not analyzed yet</div>
-            </div>
-            <div class="flex justify-between text-[10px] text-gray-500 font-mono">
-              <span>00:00:00</span>
-              <span id="lfEndTimestamp">00:00:00</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Video Player & Segment Inspector Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
-          
-          <!-- 16:9 Master Video Preview (7 cols) -->
-          <div class="lg:col-span-7 space-y-2">
-            <div class="aspect-video bg-black rounded-xl overflow-hidden border border-dark-600 shadow-xl relative flex items-center justify-center">
-              <video id="lfPlayer" controls class="w-full h-full object-contain"></video>
-            </div>
-            <div class="flex items-center justify-between text-xs text-gray-400">
-              <span id="lfPlayheadPos" class="font-mono">Position: 0.0s</span>
-              <div class="flex gap-2">
-                <button onclick="seekLfPlayer(-5)" class="px-2 py-0.5 rounded bg-dark-700 hover:bg-dark-600 text-gray-300 font-mono text-[11px]">-5s</button>
-                <button onclick="seekLfPlayer(5)" class="px-2 py-0.5 rounded bg-dark-700 hover:bg-dark-600 text-gray-300 font-mono text-[11px]">+5s</button>
+            <!-- Large Export Action Button -->
+            <div class="pt-2 space-y-2">
+              <button id="aeMainExportBtn" onclick="executeAutoEditorExport()" class="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-gray-950 font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition transform active:scale-98">
+                <span>⬆ Export</span>
+              </button>
+              
+              <div id="aeDownloadReadyBox" class="hidden flex items-center gap-2 pt-1">
+                <button onclick="downloadRenderedMaster()" class="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+                  <span>⬇ Download Ready Video</span>
+                </button>
               </div>
+
+              <p class="text-[10px] text-gray-500 text-center">Export altered media or high-speed NLE sequences with lossless zero-lag rendering.</p>
             </div>
+
           </div>
 
-          <!-- Segment Inspector & Override Controller (5 cols) -->
-          <div class="lg:col-span-5 bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-3.5">
-            <div class="flex items-center justify-between pb-2 border-b border-dark-700">
-              <h3 class="text-xs font-bold text-gray-200">Segment Inspector</h3>
-              <span id="lfInspectorStatus" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-dark-700 text-gray-300">Select a block</span>
+          <!-- TAB 3: TIMELINE INSPECTOR (Single Clip Inspector & Segment Details) -->
+          <div id="aeTabContentTimeline" class="ae-tab-content hidden p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-[#232d3f]">
+              <span class="text-xs font-bold text-gray-200">Segment Inspector</span>
+              <span id="lfInspectorStatus" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-[#1b2332] text-gray-300">Select a timeline block</span>
             </div>
 
             <div class="space-y-2 text-xs">
@@ -820,45 +1020,54 @@
                 <span id="lfInspectorDuration" class="font-mono text-gray-200 font-semibold">--</span>
               </div>
               <div class="space-y-1">
-                <span class="text-gray-400 text-[11px]">AI Editorial Rationale:</span>
-                <p id="lfInspectorReason" class="text-gray-300 italic p-2 bg-dark-800 rounded border border-dark-700 text-[11px]">Click any segment above to inspect AI reasoning</p>
+                <span class="text-gray-400 text-[11px]">Reasoning / Audio Peak:</span>
+                <p id="lfInspectorReason" class="text-gray-300 italic p-2.5 bg-[#10151f] rounded-lg border border-[#232d3f] text-[11px]">Click any segment in the timeline below to inspect or cut/keep.</p>
               </div>
             </div>
 
             <!-- Override & Action Buttons -->
-            <div class="space-y-2 pt-2 border-t border-dark-700">
+            <div class="space-y-2 pt-2 border-t border-[#232d3f]">
               <div class="grid grid-cols-2 gap-2">
                 <button id="lfBtnRestore" onclick="overrideSelectedSegment('KEEP')" class="py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition">
                   <span>✓ Keep Segment</span>
                 </button>
-                <button id="lfBtnCut" onclick="overrideSelectedSegment('CUT')" class="py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition">
+                <button id="lfBtnCut" onclick="overrideSelectedSegment('CUT')" class="py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition">
                   <span>✕ Cut Segment</span>
                 </button>
               </div>
-              <button onclick="previewSelectedSegment()" class="w-full py-1.5 px-3 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-200 font-semibold text-xs transition">
+              <button onclick="previewSelectedSegment()" class="w-full py-1.5 px-3 rounded-lg bg-[#1b2332] hover:bg-[#253043] text-gray-200 font-semibold text-xs transition">
                 ▶ Jump to Interval
               </button>
             </div>
 
-            <!-- Export Actions & Format Options -->
-            <div class="pt-3 border-t border-dark-700 space-y-2">
-              <div class="grid grid-cols-2 gap-2">
-                <button onclick="triggerMasterRender('mp4')" class="py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center justify-center gap-1 shadow transition">
-                  <span>🚀 Render MP4</span>
+            <!-- Bulk Operational Shortcuts -->
+            <div class="pt-3 border-t border-[#232d3f] space-y-2">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400 block">Bulk Edit Operations:</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button onclick="executeBulkAction('all_silence', 'CUT')" class="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition">
+                  Cut All Dead Air
                 </button>
-                <button onclick="triggerMasterRender('mkv')" class="py-2.5 px-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-amber-300 font-bold text-xs flex items-center justify-center gap-1 border border-dark-600 transition">
-                  <span>🎬 Render MKV</span>
-                </button>
-              </div>
-              <div class="grid grid-cols-2 gap-2">
-                <button id="lfDownloadMasterBtn" onclick="downloadRenderedMaster()" class="py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition shadow">
-                  <span>⬇ Download Master</span>
-                </button>
-                <button onclick="downloadOtioExport()" class="py-2 px-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-cyan-400 font-bold text-xs flex items-center justify-center gap-1 border border-cyan-500/30 transition">
-                  <span>📁 .OTIO Export</span>
+                <button onclick="executeBulkAction('invert_all')" class="p-1.5 rounded-lg bg-[#1b2332] hover:bg-[#253043] text-amber-300 border border-[#2b394f] text-[11px] font-semibold transition">
+                  Invert Cuts
                 </button>
               </div>
-              <p class="text-[10px] text-gray-400 text-center">Export master video with speech padding & transitions, or export timeline to DaVinci / Premiere.</p>
+            </div>
+          </div>
+
+          <!-- TAB 4: RENDER QUEUE -->
+          <div id="aeTabContentQueue" class="ae-tab-content hidden p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-[#232d3f]">
+              <span class="text-xs font-bold text-gray-200">Active Render Queue</span>
+              <span class="text-[10px] font-mono text-gray-400">1 Job</span>
+            </div>
+            <div id="aeRenderQueueList" class="space-y-2">
+              <div class="p-3 bg-[#10151f] border border-[#232d3f] rounded-xl flex items-center justify-between">
+                <div>
+                  <div id="aeQueueJobName" class="font-semibold text-gray-200">Master Export</div>
+                  <div id="aeQueueJobMeta" class="text-[10px] text-gray-500 font-mono">1080p60 • AAC • Hardware Accelerated</div>
+                </div>
+                <span id="aeQueueJobStatus" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30">Idle</span>
+              </div>
             </div>
           </div>
 
@@ -866,7 +1075,111 @@
 
       </div>
 
+      <!-- BOTTOM PROFESSIONAL TIMELINE DOCK (Matching Image 1 Exact Layout) -->
+      <div class="bg-[#121721] border border-[#232d3f] rounded-2xl p-3 space-y-2 shadow-2xl">
+        
+        <!-- Timeline Workspace Area: Left Sources/Toolstrip + Center Canvas Ruler & Tracks -->
+        <div class="flex gap-2 min-h-[170px]">
+          
+          <!-- Left Media Sources Panel & Toolstrip -->
+          <div class="w-60 flex flex-col justify-between bg-[#0e121a] border border-[#1f2839] rounded-xl p-2.5">
+            <!-- Media Sources Box -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-[11px] font-bold text-gray-400 pb-1 border-b border-[#1f2839]">
+                <span>Media Sources</span>
+                <span class="text-[10px] text-gray-500">1 Clip</span>
+              </div>
+              <div class="p-2 bg-[#161c28] border border-[#253043] rounded-lg space-y-1">
+                <div id="aeMediaSourceName" class="font-mono text-[11px] text-gray-200 font-semibold truncate" title="source.mp4">
+                  source.mp4
+                </div>
+                <div id="aeMediaSourceMeta" class="text-[10px] text-gray-400 font-mono">
+                  00:00:00 • 0 MB
+                </div>
+              </div>
+            </div>
+
+            <!-- Vertical Edit Toolstrip (Select, Hand, Cut Scissor, Ruler, Undo, Redo) -->
+            <div class="pt-2 border-t border-[#1f2839] flex items-center justify-around text-gray-400">
+              <button id="toolSelect" onclick="setTimelineTool('select')" title="Selection Tool (V)" class="p-1.5 rounded hover:bg-[#1f2839] text-amber-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l7 18 3-7 7-3L3 3z"></path></svg>
+              </button>
+              <button id="toolHand" onclick="setTimelineTool('hand')" title="Hand Scrub (H)" class="p-1.5 rounded hover:bg-[#1f2839] hover:text-white">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+              </button>
+              <button id="toolCut" onclick="setTimelineTool('cut')" title="Razor Cut Scissor (C)" class="p-1.5 rounded hover:bg-[#1f2839] hover:text-white">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879a3 3 0 11-4.242-4.242L10.5 10.5m1.5 1.5L9.121 9.121a3 3 0 10-4.242 4.242L7.758 16.242"></path></svg>
+              </button>
+              <button id="toolRuler" onclick="setTimelineTool('ruler')" title="Ruler / Measure (M)" class="p-1.5 rounded hover:bg-[#1f2839] hover:text-white">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+              </button>
+              <button onclick="undoTimelineAction()" title="Undo (Ctrl+Z)" class="p-1.5 rounded hover:bg-[#1f2839] hover:text-white">
+                ↺
+              </button>
+              <button onclick="redoTimelineAction()" title="Redo (Ctrl+Y)" class="p-1.5 rounded hover:bg-[#1f2839] hover:text-white">
+                ↻
+              </button>
+            </div>
+          </div>
+
+          <!-- Main Timeline Tracks View (Timecode Ruler + Track [V] + Track [A] with Blue Kept & Pink Cuts) -->
+          <div class="flex-1 bg-[#090c10] border border-[#1f2839] rounded-xl flex flex-col overflow-hidden relative">
+            
+            <!-- Zoom & Viewport Controller Bar -->
+            <div class="bg-[#10151f] border-b border-[#1f2839] px-3 py-1 flex items-center justify-between text-[11px]">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400 font-mono text-[10px]">Tracks:</span>
+                <span class="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">V1 Video</span>
+                <span class="px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-mono text-[10px]">A1 Audio Waveform</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-gray-500 font-mono">Zoom:</span>
+                <input type="range" id="aeTimelineZoomSlider" min="1" max="10" step="0.5" value="1" oninput="setTimelineZoom(parseFloat(this.value))" class="w-24 accent-amber-500 h-1 cursor-pointer">
+                <span id="aeZoomFactorText" class="font-mono text-gray-400 text-[10px]">1x</span>
+              </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div id="lfTimelineStrip" class="w-full flex-1 relative min-h-[120px] bg-[#0c1017] cursor-pointer">
+              <!-- Dynamically populated high-precision HTML5 Canvas -->
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- Bottom Timeline Metrics & Summary Bar (Exact metrics from Image 1) -->
+        <div class="flex flex-wrap items-center justify-between pt-1 text-xs font-mono text-gray-400 px-2 border-t border-[#1f2839]">
+          <div class="flex items-center gap-6">
+            <div>
+              <span>Cuts Made: </span>
+              <strong id="lfCutCount" class="text-amber-400">0</strong>
+            </div>
+            <div>
+              <span>Time Cut Out: </span>
+              <strong id="lfCutTime" class="text-rose-400">0.00 min</strong>
+            </div>
+            <div>
+              <span>Estimated Editing Time Saved: </span>
+              <strong id="lfTimeSaved" class="text-emerald-400">0.0 h</strong>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-[11px]">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded bg-[#38bdf8] inline-block"></span>
+              <span class="text-gray-300">Kept Audio/Video: <strong id="lfKeptTime" class="text-cyan-300">0.0 min</strong></span>
+            </span>
+            <span class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded bg-[#f43f5e] inline-block"></span>
+              <span class="text-gray-300">Dead Air Cut: <strong id="lfTotalDeadAir" class="text-rose-300">0.0 min</strong></span>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
     </div>
+
 
   </main>
 
@@ -2093,12 +2406,34 @@
         document.getElementById('lfActiveTitle').innerText = p.title;
         document.getElementById('lfActiveMeta').innerText = `Duration: ${(p.metadata.duration / 60).toFixed(1)} mins (${p.metadata.duration}s) | ${p.metadata.width}x${p.metadata.height} @ ${p.metadata.fps}fps`;
         document.getElementById('lfStatusBadge').innerText = p.status.toUpperCase();
+        
+        // Auto-Editor Media Source Box & Clip Label
+        const srcName = p.source_video_path ? p.source_video_path.split('\\').pop().split('/').pop() : 'source.mp4';
+        const labelEl = document.getElementById('lfPlayerClipLabel');
+        if (labelEl) labelEl.innerText = srcName;
+        const mediaNameEl = document.getElementById('aeMediaSourceName');
+        if (mediaNameEl) {
+          mediaNameEl.innerText = srcName;
+          mediaNameEl.title = srcName;
+        }
+        const mediaMetaEl = document.getElementById('aeMediaSourceMeta');
+        if (mediaMetaEl) {
+          const mins = Math.floor(p.metadata.duration / 60);
+          const secs = Math.floor(p.metadata.duration % 60);
+          mediaMetaEl.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')} • ${p.metadata.width}x${p.metadata.height}`;
+        }
+        const exportNameInput = document.getElementById('aeExportOutputName');
+        if (exportNameInput) {
+          const cleanBase = srcName.replace(/\.[^/.]+$/, "");
+          exportNameInput.value = `${cleanBase}_ALTERED.mp4`;
+        }
 
         // Load video file directly through dedicated long-form video streaming endpoint
         const player = document.getElementById('lfPlayer');
         if (player) {
           player.src = `/api/long-form/projects/${projectId}/video`;
           player.load();
+          setupPlayerListeners(player);
         }
         
         loadActiveTimeline();
@@ -2183,11 +2518,23 @@
         const data = await res.json();
         lfActiveSegments = data.segments || [];
 
-        document.getElementById('lfKeptTime').innerText = `${(data.estimated_edited_duration / 60).toFixed(1)}m`;
-        const cutTime = Math.max(0, data.original_duration - data.estimated_edited_duration);
-        document.getElementById('lfCutTime').innerText = `${(cutTime / 60).toFixed(1)}m`;
+        const minsKept = (data.estimated_edited_duration / 60).toFixed(2);
+        document.getElementById('lfKeptTime').innerText = `${minsKept} min`;
+        
+        const cutTimeSec = Math.max(0, data.original_duration - data.estimated_edited_duration);
+        const minsCut = (cutTimeSec / 60).toFixed(2);
+        document.getElementById('lfCutTime').innerText = `${minsCut} min`;
+        if (document.getElementById('lfTotalDeadAir')) {
+          document.getElementById('lfTotalDeadAir').innerText = `${minsCut} min`;
+        }
+        
         document.getElementById('lfCutCount').innerText = `${data.cut_count}`;
-        document.getElementById('lfEndTimestamp').innerText = `${(data.original_duration / 60).toFixed(1)}m`;
+        
+        // Estimate editing time saved: manual editing usually takes 6-10x the duration cut out
+        const savedHours = ((cutTimeSec * 6.0) / 3600).toFixed(1);
+        if (document.getElementById('lfTimeSaved')) {
+          document.getElementById('lfTimeSaved').innerText = `${savedHours} h`;
+        }
 
         renderTimelineStrip(data.original_duration, lfActiveSegments);
       } catch (err) {
@@ -2195,21 +2542,306 @@
       }
     }
 
-    function setTimelineZoom(zoomLevel) {
-      lfTimelineZoom = zoomLevel;
-      [1, 2, 5, 10].forEach(z => {
-        const btn = document.getElementById(`zoom${z}x`);
+    let lfTimelineTool = 'select';
+    let lfMarginLocked = true;
+    let lfRenderStartTime = null;
+    let lfRenderElapsedTimer = null;
+
+    function switchInspectorTab(tabName) {
+      ['controls', 'export', 'timeline', 'queue'].forEach(t => {
+        const btn = document.getElementById(`aeTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        const content = document.getElementById(`aeTabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
         if (btn) {
-          if (z === zoomLevel) {
-            btn.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-gray-950';
+          if (t === tabName) {
+            btn.className = 'ae-tab-btn active px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-amber-400 text-amber-300 bg-[#141a24]';
           } else {
-            btn.className = 'px-1.5 py-0.5 rounded text-[10px] font-bold text-gray-400 hover:text-white';
+            btn.className = 'ae-tab-btn px-3 py-1.5 text-xs font-semibold rounded-t-lg transition border-b-2 border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#18202d]';
+          }
+        }
+        if (content) {
+          if (t === tabName) content.classList.remove('hidden');
+          else content.classList.add('hidden');
+        }
+      });
+    }
+
+    function toggleMarginLock() {
+      lfMarginLocked = !lfMarginLocked;
+      const btn = document.getElementById('aeMarginLockBtn');
+      if (btn) {
+        btn.innerText = lfMarginLocked ? '🔒' : '🔓';
+        btn.className = lfMarginLocked 
+          ? 'p-2 rounded-lg bg-[#1a2230] hover:bg-[#253043] border border-[#2a384e] text-amber-400 transition'
+          : 'p-2 rounded-lg bg-[#1a2230] hover:bg-[#253043] border border-[#2a384e] text-gray-400 transition';
+      }
+    }
+
+    function onMarginChange(val) {
+      const formatted = parseFloat(val).toFixed(2) + 's';
+      const dispStart = document.getElementById('aeMarginStartDisplay');
+      if (dispStart) dispStart.innerText = formatted;
+      if (lfMarginLocked) {
+        const sliderEnd = document.getElementById('aeMarginEndSlider');
+        const dispEnd = document.getElementById('aeMarginEndDisplay');
+        if (sliderEnd) sliderEnd.value = val;
+        if (dispEnd) dispEnd.innerText = formatted;
+      }
+    }
+
+    function onMarginEndChange(val) {
+      const formatted = parseFloat(val).toFixed(2) + 's';
+      const dispEnd = document.getElementById('aeMarginEndDisplay');
+      if (dispEnd) dispEnd.innerText = formatted;
+      if (lfMarginLocked) {
+        const sliderStart = document.getElementById('aeMarginSlider');
+        const dispStart = document.getElementById('aeMarginStartDisplay');
+        if (sliderStart) sliderStart.value = val;
+        if (dispStart) dispStart.innerText = formatted;
+      }
+    }
+
+    function onThresholdChange(val) {
+      const pct = parseFloat(val).toFixed(1);
+      // Approximate dB from percentage
+      const db = (20 * Math.log10(val / 100)).toFixed(2);
+      const disp = document.getElementById('aeThresholdDbDisplay');
+      if (disp) disp.innerText = `${db} dB (${pct}%)`;
+    }
+
+    function onExportAsChanged(val) {
+      const mediaBox = document.getElementById('aeMediaOptionsContainer');
+      const outName = document.getElementById('aeExportOutputName');
+      if (!outName) return;
+      const base = outName.value.replace(/\.[^/.]+$/, "");
+      if (val === 'media') {
+        if (mediaBox) mediaBox.classList.remove('hidden');
+        outName.value = `${base}.mp4`;
+      } else if (val === 'premiere') {
+        if (mediaBox) mediaBox.classList.add('hidden');
+        outName.value = `${base}.xml`;
+      } else if (val === 'resolve' || val === 'final-cut-pro') {
+        if (mediaBox) mediaBox.classList.add('hidden');
+        outName.value = `${base}.fcpxml`;
+      } else if (val === 'shotcut') {
+        if (mediaBox) mediaBox.classList.add('hidden');
+        outName.value = `${base}.mlt`;
+      } else if (val === 'otio') {
+        if (mediaBox) mediaBox.classList.add('hidden');
+        outName.value = `${base}.otio`;
+      }
+    }
+
+    function toggleAdvancedSettings() {
+      alert("Encoder advanced settings: standard H.264 profile high, level 4.2, YUV420p pixel format, AAC 192k audio.");
+    }
+
+    function togglePlayPause() {
+      const player = document.getElementById('lfPlayer');
+      if (!player) return;
+      if (player.paused) {
+        player.play();
+      } else {
+        player.pause();
+      }
+    }
+
+    function setupPlayerListeners(player) {
+      player.ontimeupdate = () => {
+        const cur = player.currentTime;
+        const dur = player.duration || 1;
+        const rem = Math.max(0, dur - cur);
+
+        const curEl = document.getElementById('lfCurrentTimeDisplay');
+        if (curEl) curEl.innerText = formatTimecode(cur);
+
+        const remEl = document.getElementById('lfRemainingTimeDisplay');
+        if (remEl) remEl.innerText = `-${formatTimecode(rem)}`;
+
+        // Re-draw playhead on canvas
+        const totalDur = getTotalProjectDuration();
+        renderTimelineStrip(totalDur, lfActiveSegments);
+      };
+
+      player.onplay = () => {
+        const cIcon = document.getElementById('lfCenterPlayIcon');
+        if (cIcon) cIcon.innerText = '❚❚';
+        const tIcon = document.getElementById('lfTransportPlayIcon');
+        if (tIcon) tIcon.innerText = '❚❚ Pause';
+        const cBtn = document.getElementById('lfCenterPlayBtn');
+        if (cBtn) cBtn.classList.add('opacity-0', 'hover:opacity-100');
+      };
+
+      player.onpause = () => {
+        const cIcon = document.getElementById('lfCenterPlayIcon');
+        if (cIcon) cIcon.innerText = '▶';
+        const tIcon = document.getElementById('lfTransportPlayIcon');
+        if (tIcon) tIcon.innerText = '▶ Play';
+        const cBtn = document.getElementById('lfCenterPlayBtn');
+        if (cBtn) cBtn.classList.remove('opacity-0');
+      };
+    }
+
+    function formatTimecode(seconds) {
+      if (isNaN(seconds)) return '00:00:00';
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function setPlaybackSpeed(rate) {
+      const player = document.getElementById('lfPlayer');
+      if (player) player.playbackRate = parseFloat(rate);
+    }
+
+    function setTimelineTool(tool) {
+      lfTimelineTool = tool;
+      ['select', 'hand', 'cut', 'ruler'].forEach(t => {
+        const btn = document.getElementById(`tool${t.charAt(0).toUpperCase() + t.slice(1)}`);
+        if (btn) {
+          if (t === tool) {
+            btn.className = 'p-1.5 rounded bg-[#1f2839] text-amber-400 font-bold';
+          } else {
+            btn.className = 'p-1.5 rounded hover:bg-[#1f2839] text-gray-400 hover:text-white';
           }
         }
       });
-      const totalDur = getTotalProjectDuration();
-      renderTimelineStrip(totalDur, lfActiveSegments);
     }
+
+    function toggleCollapseMode(enabled) {
+      if (enabled) {
+        alert("Collapse mode active: Timeline highlights continuous kept speech blocks without gaps.");
+      }
+    }
+
+    function undoTimelineAction() {
+      executeBulkAction('invert_all');
+    }
+
+    function redoTimelineAction() {
+      executeBulkAction('invert_all');
+    }
+
+    async function executeAutoEditorExport() {
+      if (!currentLfProjectId) {
+        alert('Please open or select a project first.');
+        return;
+      }
+      const exportAs = document.getElementById('aeExportAsSelect') ? document.getElementById('aeExportAsSelect').value : 'media';
+      
+      if (exportAs !== 'media') {
+        // NLE or OTIO direct sequence export
+        if (exportAs === 'otio') {
+          downloadOtioExport();
+        } else {
+          exportToNle(exportAs);
+        }
+        return;
+      }
+
+      // Master Media File Render
+      const format = document.getElementById('aeExportFormatSelect') ? document.getElementById('aeExportFormatSelect').value : 'mp4';
+      const outputFilename = document.getElementById('aeExportOutputName') ? document.getElementById('aeExportOutputName').value : `altered_master.${format}`;
+      const videoEncoder = document.getElementById('aeExportVideoEncoder') ? document.getElementById('aeExportVideoEncoder').value : 'libx264';
+      
+      // Update Render Queue tab
+      const qJob = document.getElementById('aeQueueJobName');
+      if (qJob) qJob.innerText = outputFilename;
+      const qMeta = document.getElementById('aeQueueJobMeta');
+      if (qMeta) qMeta.innerText = `${format.toUpperCase()} • ${videoEncoder} • Accelerated`;
+      const qStatus = document.getElementById('aeQueueJobStatus');
+      if (qStatus) {
+        qStatus.innerText = 'Rendering';
+        qStatus.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse';
+      }
+
+      // Reveal live progress card
+      const progCard = document.getElementById('aeExportProgressCard');
+      if (progCard) progCard.classList.remove('hidden');
+      lfRenderStartTime = Date.now();
+      
+      if (lfRenderElapsedTimer) clearInterval(lfRenderElapsedTimer);
+      lfRenderElapsedTimer = setInterval(() => {
+        if (!lfRenderStartTime) return;
+        const elapsedSec = Math.floor((Date.now() - lfRenderStartTime) / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        const elSpan = document.getElementById('aeExportElapsed');
+        if (elSpan) elSpan.innerText = `Elapsed: ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      }, 1000);
+
+      try {
+        const vcodec = videoEncoder.includes('nvenc') ? 'h264_nvenc' : 'libx264';
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/render`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_codec: vcodec,
+            output_filename: outputFilename,
+            include_transitions: true
+          })
+        });
+        const data = await res.json();
+        startExportPolling();
+      } catch (e) {
+        alert('Render dispatch failed: ' + e.message);
+      }
+    }
+
+    function startExportPolling() {
+      const pollTimer = setInterval(async () => {
+        if (!currentLfProjectId) {
+          clearInterval(pollTimer);
+          return;
+        }
+        try {
+          const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/status`);
+          const s = await res.json();
+          
+          const pBar = document.getElementById('aeExportProgressBar');
+          const pPct = document.getElementById('aeExportPercentText');
+          const pStage = document.getElementById('aeExportStageText');
+          const pEta = document.getElementById('aeExportEta');
+          
+          if (pBar) pBar.style.width = `${s.progress_pct}%`;
+          if (pPct) pPct.innerText = `${Math.round(s.progress_pct)}%`;
+          if (pStage) pStage.innerText = s.current_stage || 'Rendering...';
+
+          if (s.progress_pct > 5 && lfRenderStartTime) {
+            const elapsed = (Date.now() - lfRenderStartTime) / 1000;
+            const totalEst = (elapsed / s.progress_pct) * 100;
+            const remaining = Math.max(0, totalEst - elapsed);
+            const remM = Math.floor(remaining / 60);
+            const remS = Math.floor(remaining % 60);
+            if (pEta) pEta.innerText = `Est. Remaining: ${String(remM).padStart(2, '0')}:${String(remS).padStart(2, '0')}`;
+          }
+
+          if (s.status === 'completed') {
+            clearInterval(pollTimer);
+            if (lfRenderElapsedTimer) clearInterval(lfRenderElapsedTimer);
+            if (pStage) pStage.innerText = 'Render Finished!';
+            if (pEta) pEta.innerText = 'Completed';
+            const dlBox = document.getElementById('aeDownloadReadyBox');
+            if (dlBox) dlBox.classList.remove('hidden');
+            const qStatus = document.getElementById('aeQueueJobStatus');
+            if (qStatus) {
+              qStatus.innerText = 'Completed';
+              qStatus.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+            }
+            const openDone = document.getElementById('aeOpenExportWhenDone');
+            if (openDone && openDone.checked) {
+              downloadRenderedMaster();
+            }
+          } else if (s.status === 'failed') {
+            clearInterval(pollTimer);
+            if (lfRenderElapsedTimer) clearInterval(lfRenderElapsedTimer);
+            if (pStage) pStage.innerText = 'Render Failed';
+            alert('Master video rendering failed. Check processing logs.');
+          }
+        } catch (e) {}
+      }, 1000);
+    }
+
 
     function getTotalProjectDuration() {
       const durationMeta = document.getElementById('lfActiveMeta') ? document.getElementById('lfActiveMeta').innerText : '';
@@ -2249,36 +2881,140 @@
       }
     }
 
+    function setTimelineZoom(zoomLevel) {
+      lfTimelineZoom = zoomLevel;
+      const slider = document.getElementById('aeTimelineZoomSlider');
+      if (slider) slider.value = zoomLevel;
+      const text = document.getElementById('aeZoomFactorText');
+      if (text) text.innerText = `${zoomLevel}x`;
+      const totalDur = getTotalProjectDuration();
+      renderTimelineStrip(totalDur, lfActiveSegments);
+    }
+
     function renderTimelineStrip(totalDuration, segments) {
       const strip = document.getElementById('lfTimelineStrip');
       if (!strip) return;
       strip.innerHTML = '';
       
       if (!segments || segments.length === 0) {
-        strip.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Timeline not analyzed yet</div>';
+        strip.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xs text-gray-500 font-mono">No timeline loaded. Run Quick Re-Cut above.</div>';
         return;
       }
 
-      // High-performance canvas rendering to effortlessly handle 1,000+ segments
+      // Responsive dual-track NLE canvas (Ruler + Video Track [V] + Audio Waveform Track [A])
       const canvas = document.createElement('canvas');
-      canvas.className = 'w-full h-full cursor-crosshair rounded-lg block';
+      canvas.className = 'w-full h-full cursor-crosshair block select-none';
       canvas.width = strip.clientWidth || 1000;
-      canvas.height = strip.clientHeight || 40;
+      canvas.height = strip.clientHeight || 120;
       strip.appendChild(canvas);
 
       const ctx = canvas.getContext('2d');
       const w = canvas.width;
       const h = canvas.height;
 
-      // Draw background
-      ctx.fillStyle = '#1e293b';
+      // Track layout heights
+      const rulerH = 22;
+      const videoTrackH = 36;
+      const audioTrackH = h - rulerH - videoTrackH;
+      const videoTrackY = rulerH;
+      const audioTrackY = rulerH + videoTrackH;
+
+      // Background
+      ctx.fillStyle = '#0c1017';
       ctx.fillRect(0, 0, w, h);
+
+      // --- 1. TOP TIMECODE RULER ---
+      ctx.fillStyle = '#101520';
+      ctx.fillRect(0, 0, w, rulerH);
+      ctx.strokeStyle = '#232d3f';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, rulerH);
+      ctx.lineTo(w, rulerH);
+      ctx.stroke();
+
+      // Draw ruler tick marks and timestamps
+      const numTicks = 12;
+      ctx.fillStyle = '#718096';
+      ctx.font = '10px monospace';
+      for (let i = 0; i <= numTicks; i++) {
+        const tx = (i / numTicks) * w;
+        const tSec = (i / numTicks) * totalDuration;
+        ctx.strokeStyle = '#2b394f';
+        ctx.beginPath();
+        ctx.moveTo(tx, rulerH - 6);
+        ctx.lineTo(tx, rulerH);
+        ctx.stroke();
+        if (i % 2 === 0) {
+          ctx.fillText(formatTimecode(tSec), Math.max(2, tx - 18), 14);
+        }
+      }
+
+      // --- 2. VIDEO TRACK [V] (Brown / Amber styling with cut indicators) ---
+      ctx.fillStyle = '#171e2b';
+      ctx.fillRect(0, videoTrackY, w, videoTrackH);
+      ctx.strokeStyle = '#232d3f';
+      ctx.beginPath();
+      ctx.moveTo(0, audioTrackY);
+      ctx.lineTo(w, audioTrackY);
+      ctx.stroke();
 
       segments.forEach(seg => {
         const x = (seg.source_start / totalDuration) * w;
         const segW = Math.max(1.5, ((seg.source_end - seg.source_start) / totalDuration) * w);
-        ctx.fillStyle = seg.action === 'KEEP' ? '#10b981' : '#ef4444';
-        ctx.fillRect(x, 0, segW, h);
+        if (seg.action === 'KEEP') {
+          // Warm amber/brown video clip
+          ctx.fillStyle = '#92400e';
+          ctx.fillRect(x, videoTrackY + 2, segW, videoTrackH - 4);
+          ctx.strokeStyle = '#b45309';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, videoTrackY + 2, segW, videoTrackH - 4);
+        } else {
+          // Cut region on video track
+          ctx.fillStyle = '#1f1315';
+          ctx.fillRect(x, videoTrackY + 2, segW, videoTrackH - 4);
+        }
+      });
+
+      // --- 3. AUDIO TRACK [A] (Exact Blue Peaks for Kept + Pink for Cuts as in Image 1) ---
+      ctx.fillStyle = '#0f141d';
+      ctx.fillRect(0, audioTrackY, w, audioTrackH);
+
+      const midA = audioTrackY + (audioTrackH / 2);
+      segments.forEach((seg, idx) => {
+        const x = (seg.source_start / totalDuration) * w;
+        const segW = Math.max(1.5, ((seg.source_end - seg.source_start) / totalDuration) * w);
+        
+        if (seg.action === 'KEEP') {
+          // Blue speech soundwave block (#38bdf8 / #2563eb)
+          ctx.fillStyle = '#0284c7';
+          ctx.fillRect(x, audioTrackY + 2, segW, audioTrackH - 4);
+          
+          // Draw speech audio waveform simulation inside block
+          ctx.strokeStyle = '#bae6fd';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          const steps = Math.max(3, Math.min(25, Math.floor(segW / 3)));
+          for (let s = 0; s < steps; s++) {
+            const stepX = x + (s / steps) * segW;
+            const pseudoAmp = ((Math.sin(idx * 7 + s * 1.5) + 1) / 2) * (audioTrackH * 0.35);
+            ctx.moveTo(stepX, midA - pseudoAmp);
+            ctx.lineTo(stepX, midA + pseudoAmp);
+          }
+          ctx.stroke();
+        } else {
+          // Pink dead-air cut block (#f43f5e / #fb7185)
+          ctx.fillStyle = '#e11d48';
+          ctx.fillRect(x, audioTrackY + 2, segW, audioTrackH - 4);
+          
+          // Subtle silence flatline
+          ctx.strokeStyle = '#fca5a5';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, midA);
+          ctx.lineTo(x + segW, midA);
+          ctx.stroke();
+        }
       });
 
       // Highlight selected segment if any
@@ -2287,37 +3023,56 @@
         if (sel) {
           const sx = (sel.source_start / totalDuration) * w;
           const sw = Math.max(3, ((sel.source_end - sel.source_start) / totalDuration) * w);
-          ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 3;
-          ctx.strokeRect(sx, 0, sw, h);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(sx, videoTrackY, sw, videoTrackH + audioTrackH);
         }
       }
 
-      // Click handler on canvas to find clicked segment
+      // --- 4. CURRENT PLAYHEAD RED SCRUBBER LINE ---
+      const player = document.getElementById('lfPlayer');
+      if (player && totalDuration > 0) {
+        const playX = (player.currentTime / totalDuration) * w;
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(playX, 0);
+        ctx.lineTo(playX, h);
+        ctx.stroke();
+
+        // Playhead head icon
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(playX - 5, 0);
+        ctx.lineTo(playX + 5, 0);
+        ctx.lineTo(playX, 8);
+        ctx.fill();
+      }
+
+      // Interactive Click & Drag Scrubbing
       canvas.onclick = (e) => {
         const rect = canvas.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
-        const clickRatio = clickX / rect.width;
+        const clickRatio = Math.max(0, Math.min(1, clickX / rect.width));
         const targetSec = clickRatio * totalDuration;
+
+        if (player) {
+          player.currentTime = targetSec;
+        }
 
         const found = segments.find(s => targetSec >= s.source_start && targetSec <= s.source_end);
         if (found) {
-          selectSegmentForInspector(found);
-        } else {
-          // Find closest segment
-          let closest = segments[0];
-          let minDist = 999999;
-          segments.forEach(s => {
-            const dist = Math.abs(s.source_start - targetSec);
-            if (dist < minDist) {
-              minDist = dist;
-              closest = s;
-            }
-          });
-          if (closest) selectSegmentForInspector(closest);
+          if (lfTimelineTool === 'cut') {
+            // Razor tool immediately inverts segment action
+            const newAct = found.action === 'KEEP' ? 'CUT' : 'KEEP';
+            overrideSelectedSegment(newAct);
+          } else {
+            selectSegmentForInspector(found);
+          }
         }
       };
     }
+
 
     function selectSegmentForInspector(seg) {
       lfSelectedSegmentId = seg.id;
