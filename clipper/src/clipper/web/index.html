@@ -48,6 +48,17 @@
       </div>
     </div>
 
+    <!-- Studio Mode Switcher Tabs -->
+    <div class="flex items-center bg-dark-900 border border-dark-600 p-1 rounded-xl">
+      <button id="tabShortsStudio" onclick="switchStudioTab('shorts')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-gray-950 flex items-center gap-1.5 shadow">
+        <span>⚡ 9:16 Shorts Studio</span>
+      </button>
+      <button id="tabLongFormStudio" onclick="switchStudioTab('longform')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5">
+        <span>🎬 Long-Form Studio</span>
+        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">Pro Edit</span>
+      </button>
+    </div>
+
     <!-- Antigravity AI Middleware Status -->
     <div class="flex items-center space-x-3">
       <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
@@ -557,6 +568,225 @@
     </div>
 
   </main>
+
+  <!-- LONG-FORM STUDIO WORKSPACE (Dedicated 16:9 Editor) -->
+  <main id="longFormWorkspace" class="hidden flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+    
+    <!-- Long-Form Studio Header & Quick Action Bar -->
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="space-y-1">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎬</span>
+          <h1 class="text-lg font-bold text-gray-100">Long-Form AI Video Editor</h1>
+          <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Non-Destructive EDL</span>
+        </div>
+        <p class="text-xs text-gray-400">Intelligently condense 2-5h raw podcasts & gaming streams into tight master videos without losing reactions or context.</p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="openNewProjectModal()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center gap-1.5 shadow-lg transition">
+          <span>+ New Long-Form Project</span>
+        </button>
+        <button onclick="loadLongFormProjects()" class="px-3 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-gray-300 text-xs font-semibold border border-dark-600 flex items-center gap-1 transition">
+          <span>🔄 Refresh Projects</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Projects Browser Strip -->
+    <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Active Long-Form Projects</span>
+        <span id="lfProjectsCount" class="text-xs text-amber-400 font-mono">0 projects</span>
+      </div>
+      <div id="lfProjectsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Rendered dynamically -->
+        <div class="col-span-full py-6 text-center text-xs text-gray-500 italic bg-dark-800/40 rounded-xl border border-dark-700/60">
+          No long-form projects created yet. Click "+ New Long-Form Project" above to import a 2-5 hour recording.
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE PROJECT REVIEW & TIMELINE WORKSPACE -->
+    <div id="lfActiveProjectContainer" class="hidden space-y-6">
+      
+      <!-- Project Metadata & Progress Card -->
+      <div class="bg-dark-800 border border-dark-700 rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-dark-700 gap-2">
+          <div>
+            <h2 id="lfActiveTitle" class="text-base font-bold text-gray-100">Project Title</h2>
+            <p id="lfActiveMeta" class="text-xs text-gray-400 font-mono mt-0.5">Duration: -- | 1920x1080 @ 60fps</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="lfStatusBadge" class="text-xs font-mono font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20">Ready for Analysis</span>
+            <button id="lfAnalyzeBtn" onclick="triggerActiveProjectAnalysis()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1 shadow transition">
+              <span>⚡ Start AI Analysis</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Stage Progress Bar -->
+        <div id="lfProgressBox" class="hidden space-y-1.5">
+          <div class="flex justify-between text-xs font-mono">
+            <span id="lfStageText" class="text-amber-400 font-medium">Extracting 16kHz audio stream...</span>
+            <span id="lfPercentText" class="text-gray-300 font-bold">0%</span>
+          </div>
+          <div class="w-full bg-dark-900 rounded-full h-2 overflow-hidden border border-dark-600">
+            <div id="lfProgressBar" class="bg-gradient-to-r from-amber-500 via-emerald-400 to-cyan-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- DUAL-COLOR INTERACTIVE EDIT DECISION LIST (EDL) TIMELINE -->
+        <div id="lfTimelineSection" class="space-y-3 pt-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-bold text-gray-300 uppercase tracking-wider">Non-Destructive Review Canvas</span>
+              <span class="text-[10px] text-gray-400">Click any block to toggle KEEP / CUT</span>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-mono">
+              <span class="text-emerald-400 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>
+                <span>Kept: <strong id="lfKeptTime">0s</strong></span>
+              </span>
+              <span class="text-red-400 flex items-center gap-1">
+                <span class="w-2.5 h-2.5 rounded bg-red-500 inline-block"></span>
+                <span>Cut: <strong id="lfCutTime">0s</strong></span>
+              </span>
+              <span class="text-cyan-300">
+                <span>Total Cuts: <strong id="lfCutCount">0</strong></span>
+              </span>
+            </div>
+          </div>
+
+          <!-- The Visual Multi-Segment Strip -->
+          <div class="p-3 bg-dark-900 rounded-xl border border-dark-600 space-y-2">
+            <div id="lfTimelineStrip" class="w-full h-10 rounded-lg flex overflow-hidden border border-dark-700 relative">
+              <!-- Dynamically populated segment pills -->
+              <div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Timeline not analyzed yet</div>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-500 font-mono">
+              <span>00:00:00</span>
+              <span id="lfEndTimestamp">00:00:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Video Player & Segment Inspector Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-2">
+          
+          <!-- 16:9 Master Video Preview (7 cols) -->
+          <div class="lg:col-span-7 space-y-2">
+            <div class="aspect-video bg-black rounded-xl overflow-hidden border border-dark-600 shadow-xl relative flex items-center justify-center">
+              <video id="lfPlayer" controls class="w-full h-full object-contain"></video>
+            </div>
+            <div class="flex items-center justify-between text-xs text-gray-400">
+              <span id="lfPlayheadPos" class="font-mono">Position: 0.0s</span>
+              <div class="flex gap-2">
+                <button onclick="seekLfPlayer(-5)" class="px-2 py-0.5 rounded bg-dark-700 hover:bg-dark-600 text-gray-300 font-mono text-[11px]">-5s</button>
+                <button onclick="seekLfPlayer(5)" class="px-2 py-0.5 rounded bg-dark-700 hover:bg-dark-600 text-gray-300 font-mono text-[11px]">+5s</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Segment Inspector & Override Controller (5 cols) -->
+          <div class="lg:col-span-5 bg-dark-900 p-4 rounded-xl border border-dark-600 space-y-3.5">
+            <div class="flex items-center justify-between pb-2 border-b border-dark-700">
+              <h3 class="text-xs font-bold text-gray-200">Segment Inspector</h3>
+              <span id="lfInspectorStatus" class="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-dark-700 text-gray-300">Select a block</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between text-gray-400">
+                <span>Time Interval:</span>
+                <span id="lfInspectorInterval" class="font-mono text-gray-200 font-semibold">--</span>
+              </div>
+              <div class="flex justify-between text-gray-400">
+                <span>Segment Duration:</span>
+                <span id="lfInspectorDuration" class="font-mono text-gray-200 font-semibold">--</span>
+              </div>
+              <div class="space-y-1">
+                <span class="text-gray-400 text-[11px]">AI Editorial Rationale:</span>
+                <p id="lfInspectorReason" class="text-gray-300 italic p-2 bg-dark-800 rounded border border-dark-700 text-[11px]">Click any segment above to inspect AI reasoning</p>
+              </div>
+            </div>
+
+            <!-- Override & Action Buttons -->
+            <div class="space-y-2 pt-2 border-t border-dark-700">
+              <div class="grid grid-cols-2 gap-2">
+                <button id="lfBtnRestore" onclick="overrideSelectedSegment('KEEP')" class="py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <span>✓ Keep Segment</span>
+                </button>
+                <button id="lfBtnCut" onclick="overrideSelectedSegment('CUT')" class="py-2 px-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition">
+                  <span>✕ Cut Segment</span>
+                </button>
+              </div>
+              <button onclick="previewSelectedSegment()" class="w-full py-1.5 px-3 rounded-lg bg-dark-700 hover:bg-dark-600 text-gray-200 font-semibold text-xs transition">
+                ▶ Jump to Interval
+              </button>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="pt-3 border-t border-dark-700 space-y-2">
+              <button onclick="triggerMasterRender()" class="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+                <span>🚀 Render Final Master MP4</span>
+              </button>
+              <button onclick="downloadOtioExport()" class="w-full py-2 px-3 rounded-xl bg-dark-700 hover:bg-dark-600 text-cyan-400 font-bold text-xs flex items-center justify-center gap-1.5 border border-cyan-500/30 transition">
+                <span>📁 Export to DaVinci / Premiere (.otio)</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- NEW LONG-FORM PROJECT MODAL -->
+  <div id="newProjectModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-dark-700">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎬</span>
+          <h3 class="text-sm font-bold text-gray-100">Create Long-Form Studio Project</h3>
+        </div>
+        <button onclick="closeNewProjectModal()" class="text-gray-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-gray-300 block mb-1 font-semibold">Select Local Video or Upload</label>
+          <select id="lfVideoSelect" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
+            <option value="" disabled selected>Scanning local videos...</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-gray-300 block mb-1 font-semibold">Project Title</label>
+          <input type="text" id="lfProjectTitle" placeholder="e.g. Full Stream Edit Episode 12" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200">
+        </div>
+
+        <div>
+          <label class="text-gray-300 block mb-1 font-semibold">Content Style Profile</label>
+          <select id="lfContentType" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200">
+            <option value="general" selected>General Video (Balanced)</option>
+            <option value="gaming">Gaming Stream (Fast Action / Keep Suspense)</option>
+            <option value="podcast">Podcast & Interview (Speech Clarity / Remove Dead Air)</option>
+            <option value="tutorial">Tutorial / Educational (Preserve Complete Steps)</option>
+            <option value="vlog">Vlog (Casual Storytelling)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t border-dark-700">
+        <button onclick="closeNewProjectModal()" class="px-4 py-2 rounded-xl bg-dark-700 hover:bg-dark-600 text-gray-300 font-semibold text-xs">Cancel</button>
+        <button onclick="submitNewProject()" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs shadow">Initialize Project</button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Caption Style Studio & Interactive Playground Modal -->
   <div id="captionPlaygroundModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
@@ -1594,6 +1824,332 @@
         if (spin) spin.classList.add('hidden');
         if (btn) btn.disabled = false;
       }
+    }
+
+    // --- LONG-FORM STUDIO CLIENT CONTROLLER ---
+    let currentLfProjectId = null;
+    let lfActiveSegments = [];
+    let lfSelectedSegmentId = null;
+    let lfStatusPollInterval = null;
+
+    function switchStudioTab(tab) {
+      const shortsTab = document.getElementById('tabShortsStudio');
+      const longTab = document.getElementById('tabLongFormStudio');
+      const shortsMain = document.querySelector('main:not(#longFormWorkspace)');
+      const longMain = document.getElementById('longFormWorkspace');
+
+      if (tab === 'shorts') {
+        shortsTab.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-gray-950 flex items-center gap-1.5 shadow';
+        longTab.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5';
+        if (shortsMain) shortsMain.classList.remove('hidden');
+        if (longMain) longMain.classList.add('hidden');
+      } else {
+        longTab.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-gray-950 flex items-center gap-1.5 shadow';
+        shortsTab.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5';
+        if (shortsMain) shortsMain.classList.add('hidden');
+        if (longMain) longMain.classList.remove('hidden');
+        loadLongFormProjects();
+      }
+    }
+
+    function openNewProjectModal() {
+      document.getElementById('newProjectModal').classList.remove('hidden');
+      loadVideosForLongFormModal();
+    }
+
+    function closeNewProjectModal() {
+      document.getElementById('newProjectModal').classList.add('hidden');
+    }
+
+    async function loadVideosForLongFormModal() {
+      const sel = document.getElementById('lfVideoSelect');
+      sel.innerHTML = '<option value="" disabled selected>Loading local videos...</option>';
+      try {
+        const res = await fetch('/api/local-videos');
+        const data = await res.json();
+        sel.innerHTML = '';
+        if (data.videos && data.videos.length > 0) {
+          data.videos.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.path;
+            opt.innerText = `${v.name} (${v.size_mb} MB) [${v.source}]`;
+            sel.appendChild(opt);
+          });
+        } else {
+          sel.innerHTML = '<option value="" disabled>No videos found in uploads/Downloads</option>';
+        }
+      } catch (e) {
+        sel.innerHTML = '<option value="" disabled>Failed to load video list</option>';
+      }
+    }
+
+    async function submitNewProject() {
+      const videoPath = document.getElementById('lfVideoSelect').value;
+      const title = document.getElementById('lfProjectTitle').value.trim();
+      const contentType = document.getElementById('lfContentType').value;
+
+      if (!videoPath) {
+        alert('Please select a video file first.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/long-form/projects', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            video_path: videoPath,
+            title: title || undefined,
+            content_type: contentType
+          })
+        });
+        const data = await res.json();
+        if (data.project) {
+          closeNewProjectModal();
+          loadLongFormProjects();
+          selectLongFormProject(data.project.id);
+        } else {
+          alert('Error creating project: ' + JSON.stringify(data));
+        }
+      } catch (err) {
+        alert('Error creating project: ' + err.message);
+      }
+    }
+
+    async function loadLongFormProjects() {
+      try {
+        const res = await fetch('/api/long-form/projects');
+        const data = await res.json();
+        const grid = document.getElementById('lfProjectsGrid');
+        const count = document.getElementById('lfProjectsCount');
+        grid.innerHTML = '';
+        
+        if (data.projects && data.projects.length > 0) {
+          count.innerText = `${data.projects.length} project(s)`;
+          data.projects.forEach(p => {
+            const card = document.createElement('div');
+            card.className = 'bg-dark-900 border border-dark-700 hover:border-amber-400 p-4 rounded-xl cursor-pointer transition space-y-2';
+            card.onclick = () => selectLongFormProject(p.id);
+            card.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-gray-200 line-clamp-1">${p.title}</span>
+                <span class="text-[9px] font-mono px-2 py-0.5 rounded bg-dark-800 text-amber-300 border border-dark-600">${p.status}</span>
+              </div>
+              <p class="text-[10px] text-gray-400 font-mono">${(p.duration / 60).toFixed(1)} mins | ${p.width}x${p.height} @ ${p.fps}fps</p>
+              <div class="flex justify-between items-center text-[10px] text-gray-500 pt-1 border-t border-dark-800">
+                <span>Profile: ${p.content_type}</span>
+                <span class="text-amber-400 font-semibold">Open Editor ➔</span>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+        } else {
+          count.innerText = '0 projects';
+          grid.innerHTML = '<div class="col-span-full py-6 text-center text-xs text-gray-500 italic bg-dark-800/40 rounded-xl border border-dark-700/60">No long-form projects found. Click "+ New Long-Form Project" above.</div>';
+        }
+      } catch (e) {
+        console.error('Error loading projects:', e);
+      }
+    }
+
+    async function selectLongFormProject(projectId) {
+      currentLfProjectId = projectId;
+      const container = document.getElementById('lfActiveProjectContainer');
+      container.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/long-form/projects/${projectId}`);
+        const data = await res.json();
+        const p = data.project;
+
+        document.getElementById('lfActiveTitle').innerText = p.title;
+        document.getElementById('lfActiveMeta').innerText = `Duration: ${(p.metadata.duration / 60).toFixed(1)} mins (${p.metadata.duration}s) | ${p.metadata.width}x${p.metadata.height} @ ${p.metadata.fps}fps`;
+        document.getElementById('lfStatusBadge').innerText = p.status.toUpperCase();
+
+        // Load video file in player
+        const player = document.getElementById('lfPlayer');
+        // Serve through video endpoint
+        const encodedFolder = encodeURIComponent(p.source_video_path.split('\\').pop().split('/').pop());
+        player.src = `/api/videos/_raw_source/${encodedFolder}`; // or direct fallback
+        
+        loadActiveTimeline();
+        startStatusPolling();
+      } catch (err) {
+        console.error('Error selecting project:', err);
+      }
+    }
+
+    async function triggerActiveProjectAnalysis() {
+      if (!currentLfProjectId) return;
+      const btn = document.getElementById('lfAnalyzeBtn');
+      btn.disabled = true;
+      btn.innerText = 'Starting Analysis...';
+
+      const groqKey = localStorage.getItem('openclip_groq_api_key') || '';
+      const groqModel = localStorage.getItem('openclip_groq_model') || 'llama-3.3-70b-versatile';
+
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/analyze`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            safety_padding_sec: 0.40,
+            silence_threshold_db: -35.0,
+            enable_scene_detection: true,
+            enable_llm_editorial: true,
+            llm_provider: 'groq',
+            llm_model: groqModel
+          })
+        });
+        startStatusPolling();
+      } catch (err) {
+        alert('Failed to start analysis: ' + err.message);
+      }
+    }
+
+    function startStatusPolling() {
+      if (lfStatusPollInterval) clearInterval(lfStatusPollInterval);
+      lfStatusPollInterval = setInterval(async () => {
+        if (!currentLfProjectId) return;
+        try {
+          const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/status`);
+          const s = await res.json();
+
+          const pBox = document.getElementById('lfProgressBox');
+          const pBar = document.getElementById('lfProgressBar');
+          const pText = document.getElementById('lfPercentText');
+          const sText = document.getElementById('lfStageText');
+          const badge = document.getElementById('lfStatusBadge');
+
+          badge.innerText = s.status.toUpperCase();
+          if (s.status === 'analyzing' || s.status === 'rendering') {
+            pBox.classList.remove('hidden');
+            pBar.style.width = `${s.progress_pct}%`;
+            pText.innerText = `${Math.round(s.progress_pct)}%`;
+            sText.innerText = s.current_stage || 'Processing in background...';
+          } else if (s.status === 'review_ready' || s.status === 'completed') {
+            pBox.classList.add('hidden');
+            clearInterval(lfStatusPollInterval);
+            loadActiveTimeline();
+          }
+        } catch (e) {}
+      }, 1500);
+    }
+
+    async function loadActiveTimeline() {
+      if (!currentLfProjectId) return;
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/timeline`);
+        const data = await res.json();
+        lfActiveSegments = data.segments || [];
+
+        document.getElementById('lfKeptTime').innerText = `${(data.estimated_edited_duration / 60).toFixed(1)}m`;
+        const cutTime = Math.max(0, data.original_duration - data.estimated_edited_duration);
+        document.getElementById('lfCutTime').innerText = `${(cutTime / 60).toFixed(1)}m`;
+        document.getElementById('lfCutCount').innerText = `${data.cut_count}`;
+        document.getElementById('lfEndTimestamp').innerText = `${(data.original_duration / 60).toFixed(1)}m`;
+
+        renderTimelineStrip(data.original_duration, lfActiveSegments);
+      } catch (err) {
+        console.error('Error loading timeline:', err);
+      }
+    }
+
+    function renderTimelineStrip(totalDuration, segments) {
+      const strip = document.getElementById('lfTimelineStrip');
+      strip.innerHTML = '';
+      if (!segments || segments.length === 0) {
+        strip.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xs text-gray-500">Timeline not analyzed yet</div>';
+        return;
+      }
+
+      segments.forEach(seg => {
+        const widthPct = Math.max(0.5, (seg.duration / totalDuration) * 100);
+        const block = document.createElement('div');
+        block.className = `h-full cursor-pointer transition-all hover:opacity-80 border-r border-dark-900 ${
+          seg.action === 'KEEP' ? 'bg-emerald-500' : 'bg-red-500/80'
+        }`;
+        block.style.width = `${widthPct}%`;
+        block.title = `${seg.action} (${seg.source_start}s - ${seg.source_end}s): ${seg.reason}`;
+        block.onclick = () => selectSegmentForInspector(seg);
+        strip.appendChild(block);
+      });
+    }
+
+    function selectSegmentForInspector(seg) {
+      lfSelectedSegmentId = seg.id;
+      document.getElementById('lfInspectorStatus').innerText = `${seg.action} (${seg.confidence * 100}%)`;
+      document.getElementById('lfInspectorStatus').className = `text-[10px] font-mono px-2 py-0.5 rounded font-bold ${
+        seg.action === 'KEEP' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
+      }`;
+      document.getElementById('lfInspectorInterval').innerText = `${seg.source_start}s - ${seg.source_end}s`;
+      document.getElementById('lfInspectorDuration').innerText = `${seg.duration}s`;
+      document.getElementById('lfInspectorReason').innerText = seg.reason || 'No description';
+
+      const player = document.getElementById('lfPlayer');
+      if (player) {
+        player.currentTime = seg.source_start;
+      }
+    }
+
+    async function overrideSelectedSegment(newAction) {
+      if (!currentLfProjectId || !lfSelectedSegmentId) {
+        alert('Please click on a timeline block first.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/segment/${lfSelectedSegmentId}/override`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: newAction, reason: 'User manual override' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadActiveTimeline();
+        }
+      } catch (e) {
+        alert('Failed to override segment: ' + e.message);
+      }
+    }
+
+    function previewSelectedSegment() {
+      const player = document.getElementById('lfPlayer');
+      if (player && player.paused) player.play();
+    }
+
+    function seekLfPlayer(delta) {
+      const player = document.getElementById('lfPlayer');
+      if (player) {
+        player.currentTime = Math.max(0, player.currentTime + delta);
+        document.getElementById('lfPlayheadPos').innerText = `Position: ${player.currentTime.toFixed(1)}s`;
+      }
+    }
+
+    async function triggerMasterRender() {
+      if (!currentLfProjectId) return;
+      if (!confirm('Render finalized master MP4 with hardware acceleration?')) return;
+
+      try {
+        const res = await fetch(`/api/long-form/projects/${currentLfProjectId}/render`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            preset: '1080p_nvenc',
+            include_transitions: true
+          })
+        });
+        const data = await res.json();
+        alert('Rendering dispatched! Progress will appear on the status bar.');
+        startStatusPolling();
+      } catch (e) {
+        alert('Render error: ' + e.message);
+      }
+    }
+
+    function downloadOtioExport() {
+      if (!currentLfProjectId) return;
+      window.open(`/api/long-form/projects/${currentLfProjectId}/export/otio`, '_blank');
     }
 
     function loadApiKeysFromStorage() {
