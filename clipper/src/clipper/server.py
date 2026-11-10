@@ -30,8 +30,11 @@ from clipper.music import load_music_library, add_track_to_library
 from clipper.hardware import detect_hardware
 from clipper.health import check_groq_health, check_gemini_health
 from clipper import strip_emojis
+from clipper.editor_routes import router as long_form_router
 
 app = FastAPI(title="Clipper Studio API", version="1.0.0")
+
+app.include_router(long_form_router)
 
 app.add_middleware(
     CORSMiddleware,
