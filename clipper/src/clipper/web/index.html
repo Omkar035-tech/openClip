@@ -5,14 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>openClip — AI Video to Viral Shorts Studio</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            heading: ['"Zilla Slab"', 'serif'],
+            body: ['"Atkinson Hyperlegible Next"', 'sans-serif'],
+          },
           colors: {
-            brand: { 500: '#EAB308', 600: '#CA8A04' },
+            brand: { 500: '#8b485d', 600: '#63445e', 700: '#4b3147' },
             dark: { 900: '#0B0F17', 800: '#111827', 700: '#1F2937', 600: '#374151' }
           }
         }
@@ -20,63 +27,252 @@
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Montserrat:wght@800;900&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    /* Theme Variables: Not-Yet Lost & Found Theme with Light & Dark Modes */
+    :root {
+      --color-bg: #f4eee8;
+      --color-paper: #fffaf4;
+      --color-card: #fdfaf6;
+      --color-text: #302830;
+      --color-muted: #665561;
+      --color-brand: #63445e;
+      --color-brand-hover: #4b3147;
+      --color-tint: #eadbe2;
+      --color-line: #baa4af;
+      --color-accent: #8b485d;
+      --color-accent-gold: #c88a38;
+      --color-input-bg: #fffaf4;
+      --color-input-border: #baa4af;
+      --color-stamp: #8b485d;
+      --color-tag-bg: #eadbe2;
+      --font-family-body: 'Atkinson Hyperlegible Next', sans-serif;
+      --font-family-heading: 'Zilla Slab', serif;
+    }
+
+    html.dark {
+      --color-bg: #130f14;
+      --color-paper: #1b161e;
+      --color-card: #201a24;
+      --color-text: #f0e6ec;
+      --color-muted: #b09ba9;
+      --color-brand: #80557a;
+      --color-brand-hover: #9c6895;
+      --color-tint: #2b1f28;
+      --color-line: #42303c;
+      --color-accent: #c46c85;
+      --color-accent-gold: #e2a95c;
+      --color-input-bg: #151117;
+      --color-input-border: #4d3946;
+      --color-stamp: #e27d97;
+      --color-tag-bg: #2d1e29;
+    }
+
+    body {
+      font-family: var(--font-family-body);
+      background-color: var(--color-bg);
+      color: var(--color-text);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    /* Headings */
+    h1, h2, h3, .font-heading {
+      font-family: var(--font-family-heading);
+    }
+
+    /* Shadcn + NYLF Themed Universal Overrides */
+    .bg-dark-900 {
+      background-color: var(--color-bg) !important;
+    }
+    .bg-dark-800, .bg-dark-800\/80, .bg-dark-800\/40 {
+      background-color: var(--color-card) !important;
+      color: var(--color-text) !important;
+    }
+    .bg-dark-700, .bg-dark-700\/80 {
+      background-color: var(--color-paper) !important;
+      color: var(--color-text) !important;
+    }
+    .bg-dark-950 {
+      background-color: var(--color-input-bg) !important;
+    }
+    .border-dark-700, .border-dark-700\/80, .border-dark-700\/60,
+    .border-dark-600, .border-dark-800 {
+      border-color: var(--color-line) !important;
+    }
+
+    /* Form Inputs, Selects, and Textareas - Shadcn Paper docket style */
+    select, input[type="text"], input[type="number"], input[type="search"], textarea {
+      background-color: var(--color-input-bg) !important;
+      color: var(--color-text) !important;
+      border: 1px solid var(--color-input-border) !important;
+      border-radius: 6px !important;
+      font-family: var(--font-family-body) !important;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="search"]:focus, textarea:focus {
+      outline: none !important;
+      border-color: var(--color-brand) !important;
+      box-shadow: 0 0 0 2px var(--color-tint) !important;
+    }
+
+    /* Button Primary (NYLF Brand Plum/Burgundy) */
+    .btn-nylf-primary {
+      background: var(--color-brand) !important;
+      color: #fffaf4 !important;
+      border: 1px solid var(--color-brand) !important;
+      border-radius: 6px;
+      font-family: var(--font-family-body);
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .btn-nylf-primary:hover {
+      background: var(--color-brand-hover) !important;
+    }
+
+    /* Button Secondary / Outline */
+    .btn-nylf-secondary {
+      background: var(--color-paper) !important;
+      color: var(--color-text) !important;
+      border: 1px solid var(--color-line) !important;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-nylf-secondary:hover {
+      background: var(--color-tint) !important;
+      border-color: var(--color-brand) !important;
+    }
+
+    /* Text muted helper */
+    .text-gray-400, .text-gray-500 {
+      color: var(--color-muted) !important;
+    }
+    .text-gray-100, .text-gray-200, .text-gray-300 {
+      color: var(--color-text) !important;
+    }
+
+    /* Accent & Amber overrides to blend into NYLF Vintage Plum & Gold Seal palette */
+    .text-amber-400, .text-amber-300 {
+      color: var(--color-accent-gold) !important;
+    }
+    .bg-amber-500, .bg-amber-400 {
+      background-color: var(--color-brand) !important;
+      color: #fffaf4 !important;
+    }
+    .border-amber-500, .border-amber-400, .border-amber-500\/30, .border-amber-500\/20 {
+      border-color: var(--color-line) !important;
+    }
+    .bg-amber-500\/20, .bg-amber-500\/10, .bg-amber-400\/20 {
+      background-color: var(--color-tint) !important;
+      color: var(--color-brand) !important;
+    }
+
+    /* Shadcn Card & File Tab aesthetic */
+    .file-tab {
+      display: inline-block;
+      background: var(--color-brand);
+      color: #fffaf4;
+      padding: 6px 14px 5px;
+      border-radius: 6px 6px 0 0;
+      font-size: 0.65rem;
+      letter-spacing: 0.13em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .claim-stamp {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 1.25rem;
+      line-height: 0.95;
+      color: var(--color-stamp);
+      border: 3px double var(--color-stamp);
+      padding: 6px 12px;
+      transform: rotate(-5deg);
+      letter-spacing: 0.05em;
+    }
+
     .phone-mockup {
       aspect-ratio: 9/16;
       max-height: 520px;
     }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: var(--color-bg); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 4px; }
   </style>
 </head>
-<body class="bg-dark-900 text-gray-100 min-h-screen flex flex-col antialiased">
+<body class="min-h-screen flex flex-col antialiased">
 
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-dark-700 bg-dark-800/80 backdrop-blur sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="h-10 flex items-center">
-        <img src="/logo.svg" alt="openClip Logo" class="h-10 w-auto rounded-lg shadow-md cursor-pointer" onclick="toggleSettingsSidebar()">
-      </div>
-      <div class="hidden sm:block border-l border-dark-700 pl-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-bold" id="topArchBadge">Standard (1.0)</span>
-          <span class="text-[10px] text-gray-400 font-mono" id="topHwBadge">GPU Accelerated</span>
+  <!-- Top Navigation Bar (NYLF Vintage Desk Style) -->
+  <header class="border-b border-[var(--color-line)] bg-[var(--color-brand)] text-[#fffaf4] sticky top-0 z-50 px-6 py-3 flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-3.5">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="toggleSettingsSidebar()">
+        <!-- NYLF Seal Icon -->
+        <svg class="w-9 h-9 text-[var(--color-accent-gold)] flex-shrink-0" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+          <circle cx="26" cy="26" r="24" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="26" cy="26" r="19" stroke="currentColor" stroke-width="1" stroke-dasharray="1 4"/>
+          <path d="M19 14h14m-14 24h14M21 15c0 8 10 14 10 22M31 15c0 8-10 14-10 22M22 34h8" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        <div>
+          <span class="font-heading font-bold text-base leading-tight tracking-wide text-[#fffaf4] block">
+            openClip &bull; The Not-Yet Lost &amp; Found
+          </span>
+          <span class="text-[9px] tracking-widest text-[#eadbe2] uppercase font-mono block">DEPARTMENT OF VIRAL EVENTUALITIES</span>
         </div>
-        <p class="text-[11px] text-gray-400">Autonomous Viral Moments & Shorts Engine</p>
+      </div>
+      <div class="hidden sm:block border-l border-[#80557a] pl-3">
+        <div class="flex items-center gap-2">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#eadbe2]/20 text-[#fffaf4] border border-[#eadbe2]/30 font-bold" id="topArchBadge">Standard (1.0)</span>
+          <span class="text-[10px] text-[#eadbe2] font-mono" id="topHwBadge">GPU Accelerated</span>
+        </div>
       </div>
     </div>
 
-    <!-- Studio Mode Switcher Tabs -->
-    <div class="flex items-center bg-dark-900 border border-dark-600 p-1 rounded-xl">
-      <button id="tabShortsStudio" onclick="switchStudioTab('shorts')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-amber-500 text-gray-950 flex items-center gap-1.5 shadow">
+    <!-- Studio Mode Switcher Tabs (Desk tabs) -->
+    <div class="flex items-center bg-[#4b3147]/80 border border-[#80557a] p-1 rounded-xl">
+      <button id="tabShortsStudio" onclick="switchStudioTab('shorts')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition bg-[#fffaf4] text-[#63445e] flex items-center gap-1.5 shadow">
         <span>⚡ 9:16 Shorts Studio</span>
       </button>
-      <button id="tabLongFormStudio" onclick="switchStudioTab('longform')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5">
+      <button id="tabLongFormStudio" onclick="switchStudioTab('longform')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition text-[#eadbe2] hover:text-[#fffaf4] flex items-center gap-1.5">
         <span>🎬 Long-Form Studio</span>
-        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">Pro Edit</span>
+        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[var(--color-accent-gold)] text-gray-950 font-bold">Pro</span>
       </button>
     </div>
 
-    <!-- Antigravity AI Middleware Status -->
-    <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-full">
+    <!-- Header Actions & Theme Switcher -->
+    <div class="flex items-center space-x-2.5">
+      <!-- Theme Switcher Button (Light / Dark) -->
+      <button id="themeToggleBtn" onclick="toggleThemeMode()" class="px-2.5 py-1.5 rounded-lg bg-[#4b3147] hover:bg-[#3d2739] text-[#fffaf4] border border-[#80557a] text-xs font-semibold flex items-center gap-1.5 transition" title="Toggle Light / Dark Theme">
+        <span id="themeToggleIcon">☀️</span>
+        <span id="themeToggleText" class="hidden md:inline">Light</span>
+      </button>
+
+      <div class="hidden lg:flex items-center space-x-1.5 bg-[#4b3147]/60 border border-[#80557a] px-2.5 py-1 rounded-full text-xs text-[#eadbe2]">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span class="text-xs font-medium text-emerald-300">Antigravity AI Engine: Active</span>
+        <span class="text-[11px] font-medium">Engine Active</span>
       </div>
-      <button onclick="toggleSettingsSidebar()" class="text-xs font-semibold bg-dark-700 hover:bg-dark-600 text-gray-200 border border-dark-600 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
-        <span>⚙️ Settings & Hardware</span>
+
+      <button onclick="toggleSettingsSidebar()" class="text-xs font-semibold bg-[#4b3147] hover:bg-[#3d2739] text-[#fffaf4] border border-[#80557a] px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+        <span>⚙️ Settings</span>
       </button>
-      <button onclick="openCaptionPlayground()" class="text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-gray-950 px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow">
-        <span>🎨 Caption Studio & Playground</span>
+      <button onclick="openCaptionPlayground()" class="text-xs font-semibold bg-[var(--color-accent-gold)] hover:brightness-110 text-gray-950 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow">
+        <span>🎨 Captions</span>
       </button>
-      <button onclick="openYouTubeModal()" class="text-xs font-semibold bg-red-600 hover:bg-red-500 text-white px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition">
-        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-        YouTube Automation
+      <button onclick="openYouTubeModal()" class="text-xs font-semibold bg-[#8b485d] hover:bg-[#a1556d] text-white px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        <span>YouTube</span>
       </button>
     </div>
   </header>
+
+  <!-- Notice Banner in Vintage Desk Style -->
+  <div class="bg-[var(--color-tint)] border-b border-[var(--color-line)] px-6 py-2 flex items-center justify-between text-xs text-[var(--color-text)]">
+    <div class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-[var(--color-brand)] flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+      <span>A public service for viral videos. <strong>Lost moments claimed before they are forgotten.</strong></span>
+    </div>
+    <span class="text-[10px] font-mono tracking-wider uppercase text-[var(--color-muted)] hidden sm:inline">NO TIME TRAVEL REQUIRED &bull; ADVANCE CLIP REGISTRY</span>
+  </div>
 
   <!-- Main Grid Workspace -->
   <main class="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -455,15 +651,15 @@
       </div>
 
       <!-- BIG ACTION BUTTONS (GENERATE & SHUFFLE) -->
-      <div class="space-y-2">
-        <button id="startBtn" onclick="triggerClipping(false)" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-gray-950 font-bold text-base shadow-xl shadow-amber-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99]">
+      <div class="space-y-2.5">
+        <button id="startBtn" onclick="triggerClipping(false)" class="w-full py-4 rounded-xl btn-nylf-primary text-base shadow-md flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99]">
           <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-          <span>Generate Viral Shorts (Antigravity AI Engine)</span>
+          <span class="font-bold tracking-wide">Generate Viral Shorts (Antigravity AI Engine)</span>
         </button>
 
-        <button id="shuffleBtn" onclick="triggerClipping(true)" class="w-full py-3 rounded-2xl bg-dark-800 hover:bg-dark-700 text-amber-300 hover:text-amber-200 font-bold text-sm border border-amber-500/30 hover:border-amber-400 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] shadow-md">
+        <button id="shuffleBtn" onclick="triggerClipping(true)" class="w-full py-3 rounded-xl btn-nylf-secondary font-bold text-sm flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] shadow-sm">
           <span class="text-base">🎲</span>
-          <span>Shuffle & Generate New Clips (Avoid Existing)</span>
+          <span>Shuffle &amp; Generate New Clips (Avoid Existing)</span>
         </button>
       </div>
 
@@ -3272,12 +3468,40 @@
       if (c) c.innerHTML = '<div class="text-gray-500 italic">Logs cleared.</div>';
     }
 
+    // Theme Switcher Logic (Light & Dark)
+    function initTheme() {
+      const savedTheme = localStorage.getItem('nylf_theme') || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function toggleThemeMode() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const newTheme = isDark ? 'light' : 'dark';
+      applyTheme(newTheme);
+      localStorage.setItem('nylf_theme', newTheme);
+    }
+
+    function applyTheme(theme) {
+      const icon = document.getElementById('themeToggleIcon');
+      const text = document.getElementById('themeToggleText');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        if (icon) icon.innerText = '☀️';
+        if (text) text.innerText = 'Light';
+      } else {
+        document.documentElement.classList.remove('dark');
+        if (icon) icon.innerText = '🌙';
+        if (text) text.innerText = 'Dark';
+      }
+    }
+
     function downloadOtioExport() {
       if (!currentLfProjectId) return;
       window.open(`/api/long-form/projects/${currentLfProjectId}/export/otio`, '_blank');
     }
 
     function loadApiKeysFromStorage() {
+      initTheme();
       const savedGroq = localStorage.getItem('openclip_groq_api_key');
       const savedGemini = localStorage.getItem('openclip_gemini_api_key');
       const savedModel = localStorage.getItem('openclip_groq_model');
