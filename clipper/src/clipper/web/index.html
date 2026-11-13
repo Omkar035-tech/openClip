@@ -2099,45 +2099,58 @@
       xhr.send(formData);
     }
 
+    function updatePreview() {
+      updateLivePreview();
+    }
+
     function updateLivePreview() {
-      const pColor = document.getElementById('primaryColor').value;
-      const aColor = document.getElementById('activeColor').value;
+      const pColor = document.getElementById('primaryColor') ? document.getElementById('primaryColor').value : '#FFFFFF';
+      const aColor = document.getElementById('activeColor') ? document.getElementById('activeColor').value : '#FFD400';
       const eColor = document.getElementById('emphasisColor') ? document.getElementById('emphasisColor').value : '#00FFCC';
-      const sColor = document.getElementById('strokeColor').value;
+      const sColor = document.getElementById('strokeColor') ? document.getElementById('strokeColor').value : '#000000';
       const rotAngle = document.getElementById('rotationAngle') ? document.getElementById('rotationAngle').value : '0';
       const bgMode = document.getElementById('bgMode') ? document.getElementById('bgMode').value : 'none';
-      const autoEmphasis = document.getElementById('autoEmphasis').checked;
+      const autoEmphasis = document.getElementById('autoEmphasis') ? document.getElementById('autoEmphasis').checked : true;
+      const strokeW = document.getElementById('strokeWidth') ? document.getElementById('strokeWidth').value : '2';
 
-      document.getElementById('primaryHex').innerText = pColor.toUpperCase();
-      document.getElementById('activeHex').innerText = aColor.toUpperCase();
+      if (document.getElementById('primaryHex')) document.getElementById('primaryHex').innerText = pColor.toUpperCase();
+      if (document.getElementById('activeHex')) document.getElementById('activeHex').innerText = aColor.toUpperCase();
       if (document.getElementById('emphasisHex')) document.getElementById('emphasisHex').innerText = eColor.toUpperCase();
-      document.getElementById('strokeHex').innerText = sColor.toUpperCase();
+      if (document.getElementById('strokeHex')) document.getElementById('strokeHex').innerText = sColor.toUpperCase();
 
+      // 1. Update Mini Inspector Canvas
       const canvas = document.getElementById('previewCanvas');
       const activeWord = document.getElementById('previewActiveWord');
-
-      canvas.style.transform = `rotate(${rotAngle}deg)`;
-      canvas.style.color = pColor;
-      canvas.style.textShadow = `
-        -2px -2px 0 ${sColor},  2px -2px 0 ${sColor},
-        -2px  2px 0 ${sColor},  2px  2px 0 ${sColor},
-         0px  3px 6px rgba(0,0,0,0.8)
-      `;
-
-      if (bgMode === 'phrase') {
-        canvas.className = "text-xl font-extrabold tracking-wide uppercase transition-all duration-150 transform bg-black/70 px-4 py-2 rounded-xl inline-block border border-white/10";
-      } else {
-        canvas.className = "text-xl font-extrabold tracking-wide uppercase transition-all duration-150 transform inline-block";
+      if (canvas) {
+        canvas.style.transform = `rotate(${rotAngle}deg)`;
+        canvas.style.color = pColor;
+        canvas.style.textShadow = `
+          -${strokeW}px -${strokeW}px 0 ${sColor},  ${strokeW}px -${strokeW}px 0 ${sColor},
+          -${strokeW}px  ${strokeW}px 0 ${sColor},  ${strokeW}px  ${strokeW}px 0 ${sColor},
+           0px  3px 6px rgba(0,0,0,0.8)
+        `;
+      }
+      if (activeWord) {
+        activeWord.style.color = autoEmphasis ? eColor : aColor;
+        activeWord.style.textShadow = `
+          -${strokeW}px -${strokeW}px 0 ${sColor},  ${strokeW}px -${strokeW}px 0 ${sColor},
+          -${strokeW}px  ${strokeW}px 0 ${sColor},  ${strokeW}px  ${strokeW}px 0 ${sColor},
+           0px  3px 6px rgba(0,0,0,0.9)
+        `;
       }
 
-      if (autoEmphasis) {
-        activeWord.style.color = eColor;
-        if (bgMode === 'emphasis' || bgMode === 'word') {
-          activeWord.className = "inline-block transform scale-110 px-2 py-0.5 rounded-lg bg-black/80 border border-white/20 font-black shadow-lg";
-        } else {
-          activeWord.className = "inline-block transform scale-120 px-1 font-black underline";
-        }
-      } else {
+      // 2. Update Central Monitor Subtitle Overlay
+      const playerSubtitle = document.getElementById('playerActiveSubtitle');
+      if (playerSubtitle) {
+        playerSubtitle.style.transform = `rotate(${rotAngle}deg)`;
+        playerSubtitle.style.color = aColor;
+        playerSubtitle.style.textShadow = `
+          -${strokeW}px -${strokeW}px 0 ${sColor},  ${strokeW}px -${strokeW}px 0 ${sColor},
+          -${strokeW}px  ${strokeW}px 0 ${sColor},  ${strokeW}px  ${strokeW}px 0 ${sColor},
+           0px  4px 8px rgba(0,0,0,0.95)
+        `;
+      }
+    } else {
         activeWord.style.color = aColor;
         if (bgMode === 'word') {
           activeWord.className = "inline-block transform scale-105 px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 font-extrabold";

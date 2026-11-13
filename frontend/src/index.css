@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@layer base {
+  :root, [data-theme="midnight"].dark {
+    --color-bg: #0B0D12;
+    --color-sidebar: #111722;
+    --color-card: #141821;
+    --color-surface: #1D2430;
+    --color-line: #293244;
+    --color-accent: #8B5CF6;
+    --color-accent-hover: #7C3AED;
+    --color-accent-soft: rgba(139, 92, 246, 0.16);
+    --color-accent-glow: rgba(139, 92, 246, 0.35);
+    --color-text: #F1F5F9;
+    --color-muted: #929BAA;
+    --color-input-bg: #0D1118;
+    --color-input-border: #293244;
+    --color-active-nav: #1B2232;
+  }
+
+  [data-theme="midnight"].light {
+    --color-bg: #F8FAFC;
+    --color-sidebar: #FFFFFF;
+    --color-card: #FFFFFF;
+    --color-surface: #F1F5F9;
+    --color-line: #E2E8F0;
+    --color-accent: #7C3AED;
+    --color-accent-hover: #6D28D9;
+    --color-accent-soft: rgba(124, 58, 237, 0.12);
+    --color-accent-glow: rgba(124, 58, 237, 0.25);
+    --color-text: #0F172A;
+    --color-muted: #64748B;
+    --color-input-bg: #FFFFFF;
+    --color-input-border: #CBD5E1;
+    --color-active-nav: #EDE9FE;
+  }
+
+  [data-theme="obsidian"].dark {
+    --color-bg: #080B0F;
+    --color-sidebar: #0E131A;
+    --color-card: #121820;
+    --color-surface: #18222E;
+    --color-line: #1E2C3D;
+    --color-accent: #06B6D4;
+    --color-accent-hover: #0891B2;
+    --color-accent-soft: rgba(6, 182, 212, 0.16);
+    --color-accent-glow: rgba(6, 182, 212, 0.35);
+    --color-text: #E5F7FA;
+    --color-muted: #8BA0B2;
+    --color-input-bg: #0A0E14;
+    --color-input-border: #1E2C3D;
+    --color-active-nav: #162432;
+  }
+
+  [data-theme="obsidian"].light {
+    --color-bg: #F0F9FF;
+    --color-sidebar: #FFFFFF;
+    --color-card: #FFFFFF;
+    --color-surface: #E0F2FE;
+    --color-line: #BAE6FD;
+    --color-accent: #0284C7;
+    --color-accent-hover: #0369A1;
+    --color-accent-soft: rgba(2, 132, 199, 0.12);
+    --color-accent-glow: rgba(2, 132, 199, 0.25);
+    --color-text: #082F49;
+    --color-muted: #0369A1;
+    --color-input-bg: #FFFFFF;
+    --color-input-border: #7DD3FC;
+    --color-active-nav: #E0F2FE;
+  }
+
+  [data-theme="graphite"].dark {
+    --color-bg: #101010;
+    --color-sidebar: #181818;
+    --color-card: #202020;
+    --color-surface: #282828;
+    --color-line: #333333;
+    --color-accent: #F97316;
+    --color-accent-hover: #EA580C;
+    --color-accent-soft: rgba(249, 115, 22, 0.16);
+    --color-accent-glow: rgba(249, 115, 22, 0.35);
+    --color-text: #F5F5F5;
+    --color-muted: #A3A3A3;
+    --color-input-bg: #141414;
+    --color-input-border: #333333;
+    --color-active-nav: #2D221A;
+  }
+
+  [data-theme="graphite"].light {
+    --color-bg: #FAFAFA;
+    --color-sidebar: #FFFFFF;
+    --color-card: #FFFFFF;
+    --color-surface: #F5F5F5;
+    --color-line: #E5E5E5;
+    --color-accent: #EA580C;
+    --color-accent-hover: #C2410C;
+    --color-accent-soft: rgba(234, 88, 12, 0.12);
+    --color-accent-glow: rgba(234, 88, 12, 0.25);
+    --color-text: #171717;
+    --color-muted: #737373;
+    --color-input-bg: #FFFFFF;
+    --color-input-border: #D4D4D4;
+    --color-active-nav: #FFEDD5;
+  }
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+}
+
+.bg-canvas { background-color: var(--color-bg); }
+.bg-sidebar { background-color: var(--color-sidebar); }
+.bg-card-panel { background-color: var(--color-card); }
+.bg-surface-elevated { background-color: var(--color-surface); }
+.border-studio { border-color: var(--color-line); }
+.text-primary-var { color: var(--color-text); }
+.text-muted-var { color: var(--color-muted); }
+.text-accent-var { color: var(--color-accent); }
+.bg-accent-var { background-color: var(--color-accent); }
+.bg-accent-soft-var { background-color: var(--color-accent-soft); }
+
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 999px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
