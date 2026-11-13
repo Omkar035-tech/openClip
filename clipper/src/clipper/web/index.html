@@ -2099,7 +2099,7 @@
       xhr.send(formData);
     }
 
-    function updatePreview() {
+        function updatePreview() {
       updateLivePreview();
     }
 
@@ -2150,17 +2150,8 @@
            0px  4px 8px rgba(0,0,0,0.95)
         `;
       }
-    } else {
-        activeWord.style.color = aColor;
-        if (bgMode === 'word') {
-          activeWord.className = "inline-block transform scale-105 px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 font-extrabold";
-        } else {
-          activeWord.className = "inline-block transform scale-105 px-1 font-extrabold";
-        }
-      }
     }
 
-    
     // --- Aspect Ratio & Streamer Split UI Handlers ---
     function selectAspectRatio(ratio) {
       document.getElementById('selectedAspectRatio').value = ratio;
