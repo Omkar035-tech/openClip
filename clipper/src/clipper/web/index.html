@@ -444,7 +444,7 @@
               </div>
 
               <!-- Upload buttons and hidden file input -->
-              <input type="file" id="sourceFileInput" accept=".mp4,.mkv,.mov,.webm,.avi" class="hidden" onchange="handleSourceFileUpload(this.files)">
+              <input type="file" id="sourceFileInput" accept=".mp4,.mkv,.mov,.webm,.avi" class="hidden" onchange="handleSourceVideoUpload(event)">
               <div class="grid grid-cols-2 gap-2">
                 <button type="button" onclick="openLocalVideosModal()" class="w-full py-2 rounded-xl btn-studio-secondary text-xs font-medium flex items-center justify-center gap-1">
                   <span>📂 Library</span>
@@ -609,15 +609,40 @@
                   <span>3. Captions Style</span>
                 </span>
                 <button type="button" onclick="openCaptionPlayground()" class="text-[10px] font-semibold text-accent-var hover:underline">
-                  Presets ↗
+                  Full Studio ↗
                 </button>
+              </div>
+
+              <!-- Quick Presets Bar (All 6 Pro Presets) -->
+              <div>
+                <label class="text-[9px] font-semibold text-muted-var block mb-1 uppercase tracking-wider">Style Presets</label>
+                <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+                  <button type="button" onclick="applyQuickPreset('mrbeast')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-accent-var text-primary-var font-semibold truncate transition text-center">
+                    ⚡ MrBeast
+                  </button>
+                  <button type="button" onclick="applyQuickPreset('cyberpunk')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-cyan-400 text-primary-var font-semibold truncate transition text-center">
+                    🌐 Cyberpunk
+                  </button>
+                  <button type="button" onclick="applyQuickPreset('hormozi')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-emerald-400 text-primary-var font-semibold truncate transition text-center">
+                    🔥 Hormozi
+                  </button>
+                  <button type="button" onclick="applyQuickPreset('cleanbox')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-blue-400 text-primary-var font-semibold truncate transition text-center">
+                    🧊 Clean Box
+                  </button>
+                  <button type="button" onclick="applyQuickPreset('hotred')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-red-400 text-primary-var font-semibold truncate transition text-center">
+                    🚨 Red Punch
+                  </button>
+                  <button type="button" onclick="applyQuickPreset('goldpop')" class="py-1 px-1.5 rounded-lg bg-surface-elevated hover:bg-card-panel border border-studio hover:border-amber-400 text-primary-var font-semibold truncate transition text-center">
+                    ⭐ Gold Pop
+                  </button>
+                </div>
               </div>
 
               <!-- Font Family & Font Size -->
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[10px] font-semibold text-muted-var block mb-1">Font Family</label>
-                  <select id="fontFamily" class="w-full text-xs px-2 py-1.5" onchange="updatePreview()">
+                  <select id="fontFamily" class="w-full text-xs px-2 py-1.5" onchange="updateLivePreview()">
                     <option value="Montserrat" selected>Montserrat Black</option>
                     <option value="Komika Axis">Komika Axis</option>
                     <option value="The Bold Font">The Bold Font</option>
@@ -630,29 +655,63 @@
                     <label class="text-[10px] font-semibold text-muted-var">Font Size</label>
                     <span id="fontVal" class="text-[10px] font-mono text-accent-var font-bold">68px</span>
                   </div>
-                  <input type="range" id="fontSize" min="40" max="84" value="68" class="w-full h-1.5 mt-1" oninput="document.getElementById('fontVal').innerText = this.value + 'px'; updatePreview();">
+                  <input type="range" id="fontSize" min="40" max="84" value="68" class="w-full h-1.5 mt-1" oninput="document.getElementById('fontVal').innerText = this.value + 'px'; updateLivePreview();">
                 </div>
               </div>
 
-              <!-- Color Pickers: Text Color, Active Word, Stroke -->
-              <div class="grid grid-cols-3 gap-2">
+              <!-- 4 Live Color Palettes: Text Color, Active Pop, Emphasis Tag, Stroke Outline -->
+              <div class="grid grid-cols-4 gap-1.5">
                 <div>
-                  <label class="text-[9px] text-muted-var block mb-1">Text Color</label>
+                  <label class="text-[9px] text-muted-var block mb-1 truncate">Text Color</label>
                   <div class="flex items-center gap-1 p-1 bg-surface-elevated rounded-lg border border-studio">
-                    <input type="color" id="primaryColor" value="#FFFFFF" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updatePreview()">
+                    <input type="color" id="primaryColor" value="#FFFFFF" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updateLivePreview()">
                     <span id="primaryHex" class="text-[9px] font-mono text-primary-var">#FFF</span>
                   </div>
                 </div>
                 <div>
-                  <label class="text-[9px] text-muted-var block mb-1">Active Word</label>
+                  <label class="text-[9px] text-muted-var block mb-1 truncate">Active Pop</label>
                   <div class="flex items-center gap-1 p-1 bg-surface-elevated rounded-lg border border-studio">
-                    <input type="color" id="activeColor" value="#FFD400" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updatePreview()">
+                    <input type="color" id="activeColor" value="#FFD400" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updateLivePreview()">
                     <span id="activeHex" class="text-[9px] font-mono text-primary-var">#FFD400</span>
                   </div>
                 </div>
                 <div>
+                  <label class="text-[9px] text-muted-var block mb-1 truncate">Emphasis</label>
+                  <div class="flex items-center gap-1 p-1 bg-surface-elevated rounded-lg border border-studio">
+                    <input type="color" id="emphasisColor" value="#00FFCC" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updateLivePreview()">
+                    <span id="emphasisHex" class="text-[9px] font-mono text-primary-var">#00FFCC</span>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[9px] text-muted-var block mb-1 truncate">Stroke</label>
+                  <div class="flex items-center gap-1 p-1 bg-surface-elevated rounded-lg border border-studio">
+                    <input type="color" id="strokeColor" value="#000000" class="w-4 h-4 rounded cursor-pointer bg-transparent border-0" onchange="updateLivePreview()">
+                    <span id="strokeHex" class="text-[9px] font-mono text-primary-var">#000</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tilt Angle & Background Style & Stroke Width -->
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <div class="flex justify-between items-center mb-1">
+                    <label class="text-[9px] text-muted-var">Tilt</label>
+                    <span id="rotLabel" class="text-[9px] font-mono text-accent-var font-bold">0°</span>
+                  </div>
+                  <input type="range" id="rotationAngle" min="-12" max="12" value="0" step="1" class="w-full h-1 mt-1" oninput="document.getElementById('rotLabel').innerText = this.value + '°'; updateLivePreview();">
+                </div>
+                <div>
+                  <label class="text-[9px] text-muted-var block mb-1">Background</label>
+                  <select id="bgMode" class="w-full text-xs px-1.5 py-1" onchange="updateLivePreview()">
+                    <option value="none" selected>None</option>
+                    <option value="word">Active Word Pill</option>
+                    <option value="emphasis">Emphasis Pill</option>
+                    <option value="phrase">Full Box</option>
+                  </select>
+                </div>
+                <div>
                   <label class="text-[9px] text-muted-var block mb-1">Stroke Width</label>
-                  <select id="strokeWidth" class="w-full text-xs px-1.5 py-1" onchange="updatePreview()">
+                  <select id="strokeWidth" class="w-full text-xs px-1.5 py-1" onchange="updateLivePreview()">
                     <option value="0">None</option>
                     <option value="2" selected>2px Outline</option>
                     <option value="4">4px Heavy</option>
@@ -660,22 +719,22 @@
                 </div>
               </div>
 
-              <!-- Hidden colors & tags for full backend support -->
-              <input type="hidden" id="emphasisColor" value="#00FFCC">
-              <span id="emphasisHex" class="hidden">#00FFCC</span>
-              <input type="hidden" id="strokeColor" value="#000000">
-              <span id="strokeHex" class="hidden">#000</span>
-              <input type="hidden" id="rotationAngle" value="0">
-              <span id="rotLabel" class="hidden">0°</span>
-              <input type="hidden" id="bgMode" value="none">
-              <input type="checkbox" id="autoEmphasis" checked class="hidden" onchange="updatePreview()">
+              <!-- Auto-Detect Emphasis Toggle -->
+              <label class="flex items-center justify-between p-2 rounded-xl bg-surface-elevated border border-studio cursor-pointer">
+                <div>
+                  <span class="text-xs font-semibold text-primary-var block">Auto-Detect Emphasis</span>
+                  <span class="text-[9px] text-muted-var">Color keywords & punchlines</span>
+                </div>
+                <input type="checkbox" id="autoEmphasis" checked class="accent-accent-var w-4 h-4 rounded" onchange="updateLivePreview()">
+              </label>
 
-              <!-- Mini live caption banner -->
-              <div class="p-2.5 rounded-xl bg-black border border-studio flex items-center justify-center overflow-hidden">
-                <div id="previewCanvas" class="text-sm font-black tracking-wide uppercase transition-all duration-150 transform">
-                  <span id="previewPrefix" class="text-white drop-shadow">WHAT </span>
-                  <span id="previewActiveWord" class="inline-block px-1 rounded text-yellow-300 drop-shadow">IS</span>
-                  <span id="previewSuffix" class="text-white drop-shadow"> THIS?!</span>
+              <!-- Interactive Subtitle Canvas Display Preview -->
+              <div class="p-3 rounded-xl bg-black border border-studio flex flex-col items-center justify-center overflow-hidden min-h-[90px] relative">
+                <span class="text-[9px] uppercase tracking-wider text-muted-var absolute top-1.5 left-2.5 font-mono">Interactive Subtitle Canvas</span>
+                <div id="previewCanvas" class="text-base font-black tracking-wide uppercase transition-all duration-150 transform inline-block mt-2">
+                  <span id="previewPrefix">I WORKED AT </span>
+                  <span id="previewActiveWord" class="inline-block px-1.5 py-0.5 rounded-lg text-amber-400">SEVEN 11</span>
+                  <span id="previewSuffix"> TO SURVIVE</span>
                 </div>
               </div>
             </div>
@@ -2103,6 +2162,26 @@
       updateLivePreview();
     }
 
+    function applyQuickPreset(name) {
+      if (typeof PRESETS !== 'undefined' && PRESETS[name]) {
+        const p = PRESETS[name];
+        if (p.primary && document.getElementById('primaryColor')) document.getElementById('primaryColor').value = p.primary;
+        if (p.active && document.getElementById('activeColor')) document.getElementById('activeColor').value = p.active;
+        if (p.emphasis && document.getElementById('emphasisColor')) document.getElementById('emphasisColor').value = p.emphasis;
+        if (p.stroke && document.getElementById('strokeColor')) document.getElementById('strokeColor').value = p.stroke;
+        if (p.rotation !== undefined && document.getElementById('rotationAngle')) {
+          document.getElementById('rotationAngle').value = p.rotation;
+          if (document.getElementById('rotLabel')) document.getElementById('rotLabel').innerText = p.rotation + '°';
+        }
+        if (p.bgMode && document.getElementById('bgMode')) document.getElementById('bgMode').value = p.bgMode;
+        if (p.size && document.getElementById('fontSize')) {
+          document.getElementById('fontSize').value = p.size;
+          if (document.getElementById('fontVal')) document.getElementById('fontVal').innerText = p.size + 'px';
+        }
+        updateLivePreview();
+      }
+    }
+
     function updateLivePreview() {
       const pColor = document.getElementById('primaryColor') ? document.getElementById('primaryColor').value : '#FFFFFF';
       const aColor = document.getElementById('activeColor') ? document.getElementById('activeColor').value : '#FFD400';
@@ -2129,14 +2208,28 @@
           -${strokeW}px  ${strokeW}px 0 ${sColor},  ${strokeW}px  ${strokeW}px 0 ${sColor},
            0px  3px 6px rgba(0,0,0,0.8)
         `;
+
+        if (bgMode === 'phrase') {
+          canvas.className = "text-base font-black tracking-wide uppercase transition-all duration-150 transform inline-block bg-black/80 px-3 py-1.5 rounded-xl border border-white/20";
+        } else {
+          canvas.className = "text-base font-black tracking-wide uppercase transition-all duration-150 transform inline-block";
+        }
       }
+      
       if (activeWord) {
-        activeWord.style.color = autoEmphasis ? eColor : aColor;
+        const activeC = autoEmphasis ? eColor : aColor;
+        activeWord.style.color = activeC;
         activeWord.style.textShadow = `
           -${strokeW}px -${strokeW}px 0 ${sColor},  ${strokeW}px -${strokeW}px 0 ${sColor},
           -${strokeW}px  ${strokeW}px 0 ${sColor},  ${strokeW}px  ${strokeW}px 0 ${sColor},
            0px  3px 6px rgba(0,0,0,0.9)
         `;
+
+        if (bgMode === 'word' || (bgMode === 'emphasis' && autoEmphasis)) {
+          activeWord.className = "inline-block transform scale-110 px-2 py-0.5 rounded-lg bg-black/80 border border-white/25 font-black shadow-lg";
+        } else {
+          activeWord.className = "inline-block transform scale-110 px-1 font-black underline";
+        }
       }
 
       // 2. Update Central Monitor Subtitle Overlay

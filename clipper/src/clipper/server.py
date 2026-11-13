@@ -34,6 +34,15 @@ from clipper.editor_routes import router as long_form_router
 
 app = FastAPI(title="Clipper Studio API", version="1.0.0")
 
+# Mount React built assets if available
+dist_dir = Path(__file__).resolve().parent / "web" / "dist"
+if dist_dir.exists():
+    app.mount("/dist", StaticFiles(directory=dist_dir, html=False), name="dist")
+    assets_dir = dist_dir / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=assets_dir, html=False), name="assets")
+
+
 app.include_router(long_form_router)
 
 app.add_middleware(
