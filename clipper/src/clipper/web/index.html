@@ -263,11 +263,13 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-xs text-gray-400 block mb-1">Clips Count (Max 5)</label>
+            <label class="text-xs text-gray-400 block mb-1">Clips Count (Max 10)</label>
             <select id="nClips" class="w-full bg-dark-900 border border-dark-600 rounded-xl px-3 py-2 text-xs text-gray-200 focus:outline-none focus:border-amber-400">
               <option value="1">1 Short</option>
               <option value="3">3 Shorts</option>
-              <option value="5" selected>5 Shorts (Full Batch)</option>
+              <option value="5" selected>5 Shorts (Default Batch)</option>
+              <option value="7">7 Shorts</option>
+              <option value="10">10 Shorts (Mega Batch)</option>
             </select>
           </div>
           <div>
@@ -452,11 +454,18 @@
         </div>
       </div>
 
-      <!-- BIG ACTION BUTTON -->
-      <button id="startBtn" onclick="triggerClipping()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-gray-950 font-bold text-base shadow-xl shadow-amber-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99]">
-        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        <span>Generate Viral Shorts (Antigravity AI Engine)</span>
-      </button>
+      <!-- BIG ACTION BUTTONS (GENERATE & SHUFFLE) -->
+      <div class="space-y-2">
+        <button id="startBtn" onclick="triggerClipping(false)" class="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-gray-950 font-bold text-base shadow-xl shadow-amber-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99]">
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          <span>Generate Viral Shorts (Antigravity AI Engine)</span>
+        </button>
+
+        <button id="shuffleBtn" onclick="triggerClipping(true)" class="w-full py-3 rounded-2xl bg-dark-800 hover:bg-dark-700 text-amber-300 hover:text-amber-200 font-bold text-sm border border-amber-500/30 hover:border-amber-400 flex items-center justify-center space-x-2 transition-all transform active:scale-[0.99] shadow-md">
+          <span class="text-base">🎲</span>
+          <span>Shuffle & Generate New Clips (Avoid Existing)</span>
+        </button>
+      </div>
 
     </div>
 
@@ -3315,10 +3324,17 @@
       }
     });
 
-    async function triggerClipping() {
+    async function triggerClipping(isShuffle = false) {
       const btn = document.getElementById('startBtn');
-      btn.disabled = true;
-      btn.classList.add('opacity-60', 'cursor-not-allowed');
+      const shuffleBtn = document.getElementById('shuffleBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+      }
+      if (shuffleBtn) {
+        shuffleBtn.disabled = true;
+        shuffleBtn.classList.add('opacity-60', 'cursor-not-allowed');
+      }
 
       const isStreamerOn = document.getElementById('streamerTrackToggle') ? document.getElementById('streamerTrackToggle').checked : false;
       const selectedAr = document.getElementById('selectedAspectRatio') ? document.getElementById('selectedAspectRatio').value : '4:5';
@@ -3337,6 +3353,7 @@
 
       const payload = {
         video_path: document.getElementById('videoPath').value,
+        shuffle: isShuffle,
         layout: isStreamerOn ? 'streamer_split' : document.getElementById('layoutMode').value,
         aspect_ratio: selectedAr,
         streamer_layout_enabled: isStreamerOn,
@@ -3384,8 +3401,14 @@
         pollStatus();
       } catch (err) {
         alert("Failed to start generation: " + err);
-        btn.disabled = false;
-        btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        if (btn) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+        if (shuffleBtn) {
+          shuffleBtn.disabled = false;
+          shuffleBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
       }
     }
 
@@ -3409,8 +3432,15 @@
           if (status.status === 'completed' || status.status === 'error') {
             clearInterval(pollInterval);
             const btn = document.getElementById('startBtn');
-            btn.disabled = false;
-            btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            if (btn) {
+              btn.disabled = false;
+              btn.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
+            const shuffleBtn = document.getElementById('shuffleBtn');
+            if (shuffleBtn) {
+              shuffleBtn.disabled = false;
+              shuffleBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+            }
             if (status.status === 'completed') {
               loadGalleryFolders();
             }

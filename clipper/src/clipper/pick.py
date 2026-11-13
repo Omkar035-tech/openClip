@@ -332,14 +332,24 @@ def score_with_local_engine(candidates: List[Dict[str, Any]]) -> List[Dict[str, 
     scored.sort(key=lambda x: x["score_total"], reverse=True)
     return scored
 
-def select_and_rank_clips(transcript: List[Dict[str, Any]], features: Dict[str, Any], config: Dict[str, Any], cache_dir: Path) -> List[Dict[str, Any]]:
+def select_and_rank_clips(
+    transcript: List[Dict[str, Any]],
+    features: Dict[str, Any],
+    config: Dict[str, Any],
+    cache_dir: Path,
+    excluded_intervals: Optional[List[Dict[str, float]]] = None
+) -> List[Dict[str, Any]]:
     """
     Stages 3 & 4: Generates candidates and scores them via Gemini LLM or local fallback.
     Saves ranked.json and selection_report.md.
+    If excluded_intervals is provided (e.g. during shuffle / re-roll), any candidate that overlaps
+    with an existing generated clip is skipped to guarantee fresh, non-repeated clips.
     """
     ranked_file = cache_dir / "ranked.json"
     n_target = int(config.get("general", {}).get("n_clips", 5))
-    if ranked_file.exists():
+    shuffle_mode = bool(config.get("shuffle", False) or excluded_intervals)
+
+    if not shuffle_mode and ranked_file.exists():
         try:
             with open(ranked_file, "r", encoding="utf-8") as f:
                 cached_clips = json.load(f)
@@ -351,7 +361,28 @@ def select_and_rank_clips(transcript: List[Dict[str, Any]], features: Dict[str, 
     candidates = extract_candidate_windows(transcript, features, config)
     if not candidates:
         raise ValueError("No valid candidate windows found")
-        
+
+    # If excluded_intervals is passed, filter out any candidate that overlaps with already created clips
+    if excluded_intervals:
+        print(f"[Selection] Filtering out candidates overlapping with {len(excluded_intervals)} existing clips...")
+        filtered = []
+        for c in candidates:
+            overlaps_existing = False
+            for ex in excluded_intervals:
+                ex_start = float(ex.get("start", ex.get("source_start", 0.0)))
+                ex_end = float(ex.get("end", ex.get("source_end", 0.0)))
+                # Disjoint check: c ends before ex starts OR c starts after ex ends
+                if not (c["end"] <= ex_start or c["start"] >= ex_end):
+                    overlaps_existing = True
+                    break
+            if not overlaps_existing:
+                filtered.append(c)
+        if filtered:
+            print(f"[Selection] Retained {len(filtered)} novel candidate windows after excluding existing clips.")
+            candidates = filtered
+        else:
+            print("[Selection] Warning: All candidate windows overlapped existing clips! Using all candidates with lower overlap priority.")
+
     engine_arch = config.get("engine_architecture", "openclip_standard")
     user_prompt = config.get("wayin_prompt")
 

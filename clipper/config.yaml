@@ -26,11 +26,11 @@ clip:
 captions:
   style: bold-pop
   font_dir: fonts
-  font_file: BebasNeue-Regular.ttf
-  font_size: 40
+  font_file: Poppins-ExtraBold.ttf
+  font_size: 70
   max_safe_width: 920
   primary_color: '#ffffff'
-  active_color: '#f59e0b'
+  active_color: '#ef4444'
   stroke_color: '#000000'
   stroke_width: 8
   vertical_position_ratio: 0.7
@@ -38,12 +38,12 @@ captions:
   karaoke_pop_scale: 1.1
   show_title_card: true
   title_card_duration: 2.2
-  emphasis_color: '#fcd34d'
-  rotation_angle: 2.0
-  bg_mode: word
-  bg_color: '#1a1612'
-  bg_radius: 10
-  fade_duration: 0.08
+  emphasis_color: '#f97316'
+  rotation_angle: -5.0
+  bg_mode: emphasis
+  bg_color: '#000000'
+  bg_radius: 14
+  fade_duration: 0.1
   auto_detect_emphasis: true
 camera:
   detector: mediapipe

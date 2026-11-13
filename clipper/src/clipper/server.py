@@ -259,7 +259,7 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config = load_config()
         
         # Apply user knobs
-        n_clips = min(5, max(1, int(payload.get("n_clips", 5))))
+        n_clips = min(10, max(1, int(payload.get("n_clips", 5))))
         max_duration = float(payload.get("max_duration", 75.0))
         min_duration = min(max_duration - 10.0, 35.0)
         
@@ -368,16 +368,55 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         wav_path = cache_dir / "audio_16k.wav"
         features = compute_audio_features(str(wav_path), transcript, cache_dir)
         
-        # If clip count differs from cached ranked.json, invalidate stale ranked cache
-        ranked_cached = cache_dir / "ranked.json"
-        if ranked_cached.exists():
-            try:
-                with open(ranked_cached, "r", encoding="utf-8") as rf:
-                    cached_data = json.load(rf)
-                    if isinstance(cached_data, list) and len(cached_data) != n_clips:
-                        ranked_cached.unlink(missing_ok=True)
-            except Exception:
-                pass
+        # Check if shuffle/new clips requested or previous clips exist
+        is_shuffle = bool(payload.get("shuffle", False))
+        config["shuffle"] = is_shuffle
+        
+        out_dir = BASE_DIR / config.get("general", {}).get("output_dir", "out") / v_path.stem
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        excluded_intervals = []
+        next_clip_offset = 0
+
+        # Scan existing rendered manifests in output folder
+        existing_manifests = list(out_dir.glob("short_*_manifest.json"))
+        if existing_manifests:
+            for mf in existing_manifests:
+                try:
+                    with open(mf, "r", encoding="utf-8") as f:
+                        m_data = json.load(f)
+                        s_start = float(m_data.get("source_start", 0.0))
+                        s_end = float(m_data.get("source_end", 0.0))
+                        if s_end > s_start:
+                            excluded_intervals.append({"start": s_start, "end": s_end})
+                except Exception:
+                    pass
+            # Find the highest existing short number (e.g. short_05 -> 5)
+            existing_indices = []
+            for mf in existing_manifests:
+                try:
+                    num_str = mf.stem.replace("short_", "").replace("_manifest", "")
+                    existing_indices.append(int(num_str))
+                except Exception:
+                    pass
+            if existing_indices:
+                next_clip_offset = max(existing_indices)
+
+        if is_shuffle:
+            log_event(f"🎲 Shuffle mode active: Found {len(excluded_intervals)} existing clips. Generating fresh, non-repeated clips (starting at #{next_clip_offset + 1})...")
+            # Invalidate cached ranked.json so fresh selection runs
+            (cache_dir / "ranked.json").unlink(missing_ok=True)
+        else:
+            # If not shuffle mode, only invalidate if clip count differs
+            ranked_cached = cache_dir / "ranked.json"
+            if ranked_cached.exists():
+                try:
+                    with open(ranked_cached, "r", encoding="utf-8") as rf:
+                        cached_data = json.load(rf)
+                        if isinstance(cached_data, list) and len(cached_data) != n_clips:
+                            ranked_cached.unlink(missing_ok=True)
+                except Exception:
+                    pass
 
         # 4. Multimodal Selection & Viral Hook Scoring (40% - 50%)
         studio_state["stage"] = "AI Semantic & Viral Moment Detection"
@@ -386,7 +425,14 @@ def run_pipeline_thread(payload: Dict[str, Any]):
             log_event("[openClip 2.0 (Beta)] Running Wayin.ai Hierarchical Funnel (Hook-First 1-3s Saliency + Gemini Reasoning)...")
         else:
             log_event("[openClip Standard] Scanning dialogue for curiosity hooks, comedy banter, and punchlines...")
-        ranked_clips = select_and_rank_clips(transcript, features, config, cache_dir)
+        
+        ranked_clips = select_and_rank_clips(
+            transcript,
+            features,
+            config,
+            cache_dir,
+            excluded_intervals=excluded_intervals if is_shuffle else None
+        )
         studio_state["candidates"] = [
             {
                 "index": i + 1,
@@ -403,25 +449,24 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         log_event(f"Identified top {len(ranked_clips)} viral moments.")
         
         # 5. Video Rendering & Compositing (50% - 95%)
-        out_dir = BASE_DIR / config.get("general", {}).get("output_dir", "out") / v_path.stem
-        out_dir.mkdir(parents=True, exist_ok=True)
-        
         excluded_music = []
         # If user picked a specific OST
         selected_track_id = payload.get("selected_track_id")
         
         total_clips = len(ranked_clips)
-        log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts ({render_workers} workers, encoder: {config['performance']['render_hardware']})...")
+        start_index = (next_clip_offset + 1) if is_shuffle else 1
+        log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts (#{start_index} to #{start_index + total_clips - 1}) with {render_workers} workers...")
         
         # Prepare render tasks
         render_jobs = []
-        for idx, clip_meta in enumerate(ranked_clips, 1):
+        for i, clip_meta in enumerate(ranked_clips):
+            job_idx = start_index + i
             if selected_track_id and selected_track_id != "auto":
                 c_meta = dict(clip_meta)
                 c_meta["custom_track_id"] = selected_track_id
             else:
                 c_meta = clip_meta
-            render_jobs.append((idx, c_meta))
+            render_jobs.append((job_idx, c_meta))
             
         completed_count = 0
         
