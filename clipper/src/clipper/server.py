@@ -93,6 +93,10 @@ def load_config() -> dict:
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_studio_ui():
+    dist_index = Path(__file__).resolve().parent / "web" / "dist" / "index.html"
+    if dist_index.exists():
+        with open(dist_index, "r", encoding="utf-8") as f:
+            return HTMLResponse(f.read())
     index_file = Path(__file__).resolve().parent / "web" / "index.html"
     if not index_file.exists():
         return HTMLResponse("<h2>Clipper Studio UI not found.</h2>")
