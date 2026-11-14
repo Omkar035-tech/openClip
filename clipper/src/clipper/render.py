@@ -114,6 +114,7 @@ def render_short_clip(
     streamer_mode = config.get("clip", {}).get("streamer_mode", "auto")
     cam_placement = config.get("clip", {}).get("cam_placement", "top")
     manual_cam_box = config.get("clip", {}).get("manual_cam_box", None)
+    manual_game_box = config.get("clip", {}).get("manual_game_box", None)
     
     if layout_mode == "streamer_split":
         print(f"[{clip_id_str.upper()}] Initializing Streamer Layout (placement: {cam_placement}, mode: {streamer_mode}, target: {target_w}x{target_h})...")
@@ -122,6 +123,7 @@ def render_short_clip(
             cam_placement=cam_placement,
             mode=streamer_mode,
             manual_cam_box=tuple(manual_cam_box) if manual_cam_box and len(manual_cam_box) == 4 else None,
+            manual_game_box=tuple(manual_game_box) if manual_game_box and len(manual_game_box) == 4 else None,
             alpha=cam_alpha
         )
         if streamer_mode == "manual" and manual_cam_box:

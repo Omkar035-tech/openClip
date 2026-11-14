@@ -184,7 +184,7 @@ class StreamerSplitTracker:
     - Top or Bottom webcam placement.
     - Automated detection: detects face and expands to natural square / card framing.
     - Manual mode: takes custom crop coordinates [x, y, w, h] selected by user in UI.
-    - Centered / zoomed gameplay view.
+    - Custom gameplay region [x, y, w, h] to exclude webcam or focus on UI/action.
     - Full-frame blurred & darkened background of original video for cinematic reel aesthetics.
     """
     def __init__(
@@ -194,6 +194,7 @@ class StreamerSplitTracker:
         cam_placement: str = "top",
         mode: str = "auto",
         manual_cam_box: Optional[Tuple[int, int, int, int]] = None,
+        manual_game_box: Optional[Tuple[int, int, int, int]] = None,
         alpha: float = 0.08
     ):
         self.src_w = src_w
@@ -201,6 +202,7 @@ class StreamerSplitTracker:
         self.cam_placement = cam_placement.lower() if cam_placement in ("top", "bottom") else "top"
         self.mode = mode.lower() if mode in ("auto", "manual") else "auto"
         self.manual_cam_box = manual_cam_box
+        self.manual_game_box = manual_game_box
         self.alpha = alpha
         
         cascade_path = Path("assets/haarcascade_frontalface_default.xml")
@@ -274,13 +276,14 @@ class StreamerSplitTracker:
         frame_bgr: np.ndarray,
         cam_box: Tuple[int, int, int, int],
         target_w: int = 1080,
-        target_h: int = 1920
+        target_h: int = 1920,
+        game_box: Optional[Tuple[int, int, int, int]] = None
     ) -> np.ndarray:
         """
         Composites:
         1. Blurred & darkened full-frame background of frame_bgr.
         2. Cropped webcam card (top or bottom) with sleek double border.
-        3. Zoomed gameplay video (filling remaining vertical space).
+        3. Zoomed gameplay video (custom game_box crop or centered default, filling remaining vertical space).
         """
         # 1. Background
         bg_scale = max(target_w / float(self.src_w), target_h / float(self.src_h))
@@ -310,19 +313,29 @@ class StreamerSplitTracker:
         cam_resized = cv2.resize(cam_crop, (cam_disp_w, cam_disp_h), interpolation=cv2.INTER_LANCZOS4)
         cam_x = (target_w - cam_disp_w) // 2
 
-        # 3. Zoomed gameplay section
+        # 3. Gameplay section (Support user-defined manual_game_box to completely exclude webcam)
+        g_box = game_box or self.manual_game_box
         game_disp_w = target_w
         game_disp_h = min(int(target_h * 0.52), int(target_w * (self.src_h / float(self.src_w)) * 1.35))
-        
-        crop_gh = int(self.src_h * 0.95)
-        crop_gw = int(crop_gh * (game_disp_w / float(game_disp_h)))
-        if crop_gw > self.src_w:
-            crop_gw = self.src_w
-            crop_gh = int(crop_gw * (game_disp_h / float(game_disp_w)))
-            
-        gx1 = (self.src_w - crop_gw) // 2
-        gy1 = (self.src_h - crop_gh) // 2
-        game_crop = frame_bgr[gy1:gy1 + crop_gh, gx1:gx1 + crop_gw]
+
+        if g_box and len(g_box) == 4 and g_box[2] > 20 and g_box[3] > 20:
+            gx1, gy1, gw, gh = g_box
+            gx1 = max(0, min(self.src_w - 10, gx1))
+            gy1 = max(0, min(self.src_h - 10, gy1))
+            gw = max(10, min(self.src_w - gx1, gw))
+            gh = max(10, min(self.src_h - gy1, gh))
+            game_crop = frame_bgr[gy1:gy1 + gh, gx1:gx1 + gw]
+        else:
+            crop_gh = int(self.src_h * 0.95)
+            crop_gw = int(crop_gh * (game_disp_w / float(game_disp_h)))
+            if crop_gw > self.src_w:
+                crop_gw = self.src_w
+                crop_gh = int(crop_gw * (game_disp_h / float(game_disp_w)))
+                
+            gx1 = (self.src_w - crop_gw) // 2
+            gy1 = (self.src_h - crop_gh) // 2
+            game_crop = frame_bgr[gy1:gy1 + crop_gh, gx1:gx1 + crop_gw]
+
         game_resized = cv2.resize(game_crop, (game_disp_w, game_disp_h), interpolation=cv2.INTER_LANCZOS4)
 
         # 4. Position elements based on cam_placement

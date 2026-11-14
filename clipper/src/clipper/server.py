@@ -320,6 +320,12 @@ def run_pipeline_thread(payload: Dict[str, Any]):
                 config["clip"]["manual_cam_box"] = [int(v) for v in manual_box]
             else:
                 config["clip"]["manual_cam_box"] = None
+
+            manual_g_box = payload.get("manual_game_box")
+            if manual_g_box and isinstance(manual_g_box, list) and len(manual_g_box) == 4:
+                config["clip"]["manual_game_box"] = [int(v) for v in manual_g_box]
+            else:
+                config["clip"]["manual_game_box"] = None
         else:
             config["clip"]["layout"] = payload.get("layout", "podcast_vertical")
 

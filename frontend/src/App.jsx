@@ -38,6 +38,7 @@ export default function App() {
   const [camPlacement, setCamPlacement] = React.useState('top')
   const [streamerMode, setStreamerMode] = React.useState('auto')
   const [manualCamBox, setManualCamBox] = React.useState([0, 60, 380, 260])
+  const [manualGameBox, setManualGameBox] = React.useState([380, 0, 1540, 1080])
 
   // Caption Styling State
   const [fontFamily, setFontFamily] = React.useState('Montserrat')
@@ -192,6 +193,7 @@ export default function App() {
       cam_placement: camPlacement,
       streamer_mode: streamerMode,
       manual_cam_box: streamerMode === 'manual' ? manualCamBox : null,
+      manual_game_box: streamerMode === 'manual' ? manualGameBox : null,
       engine_architecture: engineArch,
       n_clips: clipCount,
       max_duration: maxDuration,
@@ -308,6 +310,8 @@ export default function App() {
             setStreamerMode={setStreamerMode}
             manualCamBox={manualCamBox}
             setManualCamBox={setManualCamBox}
+            manualGameBox={manualGameBox}
+            setManualGameBox={setManualGameBox}
             fontFamily={fontFamily}
             setFontFamily={setFontFamily}
             fontSize={fontSize}

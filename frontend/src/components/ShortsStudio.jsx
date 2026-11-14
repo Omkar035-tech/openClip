@@ -49,6 +49,8 @@ export function ShortsStudio({
   setStreamerMode,
   manualCamBox,
   setManualCamBox,
+  manualGameBox,
+  setManualGameBox,
   fontFamily,
   setFontFamily,
   fontSize,
@@ -122,8 +124,9 @@ export function ShortsStudio({
   const [frameLoading, setFrameLoading] = React.useState(false)
   const [videoNaturalDims, setVideoNaturalDims] = React.useState({ width: 1920, height: 1080 })
   const [videoTotalDuration, setVideoTotalDuration] = React.useState(120.0)
+  const [activeCropTarget, setActiveCropTarget] = React.useState('cam') // 'cam' or 'game'
   const [isDraggingCrop, setIsDraggingCrop] = React.useState(false)
-  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0, boxX: 0, boxY: 0 })
+  const [dragStart, setDragStart] = React.useState({ x: 0, y: 0, boxX: 0, boxY: 0, target: 'cam' })
 
   // Style Presets definitions
   const PRESETS = {
@@ -326,18 +329,25 @@ export function ShortsStudio({
   const resolvedActiveColor = autoEmphasis ? emphasisColor : activeColor
 
   // Calculate scaled manual crop box overlay coordinates inside wrapper
-  const cropBox = manualCamBox || [0, 60, 380, 260]
-  const [cbX, cbY, cbW, cbH] = cropBox
+  const camBox = manualCamBox || [0, 60, 380, 260]
+  const [cbX, cbY, cbW, cbH] = camBox
 
-  // Mouse handlers for dragging manual crop box
-  const handleCropMouseDown = (e) => {
+  const gameBox = manualGameBox || [380, 0, 1540, 1080]
+  const [gbX, gbY, gbW, gbH] = gameBox
+
+  // Mouse handlers for dragging manual crop boxes (Webcam or Game)
+  const handleCropMouseDown = (e, target = 'cam') => {
     e.preventDefault()
+    e.stopPropagation()
+    setActiveCropTarget(target)
     setIsDraggingCrop(true)
+    const activeBox = target === 'cam' ? camBox : gameBox
     setDragStart({
       x: e.clientX,
       y: e.clientY,
-      boxX: cbX,
-      boxY: cbY
+      boxX: activeBox[0],
+      boxY: activeBox[1],
+      target: target
     })
   }
 
@@ -351,10 +361,15 @@ export function ShortsStudio({
     const scaleX = videoNaturalDims.width / wrapW
     const scaleY = videoNaturalDims.height / wrapH
 
-    const newX = Math.max(0, Math.min(videoNaturalDims.width - cbW, dragStart.boxX + Math.round(dx * scaleX)))
-    const newY = Math.max(0, Math.min(videoNaturalDims.height - cbH, dragStart.boxY + Math.round(dy * scaleY)))
-
-    setManualCamBox([newX, newY, cbW, cbH])
+    if (dragStart.target === 'cam') {
+      const newX = Math.max(0, Math.min(videoNaturalDims.width - cbW, dragStart.boxX + Math.round(dx * scaleX)))
+      const newY = Math.max(0, Math.min(videoNaturalDims.height - cbH, dragStart.boxY + Math.round(dy * scaleY)))
+      setManualCamBox([newX, newY, cbW, cbH])
+    } else {
+      const newX = Math.max(0, Math.min(videoNaturalDims.width - gbW, dragStart.boxX + Math.round(dx * scaleX)))
+      const newY = Math.max(0, Math.min(videoNaturalDims.height - gbH, dragStart.boxY + Math.round(dy * scaleY)))
+      setManualGameBox([newX, newY, gbW, gbH])
+    }
   }
 
   const handleCropMouseUp = () => {
@@ -594,37 +609,62 @@ export function ShortsStudio({
                   {/* Manual Crop Box Interactive Window */}
                   {streamerMode === 'manual' && (
                     <div className="p-2.5 rounded-xl bg-[var(--color-card)] border border-[var(--color-line)] space-y-2 animate-in fade-in-0 duration-150">
-                      <div className="flex justify-between items-center text-[10px]">
-                        <div className="flex items-center gap-1.5 font-mono">
-                          <Crop className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                          <span className="text-[var(--color-accent)] font-bold">{previewTimestamp.toFixed(1)}s</span>
+                      {/* Top Bar: Selector for Webcam Box vs Game Region Box */}
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center bg-[var(--color-surface)] p-0.5 rounded-lg border border-[var(--color-line)]">
+                          <button
+                            type="button"
+                            onClick={() => setActiveCropTarget('cam')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                              activeCropTarget === 'cam'
+                                ? 'bg-[var(--color-accent)] text-white shadow-xs'
+                                : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
+                            }`}
+                          >
+                            Webcam Region
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveCropTarget('game')}
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                              activeCropTarget === 'game'
+                                ? 'bg-cyan-500 text-white shadow-xs'
+                                : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
+                            }`}
+                          >
+                            Game Region
+                          </button>
                         </div>
+
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           disabled={frameLoading}
                           onClick={() => loadCropFrame(previewTimestamp, false)}
-                          className="h-6 px-2 text-[10px] rounded-lg border-[var(--color-line)] bg-[var(--color-surface)] text-[var(--color-text)]"
+                          className="h-6 px-2 text-[10px] rounded-lg border-[var(--color-line)] bg-[var(--color-surface)] text-[var(--color-text)] shrink-0"
                         >
                           {frameLoading ? "Grabbing..." : "Grab Frame"}
                         </Button>
                       </div>
 
                       {/* Frame seek slider */}
-                      <Slider
-                        min={0}
-                        max={Math.ceil(videoTotalDuration)}
-                        step={0.5}
-                        value={previewTimestamp}
-                        onValueChange={(val) => {
-                          setPreviewTimestamp(val)
-                        }}
-                        onChange={() => {
-                          // Debounced frame load on slider change
-                          loadCropFrame(previewTimestamp, false)
-                        }}
-                      />
+                      <div className="flex items-center gap-2">
+                        <Slider
+                          min={0}
+                          max={Math.ceil(videoTotalDuration)}
+                          step={0.5}
+                          value={previewTimestamp}
+                          onValueChange={(val) => {
+                            setPreviewTimestamp(val)
+                          }}
+                          onChange={() => {
+                            loadCropFrame(previewTimestamp, false)
+                          }}
+                          className="flex-1"
+                        />
+                        <span className="text-[10px] font-mono text-[var(--color-accent)] font-bold shrink-0">{previewTimestamp.toFixed(1)}s</span>
+                      </div>
 
                       {/* Interactive Crop Canvas Wrapper */}
                       <div
@@ -639,15 +679,19 @@ export function ShortsStudio({
                           />
                         ) : (
                           <div className="text-[10px] text-[var(--color-muted)] italic text-center p-2">
-                            {frameLoading ? "Loading frame..." : "Click Grab Frame to preview webcam bounds"}
+                            {frameLoading ? "Loading frame..." : "Click Grab Frame to preview bounds"}
                           </div>
                         )}
 
-                        {/* Draggable manual crop overlay rectangle */}
+                        {/* Draggable Webcam Box (Purple) */}
                         {cropWrapperRef.current && (
                           <div
-                            onMouseDown={handleCropMouseDown}
-                            className="absolute border-2 border-[var(--color-accent)] bg-[var(--color-accent-soft)] cursor-move transition-shadow hover:shadow-lg"
+                            onMouseDown={(e) => handleCropMouseDown(e, 'cam')}
+                            className={`absolute border-2 cursor-move transition-shadow hover:shadow-lg ${
+                              activeCropTarget === 'cam'
+                                ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)] z-20 shadow-md ring-1 ring-[var(--color-accent)]'
+                                : 'border-[var(--color-accent)]/60 bg-[var(--color-accent-soft)]/40 z-10'
+                            }`}
                             style={{
                               left: `${(cbX / videoNaturalDims.width) * (cropWrapperRef.current.clientWidth || 280)}px`,
                               top: `${(cbY / videoNaturalDims.height) * (cropWrapperRef.current.clientHeight || 160)}px`,
@@ -655,51 +699,123 @@ export function ShortsStudio({
                               height: `${(cbH / videoNaturalDims.height) * (cropWrapperRef.current.clientHeight || 160)}px`,
                             }}
                           >
-                            <span className="absolute top-0.5 left-1 text-[8px] font-mono font-bold text-white bg-black/60 px-1 rounded pointer-events-none">
+                            <span className="absolute top-0.5 left-1 text-[8px] font-mono font-bold text-white bg-purple-900/80 px-1 rounded pointer-events-none border border-purple-500/50">
                               Cam Box
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Draggable Gameplay Region Box (Cyan) */}
+                        {cropWrapperRef.current && (
+                          <div
+                            onMouseDown={(e) => handleCropMouseDown(e, 'game')}
+                            className={`absolute border-2 cursor-move transition-shadow hover:shadow-lg ${
+                              activeCropTarget === 'game'
+                                ? 'border-cyan-400 bg-cyan-500/20 z-20 shadow-md ring-1 ring-cyan-400'
+                                : 'border-cyan-500/60 bg-cyan-500/10 z-10'
+                            }`}
+                            style={{
+                              left: `${(gbX / videoNaturalDims.width) * (cropWrapperRef.current.clientWidth || 280)}px`,
+                              top: `${(gbY / videoNaturalDims.height) * (cropWrapperRef.current.clientHeight || 160)}px`,
+                              width: `${(gbW / videoNaturalDims.width) * (cropWrapperRef.current.clientWidth || 280)}px`,
+                              height: `${(gbH / videoNaturalDims.height) * (cropWrapperRef.current.clientHeight || 160)}px`,
+                            }}
+                          >
+                            <span className="absolute top-0.5 left-1 text-[8px] font-mono font-bold text-white bg-cyan-900/80 px-1 rounded pointer-events-none border border-cyan-500/50">
+                              Game Region
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Crop bounds numerical inputs */}
-                      <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
-                        <div>
-                          <label className="text-[9px] text-[var(--color-muted)] block text-center">X</label>
-                          <Input
-                            type="number"
-                            value={cbX}
-                            onChange={(e) => setManualCamBox([parseInt(e.target.value) || 0, cbY, cbW, cbH])}
-                            className="h-6 text-[10px] font-mono px-1 py-0 text-center"
-                          />
+                      {/* Active Box Coordinates (Cam or Game) */}
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[9px] text-[var(--color-muted)] font-mono">
+                          <span className={activeCropTarget === 'cam' ? 'text-[var(--color-accent)] font-bold' : 'text-cyan-400 font-bold'}>
+                            Editing: {activeCropTarget === 'cam' ? 'Webcam (Purple)' : 'Game Region (Cyan)'}
+                          </span>
+                          <span className="italic">Drag box on frame or enter px</span>
                         </div>
-                        <div>
-                          <label className="text-[9px] text-[var(--color-muted)] block text-center">Y</label>
-                          <Input
-                            type="number"
-                            value={cbY}
-                            onChange={(e) => setManualCamBox([cbX, parseInt(e.target.value) || 0, cbW, cbH])}
-                            className="h-6 text-[10px] font-mono px-1 py-0 text-center"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-[var(--color-muted)] block text-center">Width</label>
-                          <Input
-                            type="number"
-                            value={cbW}
-                            onChange={(e) => setManualCamBox([cbX, cbY, parseInt(e.target.value) || 100, cbH])}
-                            className="h-6 text-[10px] font-mono px-1 py-0 text-center"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[9px] text-[var(--color-muted)] block text-center">Height</label>
-                          <Input
-                            type="number"
-                            value={cbH}
-                            onChange={(e) => setManualCamBox([cbX, cbY, cbW, parseInt(e.target.value) || 100])}
-                            className="h-6 text-[10px] font-mono px-1 py-0 text-center"
-                          />
-                        </div>
+
+                        {activeCropTarget === 'cam' ? (
+                          <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Cam X</label>
+                              <Input
+                                type="number"
+                                value={cbX}
+                                onChange={(e) => setManualCamBox([parseInt(e.target.value) || 0, cbY, cbW, cbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Cam Y</label>
+                              <Input
+                                type="number"
+                                value={cbY}
+                                onChange={(e) => setManualCamBox([cbX, parseInt(e.target.value) || 0, cbW, cbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Width</label>
+                              <Input
+                                type="number"
+                                value={cbW}
+                                onChange={(e) => setManualCamBox([cbX, cbY, parseInt(e.target.value) || 100, cbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Height</label>
+                              <Input
+                                type="number"
+                                value={cbH}
+                                onChange={(e) => setManualCamBox([cbX, cbY, cbW, parseInt(e.target.value) || 100])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Game X</label>
+                              <Input
+                                type="number"
+                                value={gbX}
+                                onChange={(e) => setManualGameBox([parseInt(e.target.value) || 0, gbY, gbW, gbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center border-cyan-500/40"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Game Y</label>
+                              <Input
+                                type="number"
+                                value={gbY}
+                                onChange={(e) => setManualGameBox([gbX, parseInt(e.target.value) || 0, gbW, gbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center border-cyan-500/40"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Width</label>
+                              <Input
+                                type="number"
+                                value={gbW}
+                                onChange={(e) => setManualGameBox([gbX, gbY, parseInt(e.target.value) || 100, gbH])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center border-cyan-500/40"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[9px] text-[var(--color-muted)] block text-center">Height</label>
+                              <Input
+                                type="number"
+                                value={gbH}
+                                onChange={(e) => setManualGameBox([gbX, gbY, gbW, parseInt(e.target.value) || 100])}
+                                className="h-6 text-[10px] font-mono px-1 py-0 text-center border-cyan-500/40"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -1044,7 +1160,7 @@ export function ShortsStudio({
         {/* ========================================================
             CENTER PREVIEW MONITOR (6 cols) - Visual Hero Centerpiece
             ======================================================== */}
-        <div className="lg:col-span-6 flex flex-col justify-between space-y-3 min-h-[460px]">
+        <div className="lg:col-span-6 flex flex-col justify-start space-y-3 min-h-[460px]">
           
           {/* Monitor Header */}
           <div className="flex items-center justify-between px-1">
@@ -1094,7 +1210,7 @@ export function ShortsStudio({
               />
 
               {/* Subtitle / Karaoke preview overlay synchronized with style */}
-              <div className="absolute bottom-16 inset-x-4 pointer-events-none flex justify-center text-center">
+              {/* <div className="absolute bottom-16 inset-x-4 pointer-events-none flex justify-center text-center">
                 <div
                   className="px-4 py-1.5 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/10 font-extrabold text-xl tracking-wide uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] transition-all duration-300"
                   style={{
@@ -1110,7 +1226,7 @@ export function ShortsStudio({
                 >
                   <span>WHAT?!</span>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Floating Viral Hook Score Badge */}
