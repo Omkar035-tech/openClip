@@ -47,6 +47,7 @@ export default function App() {
   const [emphasisColor, setEmphasisColor] = React.useState('#00FFCC')
   const [strokeColor, setStrokeColor] = React.useState('#000000')
   const [rotationAngle, setRotationAngle] = React.useState(0)
+  const [randomFlip, setRandomFlip] = React.useState(false)
   const [bgMode, setBgMode] = React.useState('none')
   const [strokeWidth, setStrokeWidth] = React.useState('2')
   const [autoEmphasis, setAutoEmphasis] = React.useState(true)
@@ -147,6 +148,7 @@ export default function App() {
       emphasis_color: emphasisColor,
       stroke_color: strokeColor,
       rotation_angle: rotationAngle,
+      random_flip: randomFlip,
       bg_mode: bgMode,
       auto_detect_emphasis: autoEmphasis,
       selected_track_id: ostSelect,
@@ -266,6 +268,8 @@ export default function App() {
             setStrokeColor={setStrokeColor}
             rotationAngle={rotationAngle}
             setRotationAngle={setRotationAngle}
+            randomFlip={randomFlip}
+            setRandomFlip={setRandomFlip}
             bgMode={bgMode}
             setBgMode={setBgMode}
             strokeWidth={strokeWidth}
@@ -318,6 +322,7 @@ export default function App() {
           fontFamily,
           fontSize,
           rotationAngle,
+          randomFlip,
           primaryColor,
           activeColor,
           emphasisColor,
@@ -329,6 +334,7 @@ export default function App() {
           setFontFamily(style.fontFamily)
           setFontSize(style.fontSize)
           setRotationAngle(style.rotationAngle)
+          if (style.randomFlip !== undefined) setRandomFlip(style.randomFlip)
           setPrimaryColor(style.primaryColor)
           setActiveColor(style.activeColor)
           setEmphasisColor(style.emphasisColor)

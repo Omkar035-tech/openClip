@@ -18,7 +18,11 @@ import {
   Ruler, 
   Check, 
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  Film,
+  Trash2,
+  Video,
+  Eye
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -252,7 +256,7 @@ export function LongFormStudio({
       <div className="p-4 rounded-2xl bg-[var(--color-card)] border border-[var(--color-line)] flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm shrink-0">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <span className="text-lg">🎬</span>
+            <Film className="w-5 h-5 text-[var(--color-accent)]" />
             <h1 className="text-base font-bold text-[var(--color-text)]">Long-Form Studio</h1>
             <Badge variant="outline" className="text-[10px] font-mono font-bold border-[var(--color-line)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
               Pro NLE
@@ -416,7 +420,7 @@ export function LongFormStudio({
               onClick={togglePlay}
               className="absolute w-14 h-14 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white flex items-center justify-center text-xl transition shadow-xl"
             >
-              {isPlaying ? "❚❚" : "▶"}
+              {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-0.5" />}
             </button>
 
             {/* Subtitle Dialogue Overlay */}
@@ -562,7 +566,7 @@ export function LongFormStudio({
                       <div key={ch.time} className="flex items-center justify-between p-1.5 rounded-lg bg-[var(--color-surface)] border border-[var(--color-line)]">
                         <span className="font-mono text-[var(--color-accent)] text-[10px]">{ch.time}</span>
                         <span className="text-[var(--color-text)] font-medium truncate flex-1 mx-2">{ch.title}</span>
-                        <span className="text-[var(--color-muted)] hover:text-rose-400 cursor-pointer">🗑</span>
+                        <Trash2 className="w-3.5 h-3.5 text-[var(--color-muted)] hover:text-rose-400 cursor-pointer" />
                       </div>
                     ))}
                   </div>
@@ -687,16 +691,16 @@ export function LongFormStudio({
           {/* Track Headers */}
           <div className="w-24 flex flex-col justify-around text-[10px] font-medium text-[var(--color-muted)] shrink-0 pr-2 border-r border-[var(--color-line)] select-none">
             <div className="flex items-center justify-between">
-              <span>📹 Video</span>
-              <span>👁</span>
+              <span className="flex items-center gap-1"><Video className="w-3 h-3 text-[var(--color-accent)]" /> Video</span>
+              <Eye className="w-3 h-3" />
             </div>
             <div className="flex items-center justify-between">
-              <span>🔤 Captions</span>
-              <span>👁</span>
+              <span className="flex items-center gap-1"><Type className="w-3 h-3 text-cyan-400" /> Captions</span>
+              <Eye className="w-3 h-3" />
             </div>
             <div className="flex items-center justify-between">
-              <span>🔊 Audio</span>
-              <span>👁</span>
+              <span className="flex items-center gap-1"><Volume2 className="w-3 h-3 text-emerald-400" /> Audio</span>
+              <Eye className="w-3 h-3" />
             </div>
           </div>
 

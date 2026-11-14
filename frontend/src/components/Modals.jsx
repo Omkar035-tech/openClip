@@ -5,7 +5,20 @@ import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
-import { Sparkles, X, Check, Copy, Share2 } from "lucide-react"
+import { 
+  Sparkles, 
+  X, 
+  Check, 
+  Copy, 
+  Share2, 
+  Palette, 
+  Film, 
+  Folder, 
+  Settings as SettingsIcon, 
+  Zap, 
+  Cpu, 
+  Shuffle 
+} from "lucide-react"
 
 // 1. New Long-Form Project Modal
 export function NewProjectModal({ open, onClose, onSubmitSuccess }) {
@@ -58,7 +71,10 @@ export function NewProjectModal({ open, onClose, onSubmitSuccess }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>🎬 Create Long-Form Studio Project</DialogTitle>
+          <DialogTitle>
+            <Film className="w-5 h-5 text-[var(--color-accent)] inline mr-2" />
+            <span>Create Long-Form Studio Project</span>
+          </DialogTitle>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 rounded-lg">
             <X className="w-4 h-4" />
           </Button>
@@ -127,6 +143,7 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
   const [fontFamily, setFontFamily] = React.useState(currentStyle?.fontFamily || "Montserrat")
   const [fontSize, setFontSize] = React.useState(currentStyle?.fontSize || 68)
   const [rotationAngle, setRotationAngle] = React.useState(currentStyle?.rotationAngle || 0)
+  const [randomFlip, setRandomFlip] = React.useState(currentStyle?.randomFlip || false)
   const [primaryColor, setPrimaryColor] = React.useState(currentStyle?.primaryColor || "#FFFFFF")
   const [activeColor, setActiveColor] = React.useState(currentStyle?.activeColor || "#FFD400")
   const [emphasisColor, setEmphasisColor] = React.useState(currentStyle?.emphasisColor || "#00FFCC")
@@ -134,6 +151,21 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
   const [strokeWidth, setStrokeWidth] = React.useState(currentStyle?.strokeWidth || "2")
   const [bgMode, setBgMode] = React.useState(currentStyle?.bgMode || "none")
   const [previewText, setPreviewText] = React.useState("I WORKED AT {{GOOGLE}} FOR 10 YEARS TO SURVIVE")
+  const [previewFlipState, setPreviewFlipState] = React.useState(false)
+
+  // When randomFlip is enabled, toggle simulated flip every 1.5s in the playground
+  React.useEffect(() => {
+    if (!randomFlip) {
+      setPreviewFlipState(false)
+      return
+    }
+    const timer = setInterval(() => {
+      setPreviewFlipState(prev => !prev)
+    }, 1500)
+    return () => clearInterval(timer)
+  }, [randomFlip])
+
+  const effectiveAngle = randomFlip ? (previewFlipState ? -rotationAngle : rotationAngle) : rotationAngle
 
   const handleApply = () => {
     if (onApplyStyle) {
@@ -141,6 +173,7 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
         fontFamily,
         fontSize,
         rotationAngle,
+        randomFlip,
         primaryColor,
         activeColor,
         emphasisColor,
@@ -156,7 +189,10 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>🎨 Caption Style Studio & Playground</DialogTitle>
+          <DialogTitle>
+            <Palette className="w-5 h-5 text-[var(--color-accent)] inline mr-2" />
+            <span>Caption Style Studio & Playground</span>
+          </DialogTitle>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 rounded-lg">
             <X className="w-4 h-4" />
           </Button>
@@ -173,6 +209,18 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
                 <label className="text-xs text-[var(--color-muted)] block mb-1">Tilt Angle: {rotationAngle}°</label>
                 <Slider min={-15} max={15} step={1} value={rotationAngle} onValueChange={setRotationAngle} />
               </div>
+            </div>
+
+            {/* Random Flip Option */}
+            <div className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)]">
+              <div className="flex items-center gap-2">
+                <Shuffle className="w-4 h-4 text-[var(--color-accent)]" />
+                <div>
+                  <span className="text-xs font-semibold text-[var(--color-text)] block">Random Flip Angle</span>
+                  <span className="text-[9px] text-[var(--color-muted)]">Flips sign (+{rotationAngle}° to -{rotationAngle}°) across phrases</span>
+                </div>
+              </div>
+              <Switch checked={randomFlip} onCheckedChange={setRandomFlip} />
             </div>
 
             <div className="grid grid-cols-4 gap-2">
@@ -224,11 +272,11 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
           <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
             <div className="aspect-[9/16] max-h-[340px] mx-auto w-full bg-black rounded-3xl border border-[var(--color-line)] flex items-center justify-center p-6 relative overflow-hidden shadow-2xl">
               <div
-                className={`text-center font-black text-xl uppercase tracking-wider ${
+                className={`text-center font-black text-xl uppercase tracking-wider transition-all duration-300 ${
                   bgMode === 'phrase' ? 'bg-black/80 px-3 py-1.5 rounded-xl border border-white/20' : ''
                 }`}
                 style={{
-                  transform: `rotate(${rotationAngle}deg)`,
+                  transform: `rotate(${effectiveAngle}deg)`,
                   color: primaryColor,
                   textShadow: `
                     -${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},  ${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},
@@ -286,7 +334,10 @@ export function LocalVideosModal({ open, onClose, onSelectVideo }) {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>📂 Local Video Library</DialogTitle>
+          <DialogTitle>
+            <Folder className="w-5 h-5 text-[var(--color-accent)] inline mr-2" />
+            <span>Local Video Library</span>
+          </DialogTitle>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 rounded-lg">
             <X className="w-4 h-4" />
           </Button>
@@ -358,7 +409,7 @@ export function YouTubeModal({ open, onClose, clip }) {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-red-500">
-            <Share2 className="w-4 h-4 fill-current" />
+            <Share2 className="w-4 h-4 fill-current inline mr-2" />
             <span>YouTube Shorts Automation</span>
           </DialogTitle>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 rounded-lg">
@@ -385,9 +436,10 @@ export function YouTubeModal({ open, onClose, clip }) {
         <DialogFooter className="flex-col sm:flex-col gap-2">
           <Button
             onClick={copyAndOpen}
-            className="w-full h-9 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold"
+            className="w-full h-9 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold flex items-center justify-center gap-1.5"
           >
-            📋 Copy Metadata & Open YouTube Studio
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy Metadata &amp; Open YouTube Studio</span>
           </Button>
           <Button
             variant="outline"
@@ -425,7 +477,7 @@ export function SettingsSidebar({ open, onClose, engineArch, setEngineArch }) {
       <div className="p-5 space-y-5 overflow-y-auto custom-scrollbar">
         <div className="flex items-center justify-between border-b border-[var(--color-line)] pb-3">
           <div className="flex items-center gap-2">
-            <span className="text-[var(--color-accent)] text-lg">⚙️</span>
+            <SettingsIcon className="w-5 h-5 text-[var(--color-accent)]" />
             <h2 className="text-sm font-bold text-[var(--color-text)]">Studio & Hardware Settings</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7 rounded-lg">
@@ -475,8 +527,8 @@ export function SettingsSidebar({ open, onClose, engineArch, setEngineArch }) {
               <div>
                 <label className="text-[11px] text-[var(--color-muted)] block mb-1">GroqCloud Model</label>
                 <Select value={groqModel} onChange={(e) => setGroqModel(e.target.value)} className="h-8 text-xs font-mono">
-                  <option value="llama-3.3-70b-versatile">⚡ llama-3.3-70b-versatile (280 T/s)</option>
-                  <option value="llama-3.1-8b-instant">🚀 llama-3.1-8b-instant (560 T/s)</option>
+                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile (280 T/s)</option>
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant (560 T/s)</option>
                 </Select>
               </div>
 
@@ -506,18 +558,18 @@ export function SettingsSidebar({ open, onClose, engineArch, setEngineArch }) {
           <div>
             <label className="text-[11px] text-[var(--color-muted)] block mb-1">Whisper Speech AI</label>
             <Select value={whisperHw} onChange={(e) => setWhisperHw(e.target.value)} className="h-8 text-xs">
-              <option value="auto">⚡ Auto (Fastest GPU / Metal)</option>
-              <option value="gpu">🚀 GPU (CUDA / Float16)</option>
-              <option value="cpu">💻 CPU (INT8 Multi-Thread)</option>
+              <option value="auto">Auto (Fastest GPU / Metal)</option>
+              <option value="gpu">GPU (CUDA / Float16)</option>
+              <option value="cpu">CPU (INT8 Multi-Thread)</option>
             </Select>
           </div>
 
           <div>
             <label className="text-[11px] text-[var(--color-muted)] block mb-1">Video Encoder</label>
             <Select value={renderHw} onChange={(e) => setRenderHw(e.target.value)} className="h-8 text-xs">
-              <option value="auto">⚡ Auto (NVENC / VideoToolbox)</option>
-              <option value="gpu">🚀 Hardware GPU (NVENC)</option>
-              <option value="cpu">💻 Software CPU (libx264)</option>
+              <option value="auto">Auto (NVENC / VideoToolbox)</option>
+              <option value="gpu">Hardware GPU (NVENC)</option>
+              <option value="cpu">Software CPU (libx264)</option>
             </Select>
           </div>
         </div>

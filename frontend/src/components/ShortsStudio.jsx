@@ -62,6 +62,8 @@ export function ShortsStudio({
   setStrokeColor,
   rotationAngle,
   setRotationAngle,
+  randomFlip,
+  setRandomFlip,
   bgMode,
   setBgMode,
   strokeWidth,
@@ -97,6 +99,21 @@ export function ShortsStudio({
   const [isMuted, setIsMuted] = React.useState(false)
   const [currentTimecode, setCurrentTimecode] = React.useState("00:32 / 01:15")
   const [uploadProgress, setUploadProgress] = React.useState({ show: false, pct: 0, status: "" })
+  const [simulatedFlip, setSimulatedFlip] = React.useState(false)
+
+  // In preview canvas, toggle flip every 1.5s when randomFlip is active
+  React.useEffect(() => {
+    if (!randomFlip) {
+      setSimulatedFlip(false)
+      return
+    }
+    const timer = setInterval(() => {
+      setSimulatedFlip(prev => !prev)
+    }, 1500)
+    return () => clearInterval(timer)
+  }, [randomFlip])
+
+  const effectiveRotationAngle = randomFlip ? (simulatedFlip ? -rotationAngle : rotationAngle) : rotationAngle
 
   // Manual Crop Box State
   const [previewTimestamp, setPreviewTimestamp] = React.useState(2.0)
@@ -264,7 +281,7 @@ export function ShortsStudio({
         try {
           const data = JSON.parse(xhr.responseText)
           if (data.success) {
-            setUploadProgress({ show: true, pct: 100, status: `✓ Uploaded ${data.filename} (${data.size_mb} MB)` })
+            setUploadProgress({ show: true, pct: 100, status: `Uploaded ${data.filename} (${data.size_mb} MB)` })
             setVideoPath(data.path)
             setSourceFileName(data.filename)
             setTimeout(() => setUploadProgress({ show: false, pct: 0, status: "" }), 2500)
@@ -713,44 +730,50 @@ export function ShortsStudio({
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('mrbeast')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-[var(--color-accent)] text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-[var(--color-accent)] text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  ⚡ MrBeast
+                  <Zap className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>MrBeast</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('cyberpunk')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-cyan-400 text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-cyan-400 text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  🌐 Cyberpunk
+                  <Sparkles className="w-3 h-3 text-cyan-400 shrink-0" />
+                  <span>Cyberpunk</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('hormozi')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-emerald-400 text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-emerald-400 text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  🔥 Hormozi
+                  <Zap className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span>Hormozi</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('cleanbox')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-blue-400 text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-blue-400 text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  🧊 Clean Box
+                  <Sliders className="w-3 h-3 text-blue-400 shrink-0" />
+                  <span>Clean Box</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('hotred')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-red-400 text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-red-400 text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  🚨 Red Punch
+                  <Sparkles className="w-3 h-3 text-red-400 shrink-0" />
+                  <span>Red Punch</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => applyQuickPreset('goldpop')}
-                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-amber-400 text-[var(--color-text)] font-semibold truncate transition text-center"
+                  className="py-1 px-1.5 rounded-lg bg-[var(--color-surface)] hover:bg-[var(--color-card)] border border-[var(--color-line)] hover:border-amber-400 text-[var(--color-text)] font-semibold truncate transition text-center flex items-center justify-center gap-1"
                 >
-                  ⭐ Gold Pop
+                  <Sparkles className="w-3 h-3 text-amber-400 shrink-0" />
+                  <span>Gold Pop</span>
                 </button>
               </div>
             </div>
@@ -882,6 +905,21 @@ export function ShortsStudio({
               </div>
             </div>
 
+            {/* Random Flip Option */}
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)]">
+              <div className="flex items-center gap-2">
+                <Shuffle className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                <div>
+                  <span className="text-xs font-semibold text-[var(--color-text)] block">Random Flip Angle</span>
+                  <span className="text-[9px] text-[var(--color-muted)]">Randomly flips +{rotationAngle}° and -{rotationAngle}°</span>
+                </div>
+              </div>
+              <Switch
+                checked={randomFlip}
+                onCheckedChange={setRandomFlip}
+              />
+            </div>
+
             {/* Auto-Detect Emphasis Toggle */}
             <div className="flex items-center justify-between p-2 rounded-xl bg-[var(--color-surface)] border border-[var(--color-line)]">
               <div>
@@ -900,11 +938,11 @@ export function ShortsStudio({
                 Interactive Subtitle Canvas
               </span>
               <div
-                className={`text-base font-black tracking-wide uppercase transition-all duration-150 inline-block mt-2 ${
+                className={`text-base font-black tracking-wide uppercase transition-all duration-300 inline-block mt-2 ${
                   bgMode === 'phrase' ? 'bg-black/80 px-3 py-1.5 rounded-xl border border-white/20' : ''
                 }`}
                 style={{
-                  transform: `rotate(${rotationAngle}deg)`,
+                  transform: `rotate(${effectiveRotationAngle}deg)`,
                   color: primaryColor,
                   textShadow: `
                     -${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},  ${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},
@@ -1056,9 +1094,9 @@ export function ShortsStudio({
               {/* Subtitle / Karaoke preview overlay synchronized with style */}
               <div className="absolute bottom-16 inset-x-4 pointer-events-none flex justify-center text-center">
                 <div
-                  className="px-4 py-1.5 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/10 font-extrabold text-xl tracking-wide uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] transition-all duration-150"
+                  className="px-4 py-1.5 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/10 font-extrabold text-xl tracking-wide uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] transition-all duration-300"
                   style={{
-                    transform: `rotate(${rotationAngle}deg)`,
+                    transform: `rotate(${effectiveRotationAngle}deg)`,
                     color: resolvedActiveColor,
                     textShadow: `
                       -${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},  ${strokeWidth}px -${strokeWidth}px 0 ${strokeColor},
@@ -1255,7 +1293,13 @@ export function ShortsStudio({
                           : "bg-[var(--color-surface)] text-[var(--color-muted)]"
                       }`}
                     >
-                      {isDone ? "✓" : isCurrent ? "●" : "○"}
+                      {isDone ? (
+                        <Check className="w-3 h-3 text-emerald-400" />
+                      ) : isCurrent ? (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)]" />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-muted)]/40" />
+                      )}
                     </span>
                     <span
                       className={`${
@@ -1324,13 +1368,14 @@ export function ShortsStudio({
                   <button
                     key={p.folder_name}
                     onClick={() => setActiveProjectIdx(idx)}
-                    className={`px-2.5 py-1 rounded-xl text-[10px] font-medium border transition shrink-0 ${
+                    className={`px-2.5 py-1 rounded-xl text-[10px] font-medium border transition shrink-0 flex items-center gap-1.5 ${
                       idx === activeProjectIdx
                         ? "bg-[var(--color-accent)] text-white border-[var(--color-accent)] font-bold shadow-xs"
                         : "bg-[var(--color-surface)] border-[var(--color-line)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
                     }`}
                   >
-                    📁 {p.display_name} ({p.clip_count})
+                    <Folder className="w-3 h-3 text-[var(--color-accent)]" />
+                    <span>{p.display_name} ({p.clip_count})</span>
                   </button>
                 ))}
               </div>

@@ -251,6 +251,12 @@ class CaptionRenderer:
         stroke_col = hex_to_rgba(self.style.get("stroke_color", "#000000"), int(255 * alpha_mult))
         stroke_w = int(self.style.get("stroke_width", 7))
         rotation_angle = float(self.style.get("rotation_angle", 0.0))
+        random_flip = bool(self.style.get("random_flip", False))
+        if random_flip and abs(rotation_angle) > 0.05:
+            # Alternates or pseudorandomly flips angle sign per phrase based on start time / index
+            phrase_seed = int(active_phrase["start"] * 100)
+            if (phrase_seed % 2) == 1:
+                rotation_angle = -rotation_angle
         
         bg_mode = self.style.get("bg_mode", "none")
         if self.style.get("box_enabled", False) and bg_mode == "none":
