@@ -1072,7 +1072,7 @@ export function ShortsStudio({
               <video
                 ref={videoPlayerRef}
                 playsInline
-                src={activeClip ? activeClip.file : undefined}
+                src={activeClip ? activeClip.file : (videoPath ? `/api/source-video-stream?path=${encodeURIComponent(videoPath)}` : undefined)}
                 className="w-full h-full object-cover"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}

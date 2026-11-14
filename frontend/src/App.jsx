@@ -111,8 +111,24 @@ export default function App() {
     }
   }
 
+  // Load latest source video if available
+  const loadDefaultVideo = async () => {
+    try {
+      const res = await fetch('/api/local-videos')
+      const data = await res.json()
+      if (data.videos && data.videos.length > 0) {
+        const v = data.videos[0]
+        setVideoPath(v.path)
+        setSourceFileName(v.name)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   React.useEffect(() => {
     loadGallery()
+    loadDefaultVideo()
   }, [])
 
   // Start Generation Dispatcher

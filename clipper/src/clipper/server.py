@@ -719,6 +719,21 @@ async def stream_music_track(filename: str):
         raise HTTPException(status_code=404, detail="Track not found")
     return FileResponse(track_path, media_type="audio/mpeg")
 
+@app.api_route("/api/source-video-stream", methods=["GET", "HEAD"])
+async def stream_source_video(path: str):
+    """Streams a source video file (supporting range requests via FileResponse) for UI preview playback."""
+    if not path or not path.strip():
+        raise HTTPException(status_code=400, detail="Path parameter is required")
+    v_path = Path(path.strip().strip('"').strip("'")).expanduser().resolve()
+    if not v_path.exists():
+        cand = (BASE_DIR / "uploads" / v_path.name).resolve()
+        if cand.exists():
+            v_path = cand
+    if not v_path.exists():
+        raise HTTPException(status_code=404, detail="Source video file not found")
+    media_type = "video/mp4" if v_path.suffix.lower() == ".mp4" else "video/webm"
+    return FileResponse(v_path, media_type=media_type)
+
 @app.get("/api/video/frame")
 async def get_video_frame(path: str, timestamp: float = 2.0):
     """Extracts a single frame from the video as JPEG for previewing and manual crop area selection."""
