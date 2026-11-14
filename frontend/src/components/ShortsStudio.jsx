@@ -786,13 +786,13 @@ export function ShortsStudio({
                 <Select
                   value={fontFamily}
                   onChange={(e) => setFontFamily(e.target.value)}
-                  className="h-8 text-xs"
+                  className="h-8 text-xs font-semibold"
                 >
-                  <option value="Montserrat">Montserrat Black</option>
-                  <option value="Komika Axis">Komika Axis</option>
-                  <option value="The Bold Font">The Bold Font</option>
-                  <option value="Bebas Neue">Bebas Neue</option>
-                  <option value="Anton">Anton</option>
+                  <option value="Montserrat">Montserrat ExtraBold</option>
+                  <option value="Anton">Anton Impact</option>
+                  <option value="Bebas Neue">Bebas Neue Bold</option>
+                  <option value="Poppins">Poppins Heavy</option>
+                  <option value="Inter">Inter Black</option>
                 </Select>
               </div>
               <div>
@@ -943,6 +943,7 @@ export function ShortsStudio({
                   bgMode === 'phrase' ? 'bg-black/80 px-3 py-1.5 rounded-xl border border-white/20' : ''
                 }`}
                 style={{
+                  fontFamily: fontFamily,
                   transform: `rotate(${effectiveRotationAngle}deg)`,
                   color: primaryColor,
                   textShadow: `
@@ -1097,6 +1098,7 @@ export function ShortsStudio({
                 <div
                   className="px-4 py-1.5 rounded-2xl bg-black/60 backdrop-blur-sm border border-white/10 font-extrabold text-xl tracking-wide uppercase drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)] transition-all duration-300"
                   style={{
+                    fontFamily: fontFamily,
                     transform: `rotate(${effectiveRotationAngle}deg)`,
                     color: resolvedActiveColor,
                     textShadow: `

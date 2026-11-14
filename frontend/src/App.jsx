@@ -111,24 +111,52 @@ export default function App() {
     }
   }
 
-  // Load latest source video if available
-  const loadDefaultVideo = async () => {
+  // Load latest source video and saved captions style from config
+  const loadInitialConfigAndVideo = async () => {
     try {
-      const res = await fetch('/api/local-videos')
-      const data = await res.json()
-      if (data.videos && data.videos.length > 0) {
-        const v = data.videos[0]
+      // 1. Fetch saved config
+      const resConfig = await fetch('/api/config')
+      const configData = await resConfig.json()
+      const captionsCfg = configData?.config?.captions
+      if (captionsCfg) {
+        if (captionsCfg.font_file) {
+          // Normalize font_file (e.g. "Montserrat-ExtraBold.ttf" -> "Montserrat")
+          let ff = captionsCfg.font_file
+          if (ff.includes("Montserrat")) ff = "Montserrat"
+          else if (ff.includes("Anton")) ff = "Anton"
+          else if (ff.includes("Bebas")) ff = "Bebas Neue"
+          else if (ff.includes("Poppins")) ff = "Poppins"
+          else if (ff.includes("Inter")) ff = "Inter"
+          setFontFamily(ff)
+        }
+        if (captionsCfg.font_size) setFontSize(Number(captionsCfg.font_size))
+        if (captionsCfg.primary_color) setPrimaryColor(captionsCfg.primary_color)
+        if (captionsCfg.active_color) setActiveColor(captionsCfg.active_color)
+        if (captionsCfg.emphasis_color) setEmphasisColor(captionsCfg.emphasis_color)
+        if (captionsCfg.stroke_color) setStrokeColor(captionsCfg.stroke_color)
+        if (captionsCfg.stroke_width !== undefined) setStrokeWidth(String(captionsCfg.stroke_width))
+        if (captionsCfg.rotation_angle !== undefined) setRotationAngle(Number(captionsCfg.rotation_angle))
+        if (captionsCfg.random_flip !== undefined) setRandomFlip(Boolean(captionsCfg.random_flip))
+        if (captionsCfg.bg_mode) setBgMode(captionsCfg.bg_mode)
+        if (captionsCfg.auto_detect_emphasis !== undefined) setAutoEmphasis(Boolean(captionsCfg.auto_detect_emphasis))
+      }
+
+      // 2. Fetch local videos
+      const resVideos = await fetch('/api/local-videos')
+      const dataVideos = await resVideos.json()
+      if (dataVideos.videos && dataVideos.videos.length > 0) {
+        const v = dataVideos.videos[0]
         setVideoPath(v.path)
         setSourceFileName(v.name)
       }
     } catch (e) {
-      console.error(e)
+      console.error("Failed to load initial studio config:", e)
     }
   }
 
   React.useEffect(() => {
     loadGallery()
-    loadDefaultVideo()
+    loadInitialConfigAndVideo()
   }, [])
 
   // Start Generation Dispatcher
@@ -145,6 +173,16 @@ export default function App() {
       progress: 5
     }))
 
+    // Map UI font family name to font TTF filename
+    const fontMapping = {
+      'Montserrat': 'Montserrat-ExtraBold.ttf',
+      'Anton': 'Anton-Regular.ttf',
+      'Bebas Neue': 'BebasNeue-Regular.ttf',
+      'Poppins': 'Poppins-ExtraBold.ttf',
+      'Inter': 'Inter-Bold.ttf'
+    }
+    const resolvedFontFile = fontMapping[fontFamily] || (fontFamily.endsWith('.ttf') ? fontFamily : 'Montserrat-ExtraBold.ttf')
+
     const payload = {
       video_path: videoPath,
       shuffle: isShuffle,
@@ -157,7 +195,7 @@ export default function App() {
       engine_architecture: engineArch,
       n_clips: clipCount,
       max_duration: maxDuration,
-      font_file: fontFamily,
+      font_file: resolvedFontFile,
       font_size: fontSize,
       primary_color: primaryColor,
       active_color: activeColor,
@@ -346,7 +384,7 @@ export default function App() {
           strokeWidth,
           bgMode
         }}
-        onApplyStyle={(style) => {
+        onApplyStyle={async (style) => {
           setFontFamily(style.fontFamily)
           setFontSize(style.fontSize)
           setRotationAngle(style.rotationAngle)
@@ -357,6 +395,37 @@ export default function App() {
           setStrokeColor(style.strokeColor)
           setStrokeWidth(style.strokeWidth)
           setBgMode(style.bgMode)
+
+          // Persist style to backend config.yaml so it survives reloads
+          const fontMap = {
+            'Montserrat': 'Montserrat-ExtraBold.ttf',
+            'Anton': 'Anton-Regular.ttf',
+            'Bebas Neue': 'BebasNeue-Regular.ttf',
+            'Poppins': 'Poppins-ExtraBold.ttf',
+            'Inter': 'Inter-Bold.ttf'
+          }
+          const ttf = fontMap[style.fontFamily] || (style.fontFamily.endsWith('.ttf') ? style.fontFamily : 'Montserrat-ExtraBold.ttf')
+          try {
+            await fetch('/api/captions/save-style', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                font_file: ttf,
+                font_size: style.fontSize,
+                primary_color: style.primaryColor,
+                active_color: style.activeColor,
+                emphasis_color: style.emphasisColor,
+                stroke_color: style.strokeColor,
+                stroke_width: parseInt(style.strokeWidth) || 2,
+                rotation_angle: style.rotationAngle,
+                random_flip: style.randomFlip,
+                bg_mode: style.bgMode,
+                auto_detect_emphasis: autoEmphasis
+              })
+            })
+          } catch (e) {
+            console.error("Failed to persist caption style:", e)
+          }
         }}
       />
 

@@ -42,6 +42,11 @@ if dist_dir.exists():
     if assets_dir.exists():
         app.mount("/assets", StaticFiles(directory=assets_dir, html=False), name="assets")
 
+# Mount fonts directory for web preview
+fonts_dir = BASE_DIR / "fonts"
+if fonts_dir.exists():
+    app.mount("/fonts", StaticFiles(directory=fonts_dir, html=False), name="fonts")
+
 
 app.include_router(long_form_router)
 

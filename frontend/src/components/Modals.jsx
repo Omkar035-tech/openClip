@@ -420,12 +420,12 @@ export function CaptionPlaygroundModal({ open, onClose, currentStyle, onApplySty
             <div className="grid grid-cols-3 gap-2.5">
               <div>
                 <label className="text-[10px] text-[var(--color-muted)] block mb-1">Font Family</label>
-                <Select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className="h-8 text-xs">
-                  <option value="Montserrat">Montserrat Black</option>
-                  <option value="Komika Axis">Komika Axis</option>
-                  <option value="The Bold Font">The Bold Font</option>
-                  <option value="Bebas Neue">Bebas Neue</option>
-                  <option value="Anton">Anton</option>
+                <Select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className="h-8 text-xs font-semibold">
+                  <option value="Montserrat">Montserrat ExtraBold</option>
+                  <option value="Anton">Anton Impact</option>
+                  <option value="Bebas Neue">Bebas Neue Bold</option>
+                  <option value="Poppins">Poppins Heavy</option>
+                  <option value="Inter">Inter Black</option>
                 </Select>
               </div>
               <div>
