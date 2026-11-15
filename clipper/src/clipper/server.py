@@ -881,6 +881,12 @@ async def prepare_youtube_short(payload: Dict[str, Any]):
     }
 
 def start_server(port: int = 8080):
+    # On Windows Python 3.8+, suppress benign connection reset noise (WinError 10054)
+    if sys.platform == "win32":
+        try:
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        except Exception:
+            pass
     print(f"Starting Clipper Studio on http://localhost:{port}...")
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="warning")
 
