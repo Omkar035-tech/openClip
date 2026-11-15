@@ -43,8 +43,7 @@ class VirtualCamera:
         # 1. White flash on start (2-3 frames)
         if self.white_flash and frame_idx < self.flash_frames:
             alpha = (self.flash_frames - frame_idx) / self.flash_frames * 0.4
-            white = np.full_like(out, 255)
-            out = cv2.addWeighted(out, 1.0 - alpha, white, alpha, 0)
+            out = cv2.addWeighted(out, 1.0 - alpha, np.full_like(out, 255), alpha, 0)
             
         # 2. Progress bar at top (inside safe zone at y=40, height=8px)
         if self.progress_bar and total_frames > 0:

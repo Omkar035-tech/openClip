@@ -235,7 +235,7 @@ def render_short_clip(
         if layout_mode == "streamer_split" and split_tracker:
             resized = split_tracker.composite_streamer_frame(frame, streamer_cam_box, target_w, target_h)
         elif layout_mode == "landscape":
-            resized = cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+            resized = cv2.resize(frame, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
         else:
             cur_crop_w = int(crop_w / zoom)
             cur_crop_h = int(crop_h / zoom)
@@ -254,22 +254,30 @@ def render_short_clip(
             y2 = y1 + cur_crop_h
             
             cropped = frame[y1:y2, x1:x2]
-            resized = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_LANCZOS4)
+            resized = cv2.resize(cropped, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
         
         # Apply camera visual effects (flash, progress bar)
         effect_frame = camera.apply_effects(resized, f_idx, num_frames)
         
-        # Overlay kinetic captions
-        pil_frame = Image.fromarray(cv2.cvtColor(effect_frame, cv2.COLOR_BGR2RGB))
+        # Overlay kinetic captions using fast direct ROI alpha blend (avoids full 6MB RGB-BGR conversions)
         overlay = caption_renderer.render(target_w, target_h, cur_t_abs, phrases)
-        pil_frame.paste(overlay, (0, 0), overlay)
+        bbox = overlay.getbbox()
+        if bbox:
+            bx1, by1, bx2, by2 = bbox
+            cropped_ov = overlay.crop(bbox)
+            ov_np = np.asarray(cropped_ov)
+            alpha = ov_np[:, :, 3:4].astype(np.float32) / 255.0
+            fg_bgr = ov_np[:, :, 2::-1].astype(np.float32)
+            roi = effect_frame[by1:by2, bx1:bx2].astype(np.float32)
+            effect_frame[by1:by2, bx1:bx2] = (fg_bgr * alpha + roi * (1.0 - alpha)).astype(np.uint8)
         
-        out_bgr = cv2.cvtColor(np.array(pil_frame), cv2.COLOR_RGB2BGR)
-        pipe.stdin.write(out_bgr.tobytes())
+        pipe.stdin.write(effect_frame.tobytes())
         
     pipe.stdin.close()
     pipe.wait()
     cap.release()
+    import gc
+    gc.collect()
     
     # 7. Extract raw voice segment
     temp_voice = temp_dir / "voice.wav"

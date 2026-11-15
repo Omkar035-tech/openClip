@@ -354,7 +354,8 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         config["performance"]["whisper_hardware"] = payload.get("whisper_hardware", "auto")
         config["performance"]["render_hardware"] = payload.get("render_hardware", "auto")
         config["performance"]["cpu_threads"] = int(payload.get("cpu_threads", os.cpu_count() or 4))
-        render_workers = max(1, min(4, int(payload.get("render_workers", 2))))
+        # Keep concurrent render workers at 1 to prevent multi-GB RAM spikes and GPU VRAM contention on Windows
+        render_workers = max(1, min(2, int(payload.get("render_workers", 1))))
 
         # Face Tracking & Camera Customization
         if "camera" not in config:

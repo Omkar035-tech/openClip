@@ -285,15 +285,18 @@ class StreamerSplitTracker:
         2. Cropped webcam card (top or bottom) with sleek double border.
         3. Zoomed gameplay video (custom game_box crop or centered default, filling remaining vertical space).
         """
-        # 1. Background
-        bg_scale = max(target_w / float(self.src_w), target_h / float(self.src_h))
-        bg_w = int(self.src_w * bg_scale)
-        bg_h = int(self.src_h * bg_scale)
-        bg_resized = cv2.resize(frame_bgr, (bg_w, bg_h), interpolation=cv2.INTER_LINEAR)
-        bg_x = (bg_w - target_w) // 2
-        bg_y = (bg_h - target_h) // 2
-        canvas = bg_resized[bg_y:bg_y + target_h, bg_x:bg_x + target_w]
-        canvas = cv2.GaussianBlur(canvas, (75, 75), 0)
+        # 1. Background (fast downsampled gaussian blur)
+        small_w = target_w // 4
+        small_h = target_h // 4
+        bg_scale = max(small_w / float(self.src_w), small_h / float(self.src_h))
+        scaled_w = int(self.src_w * bg_scale)
+        scaled_h = int(self.src_h * bg_scale)
+        bg_small = cv2.resize(frame_bgr, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR)
+        bg_x = max(0, (scaled_w - small_w) // 2)
+        bg_y = max(0, (scaled_h - small_h) // 2)
+        bg_crop = bg_small[bg_y:bg_y + small_h, bg_x:bg_x + small_w]
+        blurred_small = cv2.GaussianBlur(bg_crop, (19, 19), 0)
+        canvas = cv2.resize(blurred_small, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
         canvas = (canvas * 0.55).astype(np.uint8)
 
         # 2. Extract webcam card
@@ -310,7 +313,7 @@ class StreamerSplitTracker:
             cam_disp_h = max_cam_h
             cam_disp_w = int(cam_disp_h / aspect)
             
-        cam_resized = cv2.resize(cam_crop, (cam_disp_w, cam_disp_h), interpolation=cv2.INTER_LANCZOS4)
+        cam_resized = cv2.resize(cam_crop, (cam_disp_w, cam_disp_h), interpolation=cv2.INTER_LINEAR)
         cam_x = (target_w - cam_disp_w) // 2
 
         # 3. Gameplay section (Support user-defined manual_game_box to completely exclude webcam)
@@ -336,7 +339,7 @@ class StreamerSplitTracker:
             gy1 = (self.src_h - crop_gh) // 2
             game_crop = frame_bgr[gy1:gy1 + crop_gh, gx1:gx1 + crop_gw]
 
-        game_resized = cv2.resize(game_crop, (game_disp_w, game_disp_h), interpolation=cv2.INTER_LANCZOS4)
+        game_resized = cv2.resize(game_crop, (game_disp_w, game_disp_h), interpolation=cv2.INTER_LINEAR)
 
         # 4. Position elements based on cam_placement
         if self.cam_placement == "bottom":
@@ -359,7 +362,7 @@ class StreamerSplitTracker:
             game_y = cam_y + cam_disp_h + 30
             if game_y + game_disp_h > target_h:
                 game_disp_h = target_h - game_y
-                game_resized = cv2.resize(game_crop, (game_disp_w, game_disp_h), interpolation=cv2.INTER_LANCZOS4)
+                game_resized = cv2.resize(game_crop, (game_disp_w, game_disp_h), interpolation=cv2.INTER_LINEAR)
             canvas[game_y:game_y + game_disp_h, 0:game_disp_w] = game_resized
 
         return canvas
