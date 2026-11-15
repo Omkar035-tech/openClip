@@ -33,6 +33,7 @@ export default function App() {
   const [aspectRatio, setAspectRatio] = React.useState('9:16')
   const [clipCount, setClipCount] = React.useState(5)
   const [maxDuration, setMaxDuration] = React.useState(60)
+  const [clipMargin, setClipMargin] = React.useState(5) // Lead-in margin in seconds (0 - 25s, default 5s)
   const [fallbackLayout, setFallbackLayout] = React.useState('face_centered')
   const [webcamSplit, setWebcamSplit] = React.useState(false)
   const [camPlacement, setCamPlacement] = React.useState('top')
@@ -54,7 +55,7 @@ export default function App() {
   const [autoEmphasis, setAutoEmphasis] = React.useState(true)
 
   // Music & Effects
-  const [ostSelect, setOstSelect] = React.useState('electronic')
+  const [ostSelect, setOstSelect] = React.useState('none')
   const [musicLevel, setMusicLevel] = React.useState(-18)
   const [fxFlash, setFxFlash] = React.useState(true)
   const [fxProgress, setFxProgress] = React.useState(true)
@@ -197,6 +198,7 @@ export default function App() {
       engine_architecture: engineArch,
       n_clips: clipCount,
       max_duration: maxDuration,
+      clip_margin: clipMargin,
       font_file: resolvedFontFile,
       font_size: fontSize,
       primary_color: primaryColor,
@@ -300,6 +302,8 @@ export default function App() {
             setClipCount={setClipCount}
             maxDuration={maxDuration}
             setMaxDuration={setMaxDuration}
+            clipMargin={clipMargin}
+            setClipMargin={setClipMargin}
             fallbackLayout={fallbackLayout}
             setFallbackLayout={setFallbackLayout}
             webcamSplit={webcamSplit}

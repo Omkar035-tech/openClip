@@ -44,10 +44,24 @@ def render_short_clip(
     temp_dir = Path(temp_dir_base) / clip_id_str
     temp_dir.mkdir(parents=True, exist_ok=True)
     
-    t_start = clip_meta["start"]
-    t_end = clip_meta["end"]
-    duration = t_end - t_start
-    words = clip_meta["words"]
+    orig_start = float(clip_meta["start"])
+    t_end = float(clip_meta["end"])
+    
+    # Margin (lead-in context) support:
+    # Allows starting the clip e.g. 15s earlier so viewers see what happened before the moment.
+    # Total duration = (t_end - orig_start) + actual_margin
+    margin_sec = float(clip_meta.get("margin_sec", config.get("clip", {}).get("margin_sec", 0.0)))
+    effective_start = max(0.0, orig_start - margin_sec)
+    actual_margin = orig_start - effective_start
+    
+    t_start = effective_start
+    duration = (t_end - orig_start) + actual_margin
+    
+    # Use words matching the expanded time window if available
+    words = clip_meta.get("words", [])
+    if "all_transcript_words" in clip_meta:
+        words = [w for w in clip_meta["all_transcript_words"] if w["end"] >= t_start and w["start"] <= t_end]
+    
     layout_mode = config.get("clip", {}).get("layout", "podcast_vertical")
     
     from . import strip_emojis
@@ -59,12 +73,20 @@ def render_short_clip(
         pass
     
     # 1. Select mood-matched music track
-    library_dir = config.get("music", {}).get("library_dir", "music_library")
-    matched_music = select_track_for_clip(clip_meta, library_dir=library_dir, excluded_ids=excluded_music_ids)
-    music_file = matched_music["abs_file_path"] if matched_music else None
-    if matched_music:
-        excluded_music_ids.append(matched_music["id"])
-        print(f"[{clip_id_str.upper()}] Mood-matched music: '{matched_music['title']}' by {matched_music['artist']}")
+    # Check if music is disabled by configuration or if user selected 'none'
+    custom_track = clip_meta.get("custom_track_id")
+    music_enabled = config.get("music", {}).get("enabled", True)
+    if custom_track == "none" or not music_enabled:
+        matched_music = None
+        music_file = None
+        print(f"[{clip_id_str.upper()}] Background OST disabled ('none' or disabled in config).")
+    else:
+        library_dir = config.get("music", {}).get("library_dir", "music_library")
+        matched_music = select_track_for_clip(clip_meta, library_dir=library_dir, excluded_ids=excluded_music_ids)
+        music_file = matched_music["abs_file_path"] if matched_music else None
+        if matched_music:
+            excluded_music_ids.append(matched_music["id"])
+            print(f"[{clip_id_str.upper()}] Mood-matched music: '{matched_music['title']}' by {matched_music['artist']}")
         
     # 2. Setup video input
     cap = cv2.VideoCapture(video_path)
@@ -327,6 +349,8 @@ Music:
         "title": clip_meta["suggested_title"],
         "source_start": t_start,
         "source_end": t_end,
+        "original_moment_start": orig_start,
+        "lead_in_margin": actual_margin,
         "duration": duration,
         "resolution": [target_w, target_h],
         "fps": target_fps,

@@ -39,6 +39,8 @@ export function ShortsStudio({
   setClipCount,
   maxDuration,
   setMaxDuration,
+  clipMargin = 5,
+  setClipMargin,
   fallbackLayout,
   setFallbackLayout,
   webcamSplit,
@@ -541,6 +543,34 @@ export function ShortsStudio({
                   onValueChange={(val) => setMaxDuration(val)}
                   className="mt-2"
                 />
+              </div>
+            </div>
+
+            {/* Lead-in Margin (Pre-roll Context in seconds) */}
+            <div className="pt-1">
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center gap-1">
+                  <label className="text-[10px] font-semibold text-[var(--color-muted)]">Pre-Roll Margin</label>
+                  <span className="text-[9px] text-[var(--color-muted)] font-normal" title="Starts the clip earlier so viewers see what led up to the viral moment (Duration = Margin + Selected)">
+                    (Context lead-in)
+                  </span>
+                </div>
+                <span className="text-[10px] text-[var(--color-accent)] font-mono font-bold">
+                  {clipMargin}s lead-in
+                </span>
+              </div>
+              <Slider
+                min={0}
+                max={25}
+                step={1}
+                value={clipMargin}
+                onValueChange={(val) => setClipMargin && setClipMargin(val)}
+                className="mt-1"
+              />
+              <div className="flex justify-between text-[9px] text-[var(--color-muted)] mt-1 font-mono">
+                <span>0s (exact hook)</span>
+                <span>Default: 5s</span>
+                <span>Max: 25s</span>
               </div>
             </div>
 

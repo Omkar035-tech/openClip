@@ -364,11 +364,16 @@ def run_pipeline_thread(payload: Dict[str, Any]):
 
         # Music customization
         music_mode = payload.get("music_mode", "auto")
-        if music_mode == "off":
+        selected_track_id = payload.get("selected_track_id", "none")
+        if music_mode == "off" or selected_track_id == "none":
             config["music"]["enabled"] = False
         else:
             config["music"]["enabled"] = True
             config["music"]["level_db"] = float(payload.get("music_level_db", -22.0))
+            
+        # Lead-in margin (pre-roll context in seconds)
+        clip_margin = float(payload.get("clip_margin", 5.0))
+        config["clip"]["margin_sec"] = clip_margin
             
         # 1. Video Hashing & Cache (5% - 15%)
         studio_state["stage"] = "Validating cache & extracting audio"
@@ -484,14 +489,19 @@ def run_pipeline_thread(payload: Dict[str, Any]):
         log_event(f"Starting hardware-accelerated concurrent render of {total_clips} shorts (#{start_index} to #{start_index + total_clips - 1}) with {render_workers} workers...")
         
         # Prepare render tasks
+        # Extract full transcript words so pre-roll margin can display words if present
+        all_transcript_words = []
+        for seg in transcript:
+            all_transcript_words.extend(seg.get("words", []))
+
         render_jobs = []
         for i, clip_meta in enumerate(ranked_clips):
             job_idx = start_index + i
-            if selected_track_id and selected_track_id != "auto":
-                c_meta = dict(clip_meta)
+            c_meta = dict(clip_meta)
+            c_meta["all_transcript_words"] = all_transcript_words
+            c_meta["margin_sec"] = clip_margin
+            if selected_track_id:
                 c_meta["custom_track_id"] = selected_track_id
-            else:
-                c_meta = clip_meta
             render_jobs.append((job_idx, c_meta))
             
         completed_count = 0
